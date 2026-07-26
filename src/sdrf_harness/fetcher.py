@@ -1,0 +1,76 @@
+from __future__ import annotations
+
+import json
+import re
+from pathlib import Path
+
+from .models import Bundle
+
+RAW_EXTS = frozenset({"raw", "wiff", "d", "raw.gz", "wiff.gz"})
+PEAKLIST_EXTS = frozenset({"mgf", "mzml", "mzxml", "ms2", "pkl"})
+
+
+def _ext(name: str) -> str:
+    n = name.lower()
+    for e in ("raw.gz", "wiff.gz"):
+        if n.endswith("." + e):
+            return e
+    return n.rsplit(".", 1)[-1] if "." in n else ""
+
+
+def parse_pride_project(project_json: dict, files_json: list) -> Bundle:
+    orgs = [
+        (
+            o.get("name"),
+            re.search(r"(\d+)", str(o.get("accession", ""))).group(1)
+            if re.search(r"(\d+)", str(o.get("accession", "")))
+            else "",
+        )
+        for o in (project_json.get("organisms") or [])
+    ]
+    instr = [
+        i.get("name")
+        for i in (project_json.get("instruments") or [])
+        if i.get("name")
+    ]
+    files = [
+        {"name": f.get("fileName", ""), "ext": _ext(f.get("fileName", ""))}
+        for f in files_json
+    ]
+    deposited = next(
+        (f["name"] for f in files if f["name"].lower().endswith(".sdrf.tsv")), None
+    )
+    return Bundle(
+        accession=project_json.get("accession", ""),
+        repository="pride",
+        organisms=orgs,
+        instruments=instr,
+        files=files,
+        deposited_sdrf=deposited,
+    )
+
+
+def is_annotatable(bundle: Bundle):
+    exts = {f["ext"] for f in bundle.files}
+    if exts & RAW_EXTS:
+        return True, ""
+    if exts & PEAKLIST_EXTS:
+        return False, "peak-list-only deposit"
+    return False, "no vendor-native raw files"
+
+
+def fetch_bundle(accession, repository, cache_dir, session=None):
+    """Network fetch (PRIDE v3). Caches raw JSON; delegates parsing to parse_pride_project."""
+    import requests
+
+    cache_dir = Path(cache_dir)
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    s = session or requests.Session()
+    base = f"https://www.ebi.ac.uk/pride/ws/archive/v3/projects/{accession}"
+    proj = s.get(base, timeout=60).json()
+    files = s.get(base + "/files/all?pageSize=3000", timeout=120).json()
+    files = files if isinstance(files, list) else files.get("_embedded", {}).get("files", [])
+    (cache_dir / f"{accession}.project.json").write_text(json.dumps(proj))
+    b = parse_pride_project(proj, files)
+    (cache_dir / f"{accession}.bundle.json").write_text(b.to_json())
+    return b
