@@ -14,7 +14,7 @@ def test_peaklist_only_scores_zero():
 
 def test_deposited_sdrf_single_organism_scores_highest():
     s = score_annotatability(_b(deposited_sdrf="x.sdrf.tsv"))
-    assert s == 0.4 + 0.3 + 0.2 + 0.1
+    assert s == 1.0
 
 
 def test_multi_organism_scores_lower_than_single():

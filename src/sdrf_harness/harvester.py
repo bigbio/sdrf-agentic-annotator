@@ -14,7 +14,7 @@ def score_annotatability(bundle: Bundle) -> float:
         s += 0.2
     if bundle.organisms and bundle.organisms[0][1]:
         s += 0.1
-    return min(s, 1.0)
+    return round(min(s, 1.0), 3)
 
 
 def to_candidate_row(bundle: Bundle) -> dict:
