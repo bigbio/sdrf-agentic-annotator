@@ -18,14 +18,14 @@ def _ext(name: str) -> str:
     return n.rsplit(".", 1)[-1] if "." in n else ""
 
 
+def _taxid(accession) -> str:
+    m = re.search(r"(\d+)", str(accession or ""))
+    return m.group(1) if m else ""
+
+
 def parse_pride_project(project_json: dict, files_json: list) -> Bundle:
     orgs = [
-        (
-            o.get("name"),
-            re.search(r"(\d+)", str(o.get("accession", ""))).group(1)
-            if re.search(r"(\d+)", str(o.get("accession", "")))
-            else "",
-        )
+        (o.get("name"), _taxid(o.get("accession", "")))
         for o in (project_json.get("organisms") or [])
     ]
     instr = [
@@ -50,7 +50,7 @@ def parse_pride_project(project_json: dict, files_json: list) -> Bundle:
     )
 
 
-def is_annotatable(bundle: Bundle):
+def is_annotatable(bundle: Bundle) -> tuple[bool, str]:
     exts = {f["ext"] for f in bundle.files}
     if exts & RAW_EXTS:
         return True, ""
