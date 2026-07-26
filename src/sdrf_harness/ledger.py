@@ -1,6 +1,6 @@
 from __future__ import annotations
 import sqlite3
-from pathlib import Path
+from contextlib import closing
 from .models import STATUSES
 
 _COLS = ["accession", "repository", "status", "annotatability", "worker_id",
@@ -17,7 +17,7 @@ class Ledger:
         return c
 
     def init_db(self):
-        with self._conn() as c:
+        with closing(self._conn()) as c:
             c.execute("""CREATE TABLE IF NOT EXISTS datasets(
                 accession TEXT PRIMARY KEY, repository TEXT, status TEXT DEFAULT 'candidate',
                 annotatability REAL DEFAULT 0, worker_id TEXT, lease_expires_at REAL,
@@ -25,7 +25,7 @@ class Ledger:
 
     def add_candidates(self, rows) -> int:
         n = 0
-        with self._conn() as c:
+        with closing(self._conn()) as c:
             for r in rows:
                 cur = c.execute(
                     "INSERT OR IGNORE INTO datasets(accession, repository, annotatability, status) "
@@ -35,7 +35,7 @@ class Ledger:
         return n
 
     def claim(self, worker_id, n, lease_seconds, now) -> list:
-        with self._conn() as c:
+        with closing(self._conn()) as c:
             c.execute("BEGIN IMMEDIATE")
             rows = c.execute(
                 "SELECT accession FROM datasets WHERE status='candidate' "
@@ -54,21 +54,21 @@ class Ledger:
             assert k in _COLS, k
             sets.append(f"{k}=?"); vals.append(v)
         vals.append(accession)
-        with self._conn() as c:
+        with closing(self._conn()) as c:
             c.execute(f"UPDATE datasets SET {', '.join(sets)} WHERE accession=?", vals)
 
     def get(self, accession):
-        with self._conn() as c:
+        with closing(self._conn()) as c:
             r = c.execute("SELECT * FROM datasets WHERE accession=?", (accession,)).fetchone()
             return dict(r) if r else None
 
     def reclaim_expired(self, now) -> int:
-        with self._conn() as c:
+        with closing(self._conn()) as c:
             cur = c.execute("UPDATE datasets SET status='candidate', worker_id=NULL, lease_expires_at=NULL "
                             "WHERE status='claimed' AND lease_expires_at < ?", (now,))
             return cur.rowcount
 
     def counts(self) -> dict:
-        with self._conn() as c:
+        with closing(self._conn()) as c:
             return {r["status"]: r["n"] for r in
                     c.execute("SELECT status, COUNT(*) n FROM datasets GROUP BY status")}
