@@ -17,5 +17,5 @@ def commit_batch(corpus_dir, paths, message) -> str:
     subprocess.run(["git", "add", *rel], cwd=corpus_dir, check=True, capture_output=True)
     subprocess.run(["git", "commit", "-q", "-m", message], cwd=corpus_dir, check=True, capture_output=True)
     sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=corpus_dir,
-                         capture_output=True, text=True).stdout.strip()
+                         capture_output=True, text=True, check=True).stdout.strip()
     return sha
