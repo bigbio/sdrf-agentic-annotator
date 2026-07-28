@@ -1,4 +1,4 @@
-from sdrf_harness.run import parse_args
+from sdrf_harness.run import parse_args, build_get_sdrf_text
 
 
 def test_parse_args_defaults():
@@ -27,3 +27,8 @@ def test_parse_args_max_override():
         ]
     )
     assert ns.max == 5
+
+
+def test_get_sdrf_text_none_when_no_bundle(tmp_path):
+    getter = build_get_sdrf_text(tmp_path)  # empty cache dir, no <acc>.bundle.json
+    assert getter("PXDMISSING") is None

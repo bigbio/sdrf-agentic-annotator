@@ -87,4 +87,7 @@ def fetch_deposited_sdrf(bundle, ym, session=None):
         import requests
         session = requests.Session()
     url = deposited_sdrf_url(bundle.accession, ym, bundle.deposited_sdrf)
-    return session.get(url, timeout=120).text
+    resp = session.get(url, timeout=120)
+    if getattr(resp, "status_code", 200) != 200:
+        return None
+    return resp.text
