@@ -27,15 +27,7 @@ def build_get_sdrf_text(cache_dir):
         if not bpath.exists():
             return None
         b = Bundle.from_json(bpath.read_text())
-        ppath = Path(cache_dir) / f"{accession}.project.json"
-        ym = "2020/01"
-        if ppath.exists():
-            import re
-
-            m = re.search(r'"publicationDate"\s*:\s*"(\d{4})-(\d{2})', ppath.read_text())
-            if m:
-                ym = f"{m.group(1)}/{m.group(2)}"
-        return fetch_deposited_sdrf(b, ym)
+        return fetch_deposited_sdrf(b)
 
     return _get
 

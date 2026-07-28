@@ -23,3 +23,13 @@ def test_fetch_downloads_when_present():
     txt = fetch_deposited_sdrf(b, "2020/01", session=s)
     assert txt.startswith("source name")
     assert s.url.endswith("/2020/01/PXD1/PXD1.sdrf.tsv")
+
+
+def test_fetch_prefers_bundle_url_over_ym():
+    from sdrf_harness.models import Bundle
+    b = Bundle(accession="PXD1", repository="pride", deposited_sdrf="sdrf.tsv",
+               deposited_sdrf_url="https://ftp.pride.ebi.ac.uk/x/sdrf.tsv")
+    s = _Sess("source name\ta.raw\n")
+    txt = fetch_deposited_sdrf(b, ym="2020/01", session=s)   # ym ignored when url present
+    assert txt.startswith("source name")
+    assert s.url == "https://ftp.pride.ebi.ac.uk/x/sdrf.tsv"
