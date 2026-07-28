@@ -9,6 +9,17 @@ from .models import Bundle
 RAW_EXTS = frozenset({"raw", "wiff", "d", "raw.gz", "wiff.gz"})
 PEAKLIST_EXTS = frozenset({"mgf", "mzml", "mzxml", "ms2", "pkl"})
 
+_DIA_SIGNALS = ("data-independent", "data independent", "swath", "dia")
+
+
+def infer_acquisition(project_json: dict) -> str:
+    hay = " ".join([
+        str(project_json.get("title", "")),
+        " ".join(str(k) for k in (project_json.get("keywords") or [])),
+        str(project_json.get("dataProcessingProtocol", "")),
+    ]).lower()
+    return "DIA" if any(s in hay for s in _DIA_SIGNALS) else "DDA"
+
 
 def _ext(name: str) -> str:
     n = name.lower()
@@ -67,6 +78,7 @@ def parse_pride_project(project_json: dict, files_json: list) -> Bundle:
         files=files,
         deposited_sdrf=deposited,
         deposited_sdrf_url=deposited_url,
+        acquisition=infer_acquisition(project_json),
     )
 
 
