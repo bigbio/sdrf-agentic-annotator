@@ -31,3 +31,11 @@ def test_correct_accession_not_flagged(tmp_path):
 def test_unknown_accession_skipped(tmp_path):
     p = _write(tmp_path, ["NT=Foo;AC=MS:9999999\tnot available"])
     assert accession_check(p, LABELS) == []
+
+def test_substring_synonym_not_flagged(tmp_path):
+    # organism name is a prefix of the cache strain label -> substring -> tolerated, not flagged
+    p = _write(tmp_path, ["NT=Trypsin;AC=MS:1001251\tnot available"])
+    # reuse an organism NT that is a substring of its cache label
+    p.write_text("characteristics[organism]\n"
+                 "NT=mycobacterium smegmatis mc2 155;AC=NCBITaxon:1772\n")
+    assert accession_check(p, LABELS) == []
