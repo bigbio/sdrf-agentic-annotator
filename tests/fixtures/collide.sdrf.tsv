@@ -1,0 +1,3 @@
+source name	characteristics[organism]	characteristics[biological replicate]	comment[fraction identifier]	comment[technical replicate]	comment[data file]
+s1	NT=Homo sapiens;AC=NCBITaxon:9606	1	1	1	a.raw
+s1	NT=Homo sapiens;AC=NCBITaxon:9606	1	1	1	b.raw

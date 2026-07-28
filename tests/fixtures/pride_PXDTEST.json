@@ -1,0 +1,7 @@
+{
+  "accession": "PXDTEST",
+  "title": "Test human proteome",
+  "organisms": [{"name": "Homo sapiens", "accession": "9606"}],
+  "instruments": [{"name": "Q Exactive"}],
+  "_files": [{"fileName": "a.raw"}, {"fileName": "b.raw"}, {"fileName": "res.mzid"}]
+}
