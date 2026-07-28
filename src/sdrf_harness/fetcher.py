@@ -9,7 +9,7 @@ from .models import Bundle
 RAW_EXTS = frozenset({"raw", "wiff", "d", "raw.gz", "wiff.gz"})
 PEAKLIST_EXTS = frozenset({"mgf", "mzml", "mzxml", "ms2", "pkl"})
 
-_DIA_SIGNALS = ("data-independent", "data independent", "swath", "dia")
+_DIA_PHRASES = ("data-independent", "data independent", "swath")
 
 
 def infer_acquisition(project_json: dict) -> str:
@@ -18,7 +18,9 @@ def infer_acquisition(project_json: dict) -> str:
         " ".join(str(k) for k in (project_json.get("keywords") or [])),
         str(project_json.get("dataProcessingProtocol", "")),
     ]).lower()
-    return "DIA" if any(s in hay for s in _DIA_SIGNALS) else "DDA"
+    if any(s in hay for s in _DIA_PHRASES) or re.search(r"\bdia\b", hay):
+        return "DIA"
+    return "DDA"
 
 
 def _ext(name: str) -> str:
