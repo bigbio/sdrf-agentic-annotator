@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 import subprocess
 from collections import Counter
 from pathlib import Path
@@ -42,3 +43,25 @@ def validate(sdrf_path, templates=("ms-proteomics",), run_cli=True) -> Verdict:
         if "Well done" not in last and "only warnings" not in last:
             errors.append("parse_sdrf: " + last[:200])
     return Verdict(passed=not errors, errors=errors, collisions=collisions, ragged=ragged)
+
+def normalise_term(s: str) -> str:
+    return re.sub(r"[\s\-_]+", " ", s.strip().lower()).strip()
+
+_PAIR = re.compile(r"NT=([^;\t]+);AC=([A-Za-z]+[:_]\d+)")
+
+def accession_check(sdrf_path, labels: dict) -> list:
+    out = []
+    seen = set()
+    for line in Path(sdrf_path).read_text().splitlines()[1:]:
+        for m in _PAIR.finditer(line):
+            nt, ac = m.group(1), m.group(2).replace("_", ":").upper()
+            if (nt, ac) in seen:
+                continue
+            seen.add((nt, ac))
+            real = labels.get(ac)
+            if real is None:
+                continue
+            a, b = normalise_term(nt), normalise_term(real)
+            if a != b and a not in b and b not in a:
+                out.append((nt, ac, real))
+    return out
