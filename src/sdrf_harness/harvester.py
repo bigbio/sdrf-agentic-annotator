@@ -20,3 +20,14 @@ def score_annotatability(bundle: Bundle) -> float:
 def to_candidate_row(bundle: Bundle) -> dict:
     return {"accession": bundle.accession, "repository": bundle.repository,
             "annotatability": score_annotatability(bundle)}
+
+
+def harvest_accessions(ledger, accessions, fetch_bundle) -> int:
+    rows = []
+    for acc in accessions:
+        try:
+            b = fetch_bundle(acc)
+        except Exception:
+            continue
+        rows.append(to_candidate_row(b))
+    return ledger.add_candidates(rows) if rows else 0
