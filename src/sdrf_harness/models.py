@@ -16,6 +16,7 @@ class Bundle:
     files: list = field(default_factory=list)           # list[dict{name, ext, size?}]
     deposited_sdrf: str | None = None
     deposited_sdrf_url: str | None = None
+    acquisition: str = "DDA"
     labels: list = field(default_factory=list)
     protocol: dict = field(default_factory=dict)
     gaps: list = field(default_factory=list)

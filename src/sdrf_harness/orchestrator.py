@@ -23,15 +23,22 @@ def run_loop(ledger, corpus_dir, worker_id, max_n, get_sdrf_text, now,
              lease_seconds=1800, run_cli=False) -> dict:
     ledger.reclaim_expired(now)
     claimed = ledger.claim(worker_id, max_n, lease_seconds, now)
-    merged = escalate = 0
+    merged = escalate = errors = 0
     for acc in claimed:
-        text = get_sdrf_text(acc)
-        if text is None:
-            ledger.set_status(acc, "escalate", block_reason="no deposited SDRF (needs drafter)")
-            escalate += 1
+        try:
+            text = get_sdrf_text(acc)
+            if text is None:
+                ledger.set_status(acc, "escalate",
+                                  block_reason="no deposited SDRF (needs drafter)")
+                escalate += 1
+                continue
+            if process_ready_sdrf(ledger, acc, text, corpus_dir, run_cli=run_cli) == "merged":
+                merged += 1
+            else:
+                escalate += 1
+        except Exception:
+            # transient failure (e.g. network) — leave the row claimed so its lease
+            # expires and reclaim_expired retries it later; don't abort the batch.
+            errors += 1
             continue
-        if process_ready_sdrf(ledger, acc, text, corpus_dir, run_cli=run_cli) == "merged":
-            merged += 1
-        else:
-            escalate += 1
-    return {"claimed": len(claimed), "merged": merged, "escalate": escalate}
+    return {"claimed": len(claimed), "merged": merged, "escalate": escalate, "errors": errors}

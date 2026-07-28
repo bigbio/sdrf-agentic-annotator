@@ -8,6 +8,7 @@ from pathlib import Path
 from .fetcher import Bundle, fetch_bundle, fetch_deposited_sdrf
 from .harvester import harvest_accessions
 from .ledger import Ledger
+from .normalizer import normalize_sdrf
 from .orchestrator import run_loop
 
 
@@ -27,7 +28,8 @@ def build_get_sdrf_text(cache_dir):
         if not bpath.exists():
             return None
         b = Bundle.from_json(bpath.read_text())
-        return fetch_deposited_sdrf(b)
+        text = fetch_deposited_sdrf(b)
+        return normalize_sdrf(text, b.acquisition) if text is not None else None
 
     return _get
 
