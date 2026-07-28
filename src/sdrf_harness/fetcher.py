@@ -74,3 +74,20 @@ def fetch_bundle(accession, repository, cache_dir, session=None):
     b = parse_pride_project(proj, files)
     (cache_dir / f"{accession}.bundle.json").write_text(b.to_json())
     return b
+
+
+def deposited_sdrf_url(accession, ym, filename) -> str:
+    return f"https://ftp.pride.ebi.ac.uk/pride/data/archive/{ym}/{accession}/{filename}"
+
+
+def fetch_deposited_sdrf(bundle, ym, session=None):
+    if not bundle.deposited_sdrf:
+        return None
+    if session is None:
+        import requests
+        session = requests.Session()
+    url = deposited_sdrf_url(bundle.accession, ym, bundle.deposited_sdrf)
+    resp = session.get(url, timeout=120)
+    if getattr(resp, "status_code", 200) != 200:
+        return None
+    return resp.text
