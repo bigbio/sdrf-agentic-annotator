@@ -20,7 +20,7 @@ def test_normalise_collapses_separators_and_case():
 def test_flags_wrong_accession(tmp_path):
     p = _write(tmp_path, ["NT=Trypsin;AC=MS:1001252\tNT=salivary gland;AC=UBERON:0001044"])
     bad = accession_check(p, LABELS)
-    # Trypsin->MS:1001252 is 'db source ebi' => mismatch; salivary gland vs saliva-secreting gland => synonym, OK
+    # Trypsin->MS:1001252 is 'db source ebi' => mismatch flagged; salivary gland exact-matches its label here (synonym tolerance is covered by test_substring_synonym_not_flagged)
     assert ("Trypsin", "MS:1001252", "db source ebi") in bad
     assert all(nt != "salivary gland" for nt, _, _ in bad)
 
