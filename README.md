@@ -1,5 +1,8 @@
 # sdrf-agentic-annotator
 
+> **New here / taking over the project?** Read [DEVELOPER.md](DEVELOPER.md) first — architecture,
+> conventions, the SDRF domain traps, and how to run/test/extend.
+
 An agentic harness for producing and curating **SDRF-Proteomics** files for PRIDE datasets.
 It discovers candidate datasets, gathers evidence (deposited SDRF, publication text, empirical
 signals from raw spectra), scores metadata coverage, drafts an SDRF with an LLM in a validate →
