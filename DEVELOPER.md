@@ -239,6 +239,7 @@ Adjust the score threshold / hard-gap rules there; it is pure and unit-tested.
 | **OLS (Ontology Lookup Service)** | resolve/verify ontology accessions | `ground`; validation resolves label↔accession |
 | **Internal PRIDE LLM** | drafting/curation without external tokens | `llm.pride-internal`; EBI-network + proxy-bypass only |
 | **techsdrf** | empirical columns from raw spectra | `techrefine`; Thermo-only, cluster, own conda env |
+| **sdrf-skills** | agent workflows, MCP tools, adversarial review gate | the strong ("claude") tier + tool/evidence layer — see [docs/INTEGRATION.md](docs/INTEGRATION.md) |
 
 ---
 
