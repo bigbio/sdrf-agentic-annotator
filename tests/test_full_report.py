@@ -1,4 +1,4 @@
-from sdrf_harness.validator import full_report
+from sdrf_agentic_annotator.validator import full_report
 
 HEAD = ("source name\tcharacteristics[organism]\tcharacteristics[biological replicate]\t"
         "comment[technical replicate]\tcomment[fraction identifier]\t"

@@ -1,5 +1,5 @@
-from sdrf_harness.fetcher import deposited_sdrf_url, fetch_deposited_sdrf
-from sdrf_harness.models import Bundle
+from sdrf_agentic_annotator.fetcher import deposited_sdrf_url, fetch_deposited_sdrf
+from sdrf_agentic_annotator.models import Bundle
 
 def test_url_builder():
     u = deposited_sdrf_url("PXD000001", "2014/01", "PXD000001.sdrf.tsv")
@@ -26,7 +26,7 @@ def test_fetch_downloads_when_present():
 
 
 def test_fetch_prefers_bundle_url_over_ym():
-    from sdrf_harness.models import Bundle
+    from sdrf_agentic_annotator.models import Bundle
     b = Bundle(accession="PXD1", repository="pride", deposited_sdrf="sdrf.tsv",
                deposited_sdrf_url="https://ftp.pride.ebi.ac.uk/x/sdrf.tsv")
     s = _Sess("source name\ta.raw\n")

@@ -1,4 +1,4 @@
-from sdrf_harness.run import parse_args, build_get_sdrf_text
+from sdrf_agentic_annotator.run import parse_args, build_get_sdrf_text
 
 
 def test_parse_args_defaults():
@@ -35,8 +35,8 @@ def test_get_sdrf_text_none_when_no_bundle(tmp_path):
 
 
 def test_get_sdrf_text_normalizes(tmp_path, monkeypatch):
-    from sdrf_harness import run as runmod
-    from sdrf_harness.models import Bundle
+    from sdrf_agentic_annotator import run as runmod
+    from sdrf_agentic_annotator.models import Bundle
     # a bundle whose fetched SDRF lacks technology type + acquisition
     b = Bundle(accession="PXD9", repository="pride", deposited_sdrf="sdrf.tsv",
                deposited_sdrf_url="https://x/sdrf.tsv", acquisition="DIA")

@@ -1,6 +1,6 @@
 import subprocess
-from sdrf_harness.ledger import Ledger
-from sdrf_harness.orchestrator import run_loop
+from sdrf_agentic_annotator.ledger import Ledger
+from sdrf_agentic_annotator.orchestrator import run_loop
 
 GOOD = ("source name\tcharacteristics[organism]\tcharacteristics[biological replicate]\t"
         "comment[technical replicate]\tcomment[fraction identifier]\tcomment[data file]\n"

@@ -1,5 +1,5 @@
-from sdrf_harness.models import Bundle
-from sdrf_harness.harvester import score_annotatability, to_candidate_row
+from sdrf_agentic_annotator.models import Bundle
+from sdrf_agentic_annotator.harvester import score_annotatability, to_candidate_row
 
 
 def _b(**kw):

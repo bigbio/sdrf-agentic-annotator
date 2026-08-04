@@ -1,7 +1,7 @@
 import subprocess
 from pathlib import Path
 import pytest
-from sdrf_harness.merger import stage_sdrf, commit_batch
+from sdrf_agentic_annotator.merger import stage_sdrf, commit_batch
 
 def _git(d, *a): subprocess.run(["git", *a], cwd=d, check=True, capture_output=True)
 

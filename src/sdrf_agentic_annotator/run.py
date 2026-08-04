@@ -13,7 +13,7 @@ from .orchestrator import run_loop
 
 
 def parse_args(argv):
-    p = argparse.ArgumentParser(prog="sdrf_harness.run")
+    p = argparse.ArgumentParser(prog="sdrf_agentic_annotator.run")
     p.add_argument("--accessions-file", required=True)
     p.add_argument("--corpus", required=True)
     p.add_argument("--db", required=True)

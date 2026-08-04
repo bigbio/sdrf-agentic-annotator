@@ -35,7 +35,7 @@ def main(argv=None) -> int:
     run_cli = "--cli" in argv
     paths = [a for a in argv if not a.startswith("-")]
     if not paths:
-        print("usage: python -m sdrf_harness.review <dir> [--cli]"); return 2
+        print("usage: python -m sdrf_agentic_annotator.review <dir> [--cli]"); return 2
     labels = load_ontology_labels()
     result = review_dir(paths[0], labels=labels, run_cli=run_cli)
     print(format_report(result))

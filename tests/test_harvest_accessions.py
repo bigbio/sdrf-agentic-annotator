@@ -1,6 +1,6 @@
-from sdrf_harness.ledger import Ledger
-from sdrf_harness.harvester import harvest_accessions
-from sdrf_harness.models import Bundle
+from sdrf_agentic_annotator.ledger import Ledger
+from sdrf_agentic_annotator.harvester import harvest_accessions
+from sdrf_agentic_annotator.models import Bundle
 
 def _fetch(acc):
     if acc == "BOOM":

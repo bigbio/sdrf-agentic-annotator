@@ -1,4 +1,4 @@
-from sdrf_harness.ledger import Ledger
+from sdrf_agentic_annotator.ledger import Ledger
 
 def test_claim_is_exclusive_and_ordered(tmp_path):
     lg = Ledger(tmp_path / "l.db"); lg.init_db()

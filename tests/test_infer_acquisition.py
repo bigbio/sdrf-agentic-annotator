@@ -1,4 +1,4 @@
-from sdrf_harness.fetcher import infer_acquisition, parse_pride_project
+from sdrf_agentic_annotator.fetcher import infer_acquisition, parse_pride_project
 
 
 def test_dia_from_title():

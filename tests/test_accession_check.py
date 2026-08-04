@@ -1,5 +1,5 @@
 from pathlib import Path
-from sdrf_harness.validator import accession_check, normalise_term
+from sdrf_agentic_annotator.validator import accession_check, normalise_term
 
 LABELS = {
     "MS:1001251": "trypsin",

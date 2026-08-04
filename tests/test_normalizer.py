@@ -1,4 +1,4 @@
-from sdrf_harness.normalizer import normalize_sdrf
+from sdrf_agentic_annotator.normalizer import normalize_sdrf
 
 
 def _cols(text):

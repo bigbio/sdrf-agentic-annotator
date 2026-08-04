@@ -1,4 +1,4 @@
-from sdrf_harness.models import Bundle, Verdict, STATUSES
+from sdrf_agentic_annotator.models import Bundle, Verdict, STATUSES
 
 def test_status_set_has_core_states():
     for s in ["candidate", "claimed", "ready", "escalate", "merged", "blocked"]:

@@ -1,8 +1,8 @@
 # tests/test_orchestrator.py
 import subprocess
 from pathlib import Path
-from sdrf_harness.ledger import Ledger
-from sdrf_harness.orchestrator import process_ready_sdrf
+from sdrf_agentic_annotator.ledger import Ledger
+from sdrf_agentic_annotator.orchestrator import process_ready_sdrf
 
 GOOD = ("source name\tcharacteristics[organism]\tcharacteristics[biological replicate]\t"
         "comment[fraction identifier]\tcomment[technical replicate]\tcomment[data file]\n"

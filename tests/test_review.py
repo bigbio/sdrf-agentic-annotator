@@ -1,4 +1,4 @@
-from sdrf_harness.review import review_dir, format_report
+from sdrf_agentic_annotator.review import review_dir, format_report
 
 HEAD = ("source name\tcharacteristics[organism]\tcharacteristics[biological replicate]\t"
         "comment[technical replicate]\tcomment[fraction identifier]\t"

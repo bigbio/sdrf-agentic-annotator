@@ -1,5 +1,5 @@
 from pathlib import Path
-from sdrf_harness.validator import structural_check, validate
+from sdrf_agentic_annotator.validator import structural_check, validate
 
 FIX = Path(__file__).parent / "fixtures"
 
