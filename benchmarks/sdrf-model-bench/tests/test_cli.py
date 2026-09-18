@@ -5,7 +5,7 @@ from sdrf_model_bench.cli import build_parser, pack
 
 def test_parser_has_all_commands():
     p = build_parser()
-    for cmd in ("select", "freeze", "run", "score", "report", "pack"):
+    for cmd in ("select", "freeze", "run", "score", "report", "prompt", "pack"):
         assert p.parse_args([cmd]).command == cmd
 
 

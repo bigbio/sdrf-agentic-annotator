@@ -59,6 +59,11 @@ def build_parser() -> argparse.ArgumentParser:
     o.add_argument("--out", type=Path, default=Path("results"))
     o.add_argument("--models", type=Path, default=Path("models.yaml"))
 
+    m = sub.add_parser("prompt", help="print the exact raw-arm messages for one run (for SUBMISSION.md)")
+    m.add_argument("--accession", default="")
+    m.add_argument("--manuscript", choices=["on", "off"], default="on")
+    m.add_argument("--data", type=Path, default=Path("data"))
+
     k = sub.add_parser("pack", help="bundle code + frozen data for a collaborator")
     k.add_argument("--root", type=Path, default=Path("."))
     k.add_argument("--out", type=Path, default=Path("sdrf-model-bench-v1.tar.gz"))
@@ -239,6 +244,21 @@ def cmd_report(args) -> int:
     return 0
 
 
+def cmd_prompt(args) -> int:
+    from sdrf_model_bench.evidence import load_evidence
+    from sdrf_model_bench.prompts import build_messages
+    from sdrf_model_bench.runner import load_manifest, output_budget
+
+    accs = [args.accession] if args.accession else [r["accession"] for r in load_manifest(args.data / "manifest.tsv")]
+    out = {}
+    for acc in accs:
+        messages, info = build_messages(load_evidence(args.data, acc), args.manuscript == "on")
+        out[f"{acc}__ms-{args.manuscript}"] = {"messages": messages, "max_output_tokens": output_budget(args.data, acc),
+                                                **info}
+    print(json.dumps(out, indent=1))
+    return 0
+
+
 # ---------------------------------------------------------------- pack
 
 def pack(root: Path, out: Path) -> Path:
@@ -264,7 +284,7 @@ def cmd_pack(args) -> int:
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     return {"select": cmd_select, "freeze": cmd_freeze, "run": cmd_run, "score": cmd_score,
-            "report": cmd_report, "pack": cmd_pack}[args.command](args)
+            "report": cmd_report, "prompt": cmd_prompt, "pack": cmd_pack}[args.command](args)
 
 
 if __name__ == "__main__":
