@@ -1,4 +1,5 @@
 import json
+import os
 
 import pytest
 
@@ -70,3 +71,44 @@ def test_parse_stream_usage_and_leaks(tmp_path):
     assert out["cost_usd"] == 0.42 and out["num_turns"] == 7
     assert out["usage"]["cache_read_input_tokens"] == 900
     assert out["leak_suspect"] and len(out["tool_calls"]) == 2
+
+
+def test_scratch_workspace_is_outside_home():
+    from pathlib import Path
+
+    from sdrf_model_bench.skills_arm import scratch_workspace
+
+    ws = scratch_workspace()
+    try:
+        assert not str(ws.resolve()).startswith(str(Path.home().resolve()))
+    finally:
+        ws.rmdir()
+
+
+def test_run_skills_with_fake_cli(tmp_path):
+    import sys
+
+    from sdrf_model_bench.skills_arm import run_skills
+
+    fake = tmp_path / "claude"
+    fake.write_text(
+        f"#!{sys.executable}\n"
+        "import json, os, pathlib\n"
+        "assert pathlib.Path('evidence/pride.json').exists()\n"
+        "assert not pathlib.Path('evidence/manuscript.txt').exists()\n"
+        "pathlib.Path('output.sdrf.tsv').write_text('source name\\tcomment[data file]\\ns\\ta.raw\\n')\n"
+        "print(json.dumps({'type': 'result', 'is_error': False, 'num_turns': 3, 'total_cost_usd': 0.1,"
+        " 'usage': {'input_tokens': 5, 'output_tokens': 6}, 'cwd': os.getcwd()}))\n")
+    fake.chmod(0o755)
+    ev = tmp_path / "ev"
+    ev.mkdir()
+    for n in ("pride.json", "files.json", "manuscript.txt"):
+        (ev / n).write_text("{}")
+    plugin = tmp_path / "plugin"
+    (plugin / "skills").mkdir(parents=True)
+    run_dir = tmp_path / "run"
+    out = run_skills("claude-haiku-4-5", ev, "PXD1", False, [], run_dir, plugin, claude_bin=str(fake))
+    assert out["sdrf"].startswith("source name") and out["cost_usd"] == 0.1 and not out["is_error"]
+    assert (run_dir / "transcript.jsonl").exists()
+    cwd = json.loads((run_dir / "transcript.jsonl").read_text())["cwd"]
+    assert not os.path.exists(cwd)  # scratch workspace removed

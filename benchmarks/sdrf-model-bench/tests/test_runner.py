@@ -85,3 +85,16 @@ def test_context_limited_flag(tmp_path):
                     generate_factory=lambda s: (lambda m: Completion("nothing", {})))
     rec = execute_run(RunKey("tiny", "PXD1", True, 1), spec, cfg)
     assert "context_limited" in rec["flags"] and "failed" in rec["flags"]
+
+
+def test_context_flag_scales_with_expected_output(tmp_path):
+    from sdrf_model_bench.runner import expected_output_tokens
+
+    data = setup_data(tmp_path)
+    assert expected_output_tokens(data, "PXD1") < 100
+    assert expected_output_tokens(data, "PXD_missing") == 8192
+    spec = ModelSpec("small", "custom", "fake", "raw", context_window=8192)
+    cfg = RunConfig(data_dir=data, outputs=tmp_path / "out", pricing={},
+                    validate_fn=lambda p, t=(): ValidationResult(),
+                    generate_factory=lambda s: (lambda m: Completion(f"```tsv\n{TRUTH}```", {})))
+    assert "context_limited" not in execute_run(RunKey("small", "PXD1", True, 1), spec, cfg)["flags"]

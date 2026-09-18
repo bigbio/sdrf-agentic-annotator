@@ -9,16 +9,19 @@ from pathlib import Path
 
 from sdrf_model_bench.sdrf_io import column_values, first_value, is_na, read_sdrf
 
-MAX_ROWS = 60
+# Rows per truth file. TMT rows are file x channel, so it gets more room (and TMT is scarce).
+MAX_ROWS = {"TMT": 100, "LFQ": 60, "DIA": 60}
 DIA_RE = re.compile(r"data.independent|\bdia\b|swath", re.I)
 AI_RE = re.compile(r"sdrf-skills|annotator|agentic|co-authored-by:\s*claude|generated with claude", re.I)
 QTYPES = ("TMT", "LFQ", "DIA")
 
 
 def quant_type(header, rows) -> str | None:
-    labels = " ".join(v for r in rows for v in column_values(header, r, "comment[label]")).lower()
+    label_cells = [v for r in rows for v in column_values(header, r, "comment[label]")]
+    labels = " ".join(label_cells).lower()
     if "tmt" in labels:
-        return "TMT"
+        # the truth must encode multiplexing (one row per channel), not one generic label per file
+        return "TMT" if len({v.strip().lower() for v in label_cells}) >= 2 else None
     if any(x in labels for x in ("silac", "itraq", "dimethyl")):
         return None
     if "label free" in labels or "label-free" in labels:
@@ -28,9 +31,9 @@ def quant_type(header, rows) -> str | None:
     return None
 
 
-def truth_ok(text: str) -> bool:
+def truth_ok(text: str, max_rows: int = MAX_ROWS["LFQ"]) -> bool:
     header, rows = read_sdrf(text)
-    return "comment[data file]" in header and 1 <= len(rows) <= MAX_ROWS
+    return "comment[data file]" in header and 1 <= len(rows) <= max_rows
 
 
 def made_with_ai(repo: Path, path: Path) -> bool:
@@ -59,10 +62,10 @@ def iter_candidates(datasets_dir: Path):
         if path.name != f"{path.parent.name}.sdrf.tsv":
             continue
         text = path.read_text(errors="replace")
-        if not truth_ok(text):
+        if not truth_ok(text, max(MAX_ROWS.values())):
             continue
         info = describe_truth(text)
-        if info["qtype"]:
+        if info["qtype"] and info["n_rows"] <= MAX_ROWS[info["qtype"]]:
             yield {"accession": path.parent.name, "truth_path": str(path), **info}
 
 

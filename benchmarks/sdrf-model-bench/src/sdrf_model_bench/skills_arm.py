@@ -15,6 +15,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import time
 from pathlib import Path
 
@@ -129,10 +130,27 @@ def parse_stream(lines, workspace: str) -> dict:
 
 def run_skills(model: str, ev_dir: Path, accession: str, manuscript: bool, templates, run_dir: Path,
                plugin_dir: Path, claude_bin: str = "claude", timeout: int = 2700) -> dict:
-    ws = Path(run_dir) / "workspace"
-    if str(ws.resolve()).startswith(str(Path.home().resolve())):
-        raise RuntimeError(f"skills workspace {ws} is under $HOME, which the agent cannot read; "
-                           "set --outputs to a path outside the home directory")
+    run_dir = Path(run_dir)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    ws = scratch_workspace()
+    try:
+        return _run_in_workspace(ws, model, ev_dir, accession, manuscript, templates, run_dir,
+                                 plugin_dir, claude_bin, timeout)
+    finally:
+        shutil.rmtree(ws, ignore_errors=True)
+
+
+def scratch_workspace() -> Path:
+    """A fresh directory outside $HOME: the agent is denied reads under $HOME (where answer keys live)."""
+    home = str(Path.home().resolve())
+    for base in (tempfile.gettempdir(), "/tmp"):
+        if not str(Path(base).resolve()).startswith(home):
+            return Path(tempfile.mkdtemp(prefix="sdrf-bench-", dir=base))
+    raise RuntimeError("no temporary directory outside $HOME is available for the skills workspace")
+
+
+def _run_in_workspace(ws, model, ev_dir, accession, manuscript, templates, run_dir, plugin_dir,
+                      claude_bin, timeout) -> dict:
     copied = prepare_workspace(ws, ev_dir, manuscript)
     local_plugin = ws / ".plugin"
     shutil.copytree(plugin_dir, local_plugin, dirs_exist_ok=True)
@@ -146,7 +164,7 @@ def run_skills(model: str, ev_dir: Path, accession: str, manuscript: bool, templ
         stdout, returncode = proc.stdout, proc.returncode
     except subprocess.TimeoutExpired as exc:
         stdout, returncode = (exc.stdout or b"").decode() if isinstance(exc.stdout, bytes) else (exc.stdout or ""), -1
-    (Path(run_dir) / "transcript.jsonl").write_text(stdout)
+    (run_dir / "transcript.jsonl").write_text(stdout)
     parsed = parse_stream(stdout.splitlines(), str(ws))
     out_file = ws / "output.sdrf.tsv"
     return {

@@ -12,13 +12,13 @@ from typing import Callable
 
 from sdrf_model_bench import skills_arm
 from sdrf_model_bench.config import ModelSpec, cost_usd
-from sdrf_model_bench.evidence import evidence_dir, load_evidence
+from sdrf_model_bench.evidence import estimate_tokens, evidence_dir, load_evidence
 from sdrf_model_bench.prompts import build_messages
 from sdrf_model_bench.providers import make_generate
 from sdrf_model_bench.rawloop import run_raw
 from sdrf_model_bench.validator import validate
 
-OUTPUT_RESERVE = 8192  # tokens kept free for the SDRF the model has to write
+OUTPUT_FALLBACK = 8192  # expected SDRF output tokens when the truth size is unknown
 WORKERS = {"ollama": 1, "anthropic": 4, "openai": 4, "custom": 2, "claude-code": 2}
 
 
@@ -60,6 +60,12 @@ def plan_runs(specs: list[ModelSpec], manifest: list[dict], replicates: dict[str
             for r in range(1, replicates.get(row["accession"], 1) + 1)]
 
 
+def expected_output_tokens(data_dir: Path, accession: str) -> int:
+    """Size of a correct answer, used only to flag context-limited runs (never shown to the model)."""
+    truth = Path(data_dir) / "truth" / f"{accession}.sdrf.tsv"
+    return int(estimate_tokens(truth.read_text()) * 1.2) if truth.exists() else OUTPUT_FALLBACK
+
+
 def _write(run_dir: Path, sdrf: str | None, record: dict) -> dict:
     run_dir.mkdir(parents=True, exist_ok=True)
     if sdrf:
@@ -79,7 +85,8 @@ def execute_run(key: RunKey, spec: ModelSpec, cfg: RunConfig) -> dict:
     try:
         if spec.arm == "raw":
             messages, info = build_messages(ev, key.manuscript, cfg.budget_tokens)
-            if spec.context_window and info["prompt_tokens"] + OUTPUT_RESERVE > spec.context_window:
+            if spec.context_window and info["prompt_tokens"] + expected_output_tokens(cfg.data_dir, key.accession) \
+                    > spec.context_window:
                 base["flags"].append("context_limited")
             res = run_raw(cfg.generate_factory(spec), messages, run_dir,
                           lambda p: cfg.validate_fn(p, templates), cfg.max_repairs)

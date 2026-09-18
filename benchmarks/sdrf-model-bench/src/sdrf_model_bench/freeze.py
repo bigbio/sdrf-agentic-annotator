@@ -14,10 +14,18 @@ from sdrf_model_bench.evidence import evidence_dir
 
 PRIDE = "https://www.ebi.ac.uk/pride/ws/archive/v3/projects/{acc}"
 EPMC = "https://www.ebi.ac.uk/europepmc/webservices/rest"
-METHODS_RE = re.compile(r"method|experimental|materials|procedure|sample prep", re.I)
+METHODS_RE = re.compile(
+    r"^\s*(?:[\dIVX]+\.?\s+)?(?:star\s+|online\s+)?(?:materials?\s*(?:and|&)\s*methods|methods?(?:\s*(?:and|&)\s*materials?)?"
+    r"|experimental(?:\s+(?:procedures?|section|design|methods?))?|procedures?)\s*$",
+    re.I,
+)
+STOP_RE = re.compile(r"^\s*(?:[\dIVX]+\.?\s+)?(?:results|discussion|conclusions?|acknowledg|references|supplementary|data availability|author contributions|funding)", re.I)
 SAMPLE_RE = re.compile(r"sample|patient|donor|cohort|cell|tissue|condition|replicate|tmt|channel|treat", re.I)
 QUALITY_LISTS = ("organisms", "organismParts", "diseases", "instruments", "identifiedPTMStrings",
                  "quantificationMethods")
+
+
+MIN_METHODS_CHARS = 500
 
 
 class SkipDataset(Exception):
@@ -35,25 +43,53 @@ def raw_file_names(files: list[dict]) -> list[str]:
 
 
 def has_deposited_sdrf(files: list[dict]) -> bool:
-    return any("sdrf" in f.get("fileName", "").lower() for f in files)
+    """A submitter-deposited SDRF. PRIDE also republishes community SDRFs (our ground truth) as
+    *_community_annotated.sdrf.tsv; those are not counted here."""
+    names = (f.get("fileName", "").lower() for f in files)
+    return any("sdrf" in n and "community_annotated" not in n for n in names)
+
+
+def redistributable(license_: str) -> bool:
+    """Creative Commons without NoDerivatives: a methods excerpt may be shared in the pack."""
+    lic = (license_ or "").lower()
+    return lic.startswith("cc") and "nd" not in lic.replace("cc0", "").split("-")
 
 
 def _text(el) -> str:
-    return re.sub(r"\s+", " ", "".join(el.itertext())).strip()
+    return re.sub(r"\s+", " ", " ".join(el.itertext())).strip()
+
+
+def _title_matches(el, pattern) -> bool:
+    title = el.find("title") if el.tag == "sec" else None
+    return title is not None and bool(pattern.search(_text(title)))
 
 
 def extract_methods(xml: str) -> str:
+    """Methods sections (body or back matter) plus sample-related legends; "" when the full text
+    has no methods section (e.g. methods only in a supplementary PDF) - such papers are skipped."""
     root = ET.fromstring(xml)
-    body = root.find(".//body")
-    if body is None:
+    parts: list[str] = []
+
+    def walk(el):
+        children = list(el)
+        i = 0
+        while i < len(children):
+            child = children[i]
+            if _title_matches(child, METHODS_RE):
+                chunk = [_text(child)]  # the whole section; nested sub-sections are inside
+                if len(chunk[0]) < 500:  # empty heading: the methods follow as sibling sections
+                    while i + 1 < len(children) and children[i + 1].tag == "sec" \
+                            and not _title_matches(children[i + 1], STOP_RE):
+                        i += 1
+                        chunk.append(_text(children[i]))
+                parts.append(" ".join(chunk))
+            else:
+                walk(child)
+            i += 1
+
+    walk(root)
+    if len(" ".join(parts)) < MIN_METHODS_CHARS:  # legends alone do not make a methods section
         return ""
-    parts = []
-    for sec in body.iter("sec"):
-        title = sec.find("title")
-        if title is not None and METHODS_RE.search(_text(title)):
-            parts.append(_text(sec))
-    if not parts:
-        parts.append(_text(body))
     for cap in root.iter("caption"):
         t = _text(cap)
         if SAMPLE_RE.search(t):
@@ -87,7 +123,7 @@ def find_manuscript(session, pride: dict) -> dict | None:
         if not res or not res[0].get("pmcid"):
             continue
         license_ = (res[0].get("license") or "").lower()
-        if not license_.startswith("cc"):
+        if not redistributable(license_):
             continue
         r = session.get(f"{EPMC}/{res[0]['pmcid']}/fullTextXML", timeout=60)
         if r.status_code == 200 and r.text.lstrip().startswith("<"):
@@ -109,8 +145,8 @@ def freeze_dataset(acc: str, truth_path: Path, data_dir: Path, session=None, ext
     if not ms:
         raise SkipDataset("no CC-licensed open-access full text")
     methods = extract_methods(ms["xml"])
-    if len(methods) < 500:
-        raise SkipDataset("methods text too short")
+    if not methods:
+        raise SkipDataset("no methods section in the full text")
     d = evidence_dir(data_dir, acc)
     d.mkdir(parents=True, exist_ok=True)
     (d / "pride.json").write_text(json.dumps(pride, indent=1, sort_keys=True))
