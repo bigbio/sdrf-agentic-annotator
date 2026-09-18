@@ -17,13 +17,16 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
-from matplotlib.lines import Line2D  # noqa: E402
+from matplotlib.colors import to_rgb  # noqa: E402
+from matplotlib.patches import Rectangle  # noqa: E402
+from matplotlib.transforms import blended_transform_factory  # noqa: E402
 
 QTYPES = ("TMT", "LFQ", "DIA")
 TIERS = ("rich", "poor")
 COMPONENTS = (("validity", 20), ("completeness", 15), ("accuracy", 50), ("specificity", 15))
 WARN_FLAGS = ("failed", "context_limited", "leak_suspect", "contamination_suspect")
+DOLLAR_TICKS = {0.003: "$0.003", 0.01: "$0.01", 0.03: "$0.03", 0.1: "$0.10", 0.3: "$0.30",
+                1: "$1", 3: "$3", 10: "$10", 30: "$30"}
 TOKEN_KEYS = ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")
 THEMES = {
     "light": {
@@ -76,6 +79,7 @@ def summarise(records: list[dict]) -> list[dict]:
         rows.append({
             "model_id": model_id,
             "arm": recs[0].get("arm", "raw"),
+            "provider": recs[0].get("provider", ""),
             "base": (recs[0].get("model") or model_id) + (" (thinking)" if recs[0].get("think") else ""),
             "n": len(ds),
             "runs": len(recs),
@@ -95,27 +99,72 @@ def summarise(records: list[dict]) -> list[dict]:
     return sorted(rows, key=lambda r: -r["headline"])
 
 
-def display_name(base: str) -> str:
-    return base.removeprefix("claude-").replace("-4-5", "-4.5")
-
-
-def _group_by_base(summary):
-    groups: dict[str, dict] = {}
-    for row in summary:
-        groups.setdefault(row["base"], {})[row["arm"]] = row
-    best = {b: max(r["headline"] for r in arms.values()) for b, arms in groups.items()}
-    return [(b, groups[b]) for b in sorted(groups, key=lambda b: -best[b])]
-
-
 def _luminance(rgb) -> float:
     lin = [c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb]
     return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2]
 
 
 def _best_ink(rgb) -> str:
-    """Near-black or white, whichever has the higher WCAG contrast against the cell."""
-    cell = _luminance(rgb)
-    return "#0b0b0b" if (cell + 0.05) / (_luminance((0.043,) * 3) + 0.05) >= 1.05 / (cell + 0.05) else "#ffffff"
+    """Near-black or white, whichever has the higher WCAG contrast against the fill."""
+    fill = _luminance(rgb)
+    return "#0b0b0b" if (fill + 0.05) / (_luminance((0.043,) * 3) + 0.05) >= 1.05 / (fill + 0.05) else "#ffffff"
+
+
+# ---------------------------------------------------------------- labels and colours
+
+FRIENDLY = {
+    "claude-opus-5": "Opus 5", "claude-sonnet-5": "Sonnet 5", "claude-haiku-4-5": "Haiku 4.5",
+    "gemma4:12b": "gemma4 12B", "gemma2:9b": "gemma2 9B", "qwen2.5:3b": "qwen2.5 3B", "qwen3:4b": "qwen3 4B",
+}
+# One colour per kind of configuration, in the palette's fixed categorical order (validated for CVD).
+FAMILIES = [("claude", "Claude, prompt only"), ("skills", "Claude + SDRF skills"),
+            ("local", "Local model (Ollama)"), ("other", "Other model")]
+
+
+def family(row: dict) -> str:
+    if row.get("arm") == "skills":
+        return "skills"
+    provider = row.get("provider") or ""
+    if provider in ("claude-cli", "anthropic"):
+        return "claude"
+    return "local" if provider == "ollama" else "other"
+
+
+def config_label(row: dict) -> str:
+    base = row["base"]
+    thinking = base.endswith(" (thinking)")
+    model = base.removesuffix(" (thinking)")
+    name = FRIENDLY.get(model, model)
+    kind = family(row)
+    if kind == "skills":
+        return f"{name} + SDRF skills"
+    if kind == "claude":
+        return f"{name} (prompt only)"
+    if kind == "local":
+        return f"{name} · thinking (local)" if thinking else f"{name} (local)"
+    return name
+
+
+def _colors(t) -> dict:
+    return dict(zip([k for k, _ in FAMILIES], t["slots"]))
+
+
+def _cost_text(row) -> str:
+    if row["cost_usd"] is not None:
+        return f"${row['cost_usd']:.2f} · {row['minutes']:.0f} min"
+    return f"{row['minutes']:.0f} min on a laptop"
+
+
+def _warn_text(row) -> str:
+    failed = row["flags"].get("failed", 0)
+    limited = row["flags"].get("context_limited", 0)
+    parts = [f"{failed} failed" if failed else "", f"{limited} over context" if limited else ""]
+    return "  ⚠ " + ", ".join(p for p in parts if p) if failed or limited else ""
+
+
+def _new_fig(t, height=9.0, width=16.0):
+    fig = plt.figure(figsize=(width, height), facecolor=t["surface"])
+    return fig
 
 
 def _style(ax, t, grid_axis="x"):
@@ -123,130 +172,255 @@ def _style(ax, t, grid_axis="x"):
     for side in ("top", "right", "left"):
         ax.spines[side].set_visible(False)
     ax.spines["bottom"].set_color(t["grid"])
-    ax.tick_params(colors=t["ink2"], labelsize=12, length=0)
+    ax.tick_params(colors=t["ink2"], labelsize=13, length=0)
     if grid_axis:
         ax.grid(axis=grid_axis, color=t["grid"], linewidth=1)
         ax.set_axisbelow(True)
 
 
-def _cost_line(row) -> str:
-    if row is None:
-        return ""
-    tok = f"{row['tokens'] / 1000:.0f}k tok"
-    spend = f"${row['cost_usd']:.2f}" if row["cost_usd"] is not None else f"{row['minutes']:.1f} min"
-    warn = sum(row["flags"].get(f, 0) for f in ("failed", "context_limited"))
-    return f"{row['arm']:<6} {spend} · {tok}" + (f"  ⚠{warn}" if warn else "")
+def _titles(fig, t, title, subtitle, footer=None):
+    fig.text(0.03, 0.935, title, fontsize=26, color=t["ink"], weight="bold")
+    if subtitle:
+        fig.text(0.03, 0.885, subtitle, fontsize=15, color=t["ink2"])
+    if footer:
+        fig.text(0.03, 0.03, footer, fontsize=11, color=t["ink2"], linespacing=1.5)
 
+
+def _legend(fig, t, kinds, y=0.80):
+    cols = _colors(t)
+    handles = [Rectangle((0, 0), 1, 1, color=cols[k]) for k, _ in FAMILIES if k in kinds]
+    labels = [lab for k, lab in FAMILIES if k in kinds]
+    fig.legend(handles, labels, loc="lower left", bbox_to_anchor=(0.03, y), ncol=len(labels), frameon=False,
+               fontsize=13, labelcolor=t["ink"], handlelength=1.2, columnspacing=2.0)
+
+
+def _save(fig, path: Path, t, svg=False):
+    path = Path(path)
+    fig.savefig(path.with_suffix(".png"), dpi=200, facecolor=t["surface"])
+    if svg:
+        fig.savefig(path.with_suffix(".svg"), facecolor=t["surface"])
+    plt.close(fig)
+
+
+def _rows_in_order(summary):
+    return sorted(summary, key=lambda r: -r["headline"])
+
+
+def _n_datasets(summary):
+    return max((r["n"] for r in summary), default=0)
+
+
+def _present_qtypes(summary):
+    return [q for q in QTYPES if any(r["by_qtype"].get(q) is not None for r in summary)]
+
+
+# ---------------------------------------------------------------- main slide
 
 def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=()) -> None:
+    """One chart, one question: which configuration writes the best SDRF, and what does it cost?"""
     t = THEMES[theme]
-    groups = _group_by_base(summary)
-    names = [display_name(b) for b, _ in groups] + [f"{p}\n(pending)" for p in pending]
-    n_rows = len(names)
-    ys = list(range(n_rows - 1, -1, -1))
-
-    fig = plt.figure(figsize=(16, 9), facecolor=t["surface"])
-    gs = fig.add_gridspec(1, 4, width_ratios=[3.0, 1.35, 1.25, 1.25], left=0.13, right=0.975,
-                          top=0.79, bottom=0.14, wspace=0.12)
-    ax, ax_cost, ax_q, ax_ms = (fig.add_subplot(gs[0, i]) for i in range(4))
-
-    # Left: dumbbell raw -> skills, +-1 SEM whiskers, score labels on the dots.
+    cols = _colors(t)
+    rows = _rows_in_order(summary)
+    labels = [config_label(r) for r in rows] + [f"{p} (awaiting results)" for p in pending]
+    n = len(labels)
+    fig = _new_fig(t)  # 16:9
+    ax = fig.add_axes([0.28, 0.14, 0.48, 0.61])
     _style(ax, t)
-    for y, (base, arms) in zip(ys, groups):
-        raw, skills = arms.get("raw"), arms.get("skills")
-        if raw and skills:
-            ax.plot([raw["headline"], skills["headline"]], [y, y], color=t["ink2"], linewidth=2,
-                    solid_capstyle="round", zorder=1)
-        for arm, row, dy in (("raw", raw, -0.28), ("skills", skills, 0.28)):
-            if not row:
+    ys = list(range(n))[::-1]
+    ax.set_xlim(0, 100)
+    ax.set_ylim(-0.6, n - 0.4)
+    beside = blended_transform_factory(ax.transAxes, ax.transData)  # x in axes units, y in rows
+    for y, r in zip(ys, rows):
+        c = cols[family(r)]
+        ax.barh(y, r["headline"], height=0.62, color=c, edgecolor=t["surface"], linewidth=2)
+        if r["headline_sem"]:
+            ax.plot([r["headline"] - r["headline_sem"], r["headline"] + r["headline_sem"]], [y, y],
+                    color=t["ink"], linewidth=1.5, alpha=0.6, solid_capstyle="round")
+        ax.text(r["headline"] + r["headline_sem"] + 1.5, y, f"{r['headline']:.0f}", va="center", ha="left",
+                fontsize=15, color=t["ink"], weight="bold")
+        ax.text(1.03, y, _cost_text(r) + _warn_text(r), transform=beside, va="center", ha="left",
+                fontsize=13, color=t["ink2"], clip_on=False)
+    for y in ys[len(rows):]:
+        ax.barh(y, 100, height=0.62, facecolor="none", edgecolor=t["grid"], linewidth=1.5, linestyle="--")
+    ax.set_yticks(ys, labels, fontsize=15, color=t["ink"])
+    ax.set_xlabel("score (0-100): agreement with the curated SDRF", color=t["ink2"], fontsize=13)
+    ax.text(1.03, n - 0.4, "cost per SDRF", transform=beside, va="bottom", ha="left", fontsize=13,
+            color=t["ink"], weight="bold", clip_on=False)
+
+    best = rows[0] if rows else None
+    title = f"{config_label(best)} writes the most accurate SDRFs" if best else "SDRF annotation quality"
+    qt = ", ".join(_present_qtypes(summary))
+    nd = _n_datasets(summary)
+    subtitle = f"Mean over {nd} dataset{'s' if nd != 1 else ''} ({qt}), each annotated with and without the paper"
+    _titles(fig, t, title, subtitle,
+            footer="Score = 80% deterministic match to the curated SDRF + 20% reference-guided LLM judge. "
+                   "Whiskers: ±1 SEM across datasets.\nClaude cost is the API-equivalent reported by Claude Code; "
+                   "local models run free on a laptop, so their cost is time.")
+    _legend(fig, t, {family(r) for r in rows})
+    _save(fig, path, t, svg=True)
+
+
+# ---------------------------------------------------------------- backup slides
+
+def _paired_chart(summary, t, path, title, subtitle, left_key, right_key, left_label, right_label, footer):
+    """Per configuration: a light bar for condition A and a solid bar for condition B."""
+    cols = _colors(t)
+    rows = _rows_in_order(summary)
+    fig = _new_fig(t)
+    ax = fig.add_axes([0.28, 0.12, 0.58, 0.63])
+    _style(ax, t)
+    ys = list(range(len(rows)))[::-1]
+    for y, r in zip(ys, rows):
+        c = cols[family(r)]
+        a, b = left_key(r), right_key(r)
+        if a is not None:
+            ax.barh(y + 0.19, a, height=0.36, color=c, alpha=0.35, edgecolor=t["surface"], linewidth=2)
+            ax.text(a + 1, y + 0.19, f"{a:.0f}", va="center", fontsize=12, color=t["ink2"])
+        if b is not None:
+            ax.barh(y - 0.19, b, height=0.36, color=c, edgecolor=t["surface"], linewidth=2)
+            ax.text(b + 1, y - 0.19, f"{b:.0f}", va="center", fontsize=12, color=t["ink"], weight="bold")
+        if a is not None and b is not None:
+            ax.text(101, y, f"{b - a:+.0f}", va="center", ha="left", fontsize=14, color=t["ink"], weight="bold")
+    ax.set_xlim(0, 100)
+    ax.set_ylim(-0.6, len(rows) - 0.4)
+    ax.set_yticks(ys, [config_label(r) for r in rows], fontsize=14, color=t["ink"])
+    ax.set_xlabel("score (0-100)", color=t["ink2"], fontsize=13)
+    ax.text(1.01, len(rows) - 0.4, "change", transform=blended_transform_factory(ax.transAxes, ax.transData),
+            va="bottom", fontsize=13, color=t["ink"], weight="bold", clip_on=False)
+    handles = [Rectangle((0, 0), 1, 1, color=t["ink2"], alpha=0.35), Rectangle((0, 0), 1, 1, color=t["ink2"])]
+    fig.legend(handles, [left_label, right_label], loc="lower left", bbox_to_anchor=(0.03, 0.80), ncol=2,
+               frameon=False, fontsize=13, labelcolor=t["ink"])
+    _titles(fig, t, title, subtitle, footer)
+    _save(fig, path, t)
+
+
+def _by_manuscript(recs, on: bool):
+    return _mean(_dataset_means([r for r in recs if r["manuscript"] == on]))
+
+
+def render_backups(records: list[dict], summary: list[dict], outdir: Path, theme: str = "light") -> None:
+    t = THEMES[theme]
+    outdir = Path(outdir)
+    write_summary_tsv(summary, outdir / "summary.tsv")
+    by_model = defaultdict(list)
+    for r in records:
+        by_model[r["model_id"]].append(r)
+
+    # 1. Does the paper help?
+    _paired_chart(summary, t, outdir / "backup_1_manuscript",
+                  "Does giving the model the paper help?",
+                  "Same datasets, annotated from PRIDE metadata alone and again with the paper's Methods section",
+                  lambda r: _by_manuscript(by_model[r["model_id"]], False),
+                  lambda r: _by_manuscript(by_model[r["model_id"]], True),
+                  "without the paper", "with the paper",
+                  "Change = with minus without, averaged per dataset.")
+
+    # 3. Does better PRIDE metadata help?
+    _paired_chart(summary, t, outdir / "backup_3_pride_metadata",
+                  "Do richer PRIDE records give better SDRFs?",
+                  "Datasets split by how complete their PRIDE metadata is (relative to this pool)",
+                  lambda r: r["by_tier"].get("poor"), lambda r: r["by_tier"].get("rich"),
+                  "sparse PRIDE record", "rich PRIDE record",
+                  "Rich/sparse = top/bottom third of PRIDE fields filled (organism, tissue, disease, instrument, PTMs, "
+                  "quantification, protocols).")
+
+    # 2. Which experiment types are hardest? Small multiples, one panel per quantification type.
+    cols = _colors(t)
+    rows = _rows_in_order(summary)
+    qts = _present_qtypes(summary) or list(QTYPES)
+    fig = _new_fig(t)
+    left, width, gap = 0.28, 0.68 / len(qts), 0.03
+    ys = list(range(len(rows)))[::-1]
+    for i, q in enumerate(qts):
+        ax = fig.add_axes([left + i * width, 0.10, width - gap, 0.62])
+        _style(ax, t)
+        for y, r in zip(ys, rows):
+            v = r["by_qtype"].get(q)
+            if v is None:
                 continue
-            x = row["headline"]
-            ax.plot([x - row["headline_sem"], x + row["headline_sem"]], [y, y], color=t[arm],
-                    linewidth=4, alpha=0.35, solid_capstyle="round", zorder=2)
-            ax.scatter([x], [y], s=150, color=t[arm], edgecolors=t["surface"], linewidths=2, zorder=3)
-            ax.text(x, y + dy, f"{x:.0f}", ha="center", va="center", fontsize=12, color=t["ink"], zorder=4)
-    for y in ys[len(groups):]:
-        ax.scatter([50], [y], s=150, facecolors="none", edgecolors=t["ink2"], linewidths=1.5, linestyle="--")
-    ax.set_xlim(-3, 100)  # room for a score of 0
-    ax.set_ylim(-0.7, n_rows - 0.3)
-    ax.set_yticks(ys, names, fontsize=15, color=t["ink"])
-    ax.set_xlabel("score (0-100)", color=t["ink2"], fontsize=12)
-    ax.set_title("raw prompt  vs  with SDRF skills", loc="left", color=t["ink"], fontsize=14, pad=10)
-    handles = [Line2D([], [], marker="o", linestyle="", markersize=11, color=t[a], label=lab)
-               for a, lab in (("raw", "raw prompt"), ("skills", "with SDRF skills"))]
-    leg = ax.legend(handles=handles, loc="lower left", frameon=False, fontsize=12, ncol=2,
-                    bbox_to_anchor=(0, 1.04), labelcolor=t["ink"])
-    leg.set_in_layout(False)
+            ax.barh(y, v, height=0.62, color=cols[family(r)], edgecolor=t["surface"], linewidth=2)
+            ax.text(v + 2, y, f"{v:.0f}", va="center", fontsize=12, color=t["ink"])
+        ax.set_xlim(0, 100)
+        ax.set_xticks([0, 50, 100])
+        ax.set_ylim(-0.6, len(rows) - 0.4)
+        ax.set_title(q, fontsize=17, color=t["ink"], weight="bold", loc="left")
+        if i == 0:
+            ax.set_yticks(ys, [config_label(r) for r in rows], fontsize=14, color=t["ink"])
+        else:
+            ax.set_yticks([])
+    _titles(fig, t, "Which experiment types are hardest to annotate?",
+            "Score by quantification strategy (each panel is an average over its datasets)",
+            "TMT rows are one per file and channel, so TMT SDRFs are longer and the design is harder to encode.")
+    _legend(fig, t, {family(r) for r in rows})
+    _save(fig, outdir / "backup_2_quant_type", t)
 
-    # Cost column: text, in ink tokens (never the series colour).
-    ax_cost.axis("off")
-    ax_cost.set_ylim(ax.get_ylim())
-    ax_cost.set_title("cost per SDRF\n(API-equiv. $ · local min)", loc="left", color=t["ink"], fontsize=12.5, pad=10)
-    for y, (base, arms) in zip(ys, groups):
-        lines = [_cost_line(arms.get("skills")), _cost_line(arms.get("raw"))]
-        ax_cost.text(0, y, "\n".join(x for x in lines if x), va="center", ha="left", fontsize=11.5,
-                     color=t["ink2"], family="monospace", linespacing=1.6)
+    # 4. Where do the points come from? Stacked weighted components.
+    fig = _new_fig(t)
+    ax = fig.add_axes([0.28, 0.12, 0.66, 0.62])
+    _style(ax, t)
+    comp_names = {"validity": "valid file", "completeness": "columns & rows present",
+                  "accuracy": "correct values", "specificity": "no needless 'not available'"}
+    left_edge = [0.0] * len(rows)
+    for (comp, weight), color in zip(COMPONENTS, [t["ramp"][i] for i in (1, 3, 5, 7)]):
+        vals = [(r["components"][comp] or 0) * weight * 0.8 for r in rows]
+        ax.barh(ys, vals, left=left_edge, height=0.62, color=color, edgecolor=t["surface"], linewidth=2,
+                label=f"{comp_names[comp]} (max {weight * 0.8:.0f})")
+        for y, lft, v in zip(ys, left_edge, vals):
+            if v >= 6:
+                ax.text(lft + v / 2, y, f"{v:.0f}", va="center", ha="center", fontsize=11, color=_best_ink(to_rgb(color)))
+        left_edge = [a + b for a, b in zip(left_edge, vals)]
+    ax.set_xlim(0, 80)
+    ax.set_ylim(-0.6, len(rows) - 0.4)
+    ax.set_yticks(ys, [config_label(r) for r in rows], fontsize=14, color=t["ink"])
+    ax.set_xlabel("points out of the 80 deterministic points", color=t["ink2"], fontsize=13)
+    fig.legend(*ax.get_legend_handles_labels(), loc="lower left", bbox_to_anchor=(0.03, 0.80), ncol=4,
+               frameon=False, fontsize=12.5, labelcolor=t["ink"])
+    _titles(fig, t, "Where do the points come from?",
+            "The deterministic 80% of the score, split into its four parts", None)
+    _save(fig, outdir / "backup_4_components", t)
 
-    # Middle: best-arm score by quantification type, sequential single-hue table.
-    cmap = LinearSegmentedColormap.from_list("seq", t["ramp"])
-    matrix = []
-    for base, arms in groups:
-        matrix.append([max((r["by_qtype"].get(q) or 0) for r in arms.values()) if any(
-            r["by_qtype"].get(q) is not None for r in arms.values()) else math.nan for q in QTYPES])
-    matrix += [[math.nan] * len(QTYPES) for _ in pending]
-    ax_q.set_facecolor(t["surface"])
-    ax_q.pcolormesh(range(len(QTYPES) + 1), [y - 0.5 for y in range(n_rows + 1)], matrix[::-1],
-                    cmap=cmap, vmin=0, vmax=100, edgecolors=t["surface"], linewidth=2)
-    for i, row in enumerate(matrix):
-        for j, v in enumerate(row):
-            if not math.isnan(v):
-                ink = _best_ink(cmap(v / 100)[:3])
-                ax_q.text(j + 0.5, n_rows - 1 - i, f"{v:.0f}", ha="center", va="center", fontsize=13, color=ink)
-    ax_q.set_ylim(ax.get_ylim())
-    ax_q.set_xticks([j + 0.5 for j in range(len(QTYPES))], QTYPES, fontsize=12, color=t["ink2"])
-    ax_q.set_yticks([])
-    ax_q.tick_params(length=0)
-    for s in ax_q.spines.values():
-        s.set_visible(False)
-    ax_q.set_title("best arm, by quant type", loc="left", color=t["ink"], fontsize=14, pad=10)
+    # 5. Quality vs cost (Claude configurations; local models have no dollar cost).
+    priced = [r for r in rows if r["cost_usd"]]
+    fig = _new_fig(t)
+    ax = fig.add_axes([0.10, 0.12, 0.84, 0.63])
+    _style(ax, t, grid_axis="both")
+    for r in priced:
+        ax.scatter(r["cost_usd"], r["headline"], s=260, color=cols[family(r)], edgecolors=t["surface"],
+                   linewidths=2, zorder=3)
+        ax.annotate(config_label(r), (r["cost_usd"], r["headline"]), xytext=(12, 0), textcoords="offset points",
+                    va="center", fontsize=13, color=t["ink"])
+    if priced:
+        ax.set_xscale("log")
+        lo, hi = min(r["cost_usd"] for r in priced), max(r["cost_usd"] for r in priced)
+        ax.set_xlim(lo / 2, hi * 4)
+        ticks = [v for v in DOLLAR_TICKS if lo / 2 <= v <= hi * 4]
+        ax.set_xticks(ticks, [DOLLAR_TICKS[v] for v in ticks])
+        ax.minorticks_off()
+    ax.set_ylim(0, 100)
+    ax.set_xlabel("API-equivalent cost per SDRF (US$, log scale)", color=t["ink2"], fontsize=13)
+    ax.set_ylabel("score (0-100)", color=t["ink2"], fontsize=13)
+    _titles(fig, t, "What does quality cost?", "Claude configurations; up and to the left is better", None)
+    _legend(fig, t, {family(r) for r in priced})
+    _save(fig, outdir / "backup_5_cost_vs_quality", t)
 
-    # Right: manuscript effect (with minus without), per arm.
-    _style(ax_ms, t)
-    deltas = [r["ms_delta"] for r in summary if r["ms_delta"] is not None]
-    lim = max([10.0] + [abs(d) * 1.25 for d in deltas])
-    ax_ms.axvline(0, color=t["ink2"], linewidth=1)
-    for y, (base, arms) in zip(ys, groups):
-        for arm, dy in (("raw", -0.12), ("skills", 0.12)):
-            row = arms.get(arm)
-            if row and row["ms_delta"] is not None:
-                ax_ms.scatter([row["ms_delta"]], [y + dy], s=110, color=t[arm], edgecolors=t["surface"],
-                              linewidths=2, zorder=3)
-    ax_ms.set_xlim(-lim, lim)
-    ax_ms.set_ylim(ax.get_ylim())
-    ax_ms.set_yticks([])
-    ax_ms.set_xlabel("points gained from the manuscript", color=t["ink2"], fontsize=12)
-    ax_ms.set_title("manuscript effect", loc="left", color=t["ink"], fontsize=14, pad=10)
-
-    n_ds = max((r["n"] for r in summary), default=0)
-    present = [q for q in QTYPES if any(r["by_qtype"].get(q) is not None for r in summary)]
-    uplifts = [(arms["skills"]["headline"] - arms["raw"]["headline"], base)
-               for base, arms in groups if "raw" in arms and "skills" in arms]
-    subtitle = (f"n = {n_ds} dataset{'s' if n_ds != 1 else ''} ({', '.join(present)})"
-                " × with/without manuscript")
-    if uplifts:
-        gain, base = max(uplifts)
-        subtitle = f"The SDRF skills add up to {gain:+.0f} points ({display_name(base)})  ·  " + subtitle
-    fig.text(0.02, 0.945, "SDRF annotation quality by model", fontsize=28, color=t["ink"], weight="bold")
-    fig.text(0.02, 0.895, subtitle, fontsize=15, color=t["ink2"])
-    fig.text(0.02, 0.025, "Score: 80% deterministic match to the curated SDRF (validity, completeness, "
-             "ontology-aware cell accuracy, specificity) + 20% reference-guided LLM judge.\n"
-             "Scores measure agreement with the curated SDRFs.  Whiskers: ±1 SEM across datasets.  "
-             "⚠ n = runs that failed or exceeded the model's context window.",
-             fontsize=10.5, color=t["ink2"], linespacing=1.5)
-    path = Path(path)
-    for ext, kw in (("svg", {}), ("png", {"dpi": 200})):
-        fig.savefig(path.with_suffix(f".{ext}"), facecolor=t["surface"], **kw)
-    plt.close(fig)
+    # 6. Does the judge agree with the deterministic score? (only when the judge ran)
+    pairs = [(r["deterministic"], r["judge"], family(r)) for r in records if r.get("judge") is not None]
+    if len(pairs) >= 3:
+        fig = _new_fig(t)
+        ax = fig.add_axes([0.30, 0.12, 0.40, 0.63])
+        _style(ax, t, grid_axis="both")
+        for fam in {p[2] for p in pairs}:
+            pts = [(d, j) for d, j, f in pairs if f == fam]
+            ax.scatter(*zip(*pts), s=70, color=cols[fam], edgecolors=t["surface"], linewidths=1.5, alpha=0.85)
+        ax.plot([0, 100], [0, 100], color=t["ink2"], linewidth=1, linestyle="--")
+        xs, js = [p[0] for p in pairs], [p[1] for p in pairs]
+        r_val = statistics.correlation(xs, js) if len(set(xs)) > 1 and len(set(js)) > 1 else float("nan")
+        ax.set_xlim(0, 100)
+        ax.set_ylim(0, 100)
+        ax.set_xlabel("deterministic score", color=t["ink2"], fontsize=13)
+        ax.set_ylabel("LLM judge score", color=t["ink2"], fontsize=13)
+        _titles(fig, t, "Does the LLM judge agree?", f"One dot per SDRF · Pearson r = {r_val:.2f} (n = {len(pairs)})")
+        _save(fig, outdir / "backup_6_judge_agreement", t)
 
 
 def write_summary_tsv(summary: list[dict], path: Path) -> None:
@@ -260,58 +434,3 @@ def write_summary_tsv(summary: list[dict], path: Path) -> None:
             w.writerow([r[c] for c in cols] + [r["by_qtype"][q] for q in QTYPES]
                        + [r["by_tier"][t] for t in TIERS] + [r["components"][c] for c, _ in COMPONENTS]
                        + [";".join(f"{k}={v}" for k, v in sorted(r["flags"].items()))])
-
-
-def render_backups(records: list[dict], summary: list[dict], outdir: Path, theme: str = "light") -> None:
-    t = THEMES[theme]
-    outdir = Path(outdir)
-    write_summary_tsv(summary, outdir / "summary.tsv")
-    labels = [r["model_id"] for r in summary][::-1]
-    rows = summary[::-1]
-
-    # Weighted score components, stacked (2px surface gaps between segments).
-    fig, ax = plt.subplots(figsize=(13, 0.55 * len(rows) + 2), facecolor=t["surface"])
-    _style(ax, t)
-    left = [0.0] * len(rows)
-    for (comp, weight), color in zip(COMPONENTS, t["slots"]):
-        vals = [(r["components"][comp] or 0) * weight for r in rows]
-        ax.barh(labels, vals, left=left, color=color, edgecolor=t["surface"], linewidth=2,
-                label=f"{comp} (max {weight})", height=0.6)
-        left = [a + b for a, b in zip(left, vals)]
-    ax.set_xlim(0, 100)
-    ax.set_xlabel("deterministic score points", color=t["ink2"])
-    ax.legend(frameon=False, ncol=4, loc="lower left", bbox_to_anchor=(0, 1.0), labelcolor=t["ink"])
-    fig.tight_layout()
-    fig.savefig(outdir / "backup_components.png", dpi=160, facecolor=t["surface"])
-    plt.close(fig)
-
-    # Rich vs poor PRIDE metadata.
-    fig, ax = plt.subplots(figsize=(13, 0.55 * len(rows) + 2), facecolor=t["surface"])
-    _style(ax, t)
-    ypos = range(len(rows))
-    for k, (tier, color) in enumerate(zip(TIERS, t["slots"][2:])):
-        ax.barh([y + (0.2 if k == 0 else -0.2) for y in ypos], [r["by_tier"][tier] or 0 for r in rows],
-                height=0.38, color=color, edgecolor=t["surface"], linewidth=2, label=f"{tier} PRIDE metadata")
-    ax.set_yticks(list(ypos), labels, color=t["ink"])
-    ax.set_xlim(0, 100)
-    ax.legend(frameon=False, ncol=2, loc="lower left", bbox_to_anchor=(0, 1.0), labelcolor=t["ink"])
-    fig.tight_layout()
-    fig.savefig(outdir / "backup_tier.png", dpi=160, facecolor=t["surface"])
-    plt.close(fig)
-
-    # Judge vs deterministic agreement (only when the judge ran).
-    pairs = [(r["deterministic"], r["judge"]) for r in records if r.get("judge") is not None]
-    if len(pairs) >= 3:
-        fig, ax = plt.subplots(figsize=(7, 7), facecolor=t["surface"])
-        _style(ax, t, grid_axis="both")
-        ax.scatter(*zip(*pairs), s=60, color=t["raw"], edgecolors=t["surface"], linewidths=1.5, alpha=0.8)
-        ax.plot([0, 100], [0, 100], color=t["ink2"], linewidth=1, linestyle="--")
-        r = statistics.correlation(*zip(*pairs)) if len({p[0] for p in pairs}) > 1 else float("nan")
-        ax.set_title(f"judge vs deterministic (Pearson r = {r:.2f}, n = {len(pairs)})", color=t["ink"], loc="left")
-        ax.set_xlabel("deterministic", color=t["ink2"])
-        ax.set_ylabel("judge", color=t["ink2"])
-        ax.set_xlim(0, 100)
-        ax.set_ylim(0, 100)
-        fig.tight_layout()
-        fig.savefig(outdir / "backup_judge_agreement.png", dpi=160, facecolor=t["surface"])
-        plt.close(fig)
