@@ -294,8 +294,10 @@ def cmd_report(args) -> int:
     records = [json.loads(line) for line in args.results.read_text().splitlines() if line.strip()]
     summary = summarise(records)
     seen = {r["model_id"] for r in records}
+    # only collaborator slots (custom providers) are shown as awaiting results; other disabled
+    # entries were dropped on purpose (e.g. a probe that did not work)
     pending = [s.id.removesuffix("-raw") for s in load_models(args.models, include_disabled=True)
-               if s.id not in seen and not s.enabled]
+               if s.id not in seen and not s.enabled and s.provider == "custom"]
     args.out.mkdir(parents=True, exist_ok=True)
     render_slide(summary, args.out / "slide", pending=pending)
     render_slide(summary, args.out / "slide-dark", theme="dark", pending=pending)

@@ -8,7 +8,7 @@ curated SDRF from [sdrf-annotated-datasets](https://github.com/bigbio/sdrf-annot
 
 | axis | levels |
 |---|---|
-| model | any: Claude, local Ollama models, OpenAI-compatible endpoints, or your own function |
+| model | Claude Opus 5, Sonnet 5, Haiku 4.5 in the shipped results; any other model can be added (local Ollama, OpenAI-compatible endpoints, or your own function) |
 | arm | **raw**: one fixed prompt, then up to 2 repair turns driven by the validator. **skills**: Claude Code with the sdrf-skills plugin (Claude only) |
 | manuscript | **on**: the paper's Methods section is in context. **off**: repository metadata and raw file names only |
 | quantification | TMT, LFQ, DIA (4 datasets each) |
@@ -130,7 +130,7 @@ appears on the shared slide. If you'd rather not use our runner, see [SUBMISSION
 
 ```bash
 uv run sdrf-bench select --datasets ../sdrf-annotated-datasets/datasets   # re-select: creates a NEW benchmark version
-uv run sdrf-bench run                                                      # full roster (Claude Code login + ollama)
+./run_claude_paced.sh                                                      # Claude roster, one run at a time, resumes after usage limits
 uv run sdrf-bench pack                                                     # sdrf-model-bench-v1.tar.gz for collaborators
 ```
 
