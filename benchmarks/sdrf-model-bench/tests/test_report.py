@@ -36,3 +36,9 @@ def test_render(tmp_path):
 def test_dark_theme_and_pending_rows(tmp_path):
     render_slide(summarise(RECORDS), tmp_path / "slide-dark", theme="dark", pending=["your-model"])
     assert (tmp_path / "slide-dark.png").stat().st_size > 0
+
+
+def test_thinking_models_are_labelled():
+    r = rec("g-think", "raw", "gemma4:12b", "P1", True, 30)
+    r["think"] = True
+    assert summarise([r])[0]["base"] == "gemma4:12b (thinking)"

@@ -121,3 +121,15 @@ def test_runs_in_progress_are_not_scored(tmp_path):
     data = setup_data(tmp_path)
     (tmp_path / "out" / "m" / "PXD1__ms-on__r1").mkdir(parents=True)  # started, nothing written yet
     assert score_tree(tmp_path / "out", data, validate_fn=lambda p, t=(): ValidationResult()) == []
+
+
+def test_context_flag_uses_num_ctx_and_thinking(tmp_path):
+    from sdrf_model_bench.runner import effective_context, needs_context
+
+    big = ModelSpec("g", "ollama", "m", "raw", context_window=262144, options={"num_ctx": 8192})
+    assert effective_context(big) == 8192
+    assert effective_context(ModelSpec("c", "claude-cli", "m", "raw", context_window=200000)) == 200000
+    thinker = ModelSpec("t", "ollama", "m", "raw", context_window=40960, options={"num_ctx": 40960, "think": True})
+    plain = ModelSpec("p", "ollama", "m", "raw", context_window=40960, options={"num_ctx": 40960})
+    assert needs_context(thinker, prompt_tokens=10000, answer_tokens=10000) == 10000 + 10000 + 16384
+    assert needs_context(plain, prompt_tokens=10000, answer_tokens=10000) == 20000

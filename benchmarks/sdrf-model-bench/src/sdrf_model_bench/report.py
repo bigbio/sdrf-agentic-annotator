@@ -76,7 +76,7 @@ def summarise(records: list[dict]) -> list[dict]:
         rows.append({
             "model_id": model_id,
             "arm": recs[0].get("arm", "raw"),
-            "base": recs[0].get("model") or model_id,
+            "base": (recs[0].get("model") or model_id) + (" (thinking)" if recs[0].get("think") else ""),
             "n": len(ds),
             "runs": len(recs),
             "headline": statistics.fmean(ds) if ds else 0.0,

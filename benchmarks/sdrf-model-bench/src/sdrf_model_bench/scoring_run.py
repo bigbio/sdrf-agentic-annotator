@@ -37,7 +37,7 @@ def score_run(run_dir: Path, data_dir: Path, validate_fn, judge_fn=None) -> dict
         flags.append("contamination_suspect")
     record = {
         "model_id": usage.get("model_id", run_dir.parent.name), "arm": usage.get("arm", "raw"),
-        "model": usage.get("model", ""), "provider": usage.get("provider", ""),
+        "model": usage.get("model", ""), "provider": usage.get("provider", ""), "think": usage.get("think", False),
         "accession": acc, "manuscript": manuscript, "replicate": rep,
         "qtype": meta.get("qtype"), "tier": meta.get("tier"), "pride_quality": meta.get("pride_quality"),
         **{k: v for k, v in det.items()},

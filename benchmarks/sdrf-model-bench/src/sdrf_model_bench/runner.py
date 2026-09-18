@@ -67,6 +67,15 @@ def expected_output_tokens(data_dir: Path, accession: str) -> int:
     return int(estimate_tokens(truth.read_text()) * 1.2) if truth.exists() else OUTPUT_FALLBACK
 
 
+def effective_context(spec: ModelSpec) -> int | None:
+    """The window a run actually gets: Ollama's num_ctx when set, else the model's maximum."""
+    return spec.options.get("num_ctx") or spec.context_window
+
+
+def needs_context(spec: ModelSpec, prompt_tokens: int, answer_tokens: int) -> int:
+    return prompt_tokens + answer_tokens + (THINKING_ALLOWANCE if spec.options.get("think") else 0)
+
+
 def output_budget(data_dir: Path, accession: str) -> int:
     """Per-run output cap, identical for every raw model: twice a correct answer, at least 4096."""
     return max(4096, 2 * expected_output_tokens(data_dir, accession))
@@ -87,12 +96,13 @@ def execute_run(key: RunKey, spec: ModelSpec, cfg: RunConfig) -> dict:
     ev = load_evidence(cfg.data_dir, key.accession)
     templates = ev.meta.get("templates") or []
     base = {"model_id": spec.id, "provider": spec.provider, "model": spec.model, "arm": spec.arm,
-            "context_window": spec.context_window, "flags": []}
+            "context_window": spec.context_window, "think": bool(spec.options.get("think")), "flags": []}
     try:
         if spec.arm == "raw":
             messages, info = build_messages(ev, key.manuscript, cfg.budget_tokens)
-            if spec.context_window and info["prompt_tokens"] + expected_output_tokens(cfg.data_dir, key.accession) \
-                    > spec.context_window:
+            window = effective_context(spec)
+            if window and needs_context(spec, info["prompt_tokens"],
+                                        expected_output_tokens(cfg.data_dir, key.accession)) > window:
                 base["flags"].append("context_limited")
             budget = output_budget(cfg.data_dir, key.accession)
             generate = cfg.generate_factory(spec)
