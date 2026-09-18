@@ -1,16 +1,20 @@
 # The benchmark roster. Each entry is one "model-arm".
-#   provider: anthropic | ollama | openai | claude-code | custom
+#   provider: claude-cli (Claude Code login, no API key) | anthropic (API key) | ollama | openai
+#             | claude-code (skills arm) | custom
 #   arm:      raw (standalone draft/validate/repair loop) | skills (Claude Code + sdrf-skills)
 #   context_window: the model's maximum context, used to flag context-limited runs
+# Output: every raw model gets the same answer budget, max(4096, 2x a correct answer), plus a
+# 16k thinking allowance when it reasons. Ollama models run with thinking off unless
+# options.think is true (local thinking is slow and otherwise eats the answer budget).
 # To add your own model, copy the "your-model" entry, set enabled: true, and point
 # options.callable at a function `generate(messages, **options) -> str | (str, usage_dict)`.
 models:
   - {id: opus-5-skills,    provider: claude-code, model: claude-opus-5,    arm: skills, context_window: 1000000}
   - {id: sonnet-5-skills,  provider: claude-code, model: claude-sonnet-5,  arm: skills, context_window: 1000000}
   - {id: haiku-4.5-skills, provider: claude-code, model: claude-haiku-4-5, arm: skills, context_window: 200000}
-  - {id: opus-5-raw,       provider: anthropic,   model: claude-opus-5,    arm: raw,    context_window: 1000000}
-  - {id: sonnet-5-raw,     provider: anthropic,   model: claude-sonnet-5,  arm: raw,    context_window: 1000000}
-  - {id: haiku-4.5-raw,    provider: anthropic,   model: claude-haiku-4-5, arm: raw,    context_window: 200000}
+  - {id: opus-5-raw,       provider: claude-cli,  model: claude-opus-5,    arm: raw,    context_window: 1000000}
+  - {id: sonnet-5-raw,     provider: claude-cli, model: claude-sonnet-5,  arm: raw,    context_window: 1000000}
+  - {id: haiku-4.5-raw,    provider: claude-cli, model: claude-haiku-4-5, arm: raw,    context_window: 200000}
   - {id: gemma4-12b-raw,   provider: ollama, model: "gemma4:12b", arm: raw, context_window: 262144, options: {num_ctx: 40960}}
   - {id: gemma2-9b-raw,    provider: ollama, model: "gemma2:9b",  arm: raw, context_window: 8192,   options: {num_ctx: 8192}}
   - {id: qwen2.5-3b-raw,   provider: ollama, model: "qwen2.5:3b", arm: raw, context_window: 32768,  options: {num_ctx: 32768}}

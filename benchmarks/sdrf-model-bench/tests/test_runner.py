@@ -114,3 +114,10 @@ def test_runner_passes_the_same_output_budget(tmp_path):
                     validate_fn=lambda p, t=(): ValidationResult(), generate_factory=factory)
     execute_run(RunKey("x", "PXD1", True, 1), ModelSpec("x", "custom", "f", "raw"), cfg)
     assert seen["max_output_tokens"] == 4096  # floor; 2x a tiny truth is smaller
+    assert seen["thinking_tokens"] == 16384
+
+
+def test_runs_in_progress_are_not_scored(tmp_path):
+    data = setup_data(tmp_path)
+    (tmp_path / "out" / "m" / "PXD1__ms-on__r1").mkdir(parents=True)  # started, nothing written yet
+    assert score_tree(tmp_path / "out", data, validate_fn=lambda p, t=(): ValidationResult()) == []

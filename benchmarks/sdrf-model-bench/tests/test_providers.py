@@ -1,3 +1,4 @@
+import json
 import sys
 import types
 
@@ -103,3 +104,80 @@ def test_output_budget_reaches_every_provider():
     o = FakeSession({"choices": [{"message": {"content": "x"}}], "usage": {}})
     openai_generate(MSGS, model="m", base_url="http://h/v1", max_output_tokens=777, session=o)
     assert o.calls[0][1]["json"]["max_tokens"] == 777
+
+
+def _fake_claude(tmp_path, payload: dict, record=None):
+    """A stand-in `claude` binary that prints one JSON result and records its argv/env."""
+    fake = tmp_path / "claude"
+    rec = record or (tmp_path / "argv.json")
+    fake.write_text(
+        f"#!{sys.executable}\n"
+        "import json, os, sys\n"
+        f"json.dump({{'argv': sys.argv[1:], 'max': os.environ.get('CLAUDE_CODE_MAX_OUTPUT_TOKENS')}}, open({str(rec)!r}, 'w'))\n"
+        f"print(json.dumps({payload!r}))\n")
+    fake.chmod(0o755)
+    return fake, rec
+
+
+def test_claude_cli_success(tmp_path):
+    from sdrf_model_bench.providers import claude_cli_generate
+
+    fake, rec = _fake_claude(tmp_path, {"type": "result", "subtype": "success", "is_error": False,
+                                        "result": "```tsv\nx\n```", "total_cost_usd": 0.02,
+                                        "usage": {"input_tokens": 10, "output_tokens": 5,
+                                                  "cache_read_input_tokens": 3}})
+    c = claude_cli_generate(MSGS, model="claude-haiku-4-5", max_output_tokens=4096, claude_bin=str(fake))
+    assert c.text.startswith("```tsv") and c.cost_usd == 0.02 and c.usage["cache_read_input_tokens"] == 3
+    call = json.loads(rec.read_text())
+    argv = call["argv"]
+    assert call["max"] == "4096"
+    assert argv[argv.index("--system-prompt") + 1] == "sys"
+    assert argv[argv.index("--tools") + 1] == "" and "--restricted" in argv and "--disable-slash-commands" in argv
+
+
+def test_claude_cli_flattens_repair_history(tmp_path):
+    from sdrf_model_bench.providers import claude_cli_generate
+
+    fake, rec = _fake_claude(tmp_path, {"type": "result", "is_error": False, "result": "ok", "usage": {}})
+    history = MSGS + [{"role": "assistant", "content": "draft"}, {"role": "user", "content": "fix it"}]
+    claude_cli_generate(history, model="m", claude_bin=str(fake))
+    prompt = json.loads(rec.read_text())["argv"][1]
+    assert prompt.index("hi") < prompt.index("draft") < prompt.index("fix it")
+
+
+def test_claude_cli_output_cap_is_a_truncation_not_a_crash(tmp_path):
+    from sdrf_model_bench.providers import claude_cli_generate
+
+    fake, _ = _fake_claude(tmp_path, {"type": "result", "is_error": True, "api_error_status": None,
+                                      "result": "API Error: Claude's response exceeded the 60 output token maximum.",
+                                      "usage": {"output_tokens": 60}})
+    c = claude_cli_generate(MSGS, model="m", claude_bin=str(fake))
+    assert c.text == "" and c.stop_reason == "length"
+
+
+def test_claude_cli_rate_limit_raises_for_retry(tmp_path):
+    from sdrf_model_bench.providers import ClaudeCliError, claude_cli_generate
+
+    fake, _ = _fake_claude(tmp_path, {"type": "result", "is_error": True, "api_error_status": 429,
+                                      "result": "rate limited", "usage": {}})
+    with pytest.raises(ClaudeCliError):
+        claude_cli_generate(MSGS, model="m", claude_bin=str(fake))
+
+
+def test_ollama_thinking_off_by_default_and_budget_split():
+    s = FakeSession({"message": {"content": "x"}, "prompt_eval_count": 1, "eval_count": 1})
+    ollama_generate(MSGS, model="m", num_ctx=8192, max_output_tokens=4096, thinking_tokens=16384, session=s)
+    body = s.calls[0][1]["json"]
+    assert body["think"] is False and body["options"]["num_predict"] == 4096
+    s2 = FakeSession({"message": {"content": "x", "thinking": "hmm"}, "prompt_eval_count": 1, "eval_count": 1})
+    ollama_generate(MSGS, model="m", num_ctx=8192, think=True, max_output_tokens=4096, thinking_tokens=16384, session=s2)
+    body = s2.calls[0][1]["json"]
+    assert body["think"] is True and body["options"]["num_predict"] == 4096 + 16384
+
+
+def test_claude_cli_cap_includes_thinking_allowance(tmp_path):
+    from sdrf_model_bench.providers import claude_cli_generate
+
+    fake, rec = _fake_claude(tmp_path, {"type": "result", "is_error": False, "result": "ok", "usage": {}})
+    claude_cli_generate(MSGS, model="m", max_output_tokens=4096, thinking_tokens=16384, claude_bin=str(fake))
+    assert json.loads(rec.read_text())["max"] == str(4096 + 16384)

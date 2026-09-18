@@ -77,7 +77,7 @@ so that your token counts appear on the slide.
 
 ```bash
 uv run sdrf-bench run --only mymodel-raw      # 24 runs; re-run the same command to resume or retry
-uv run sdrf-bench score --no-judge            # add the judge if you have ANTHROPIC_API_KEY
+uv run sdrf-bench score                       # judge via Claude Code (or --no-judge / --judge-provider anthropic)
 uv run sdrf-bench report                      # results/slide.png, summary.tsv, backup plots
 ```
 
@@ -87,12 +87,22 @@ appears on the shared slide. If you'd rather not use our runner, see [SUBMISSION
 ## Fairness rules built into the runner
 
 - Every raw model gets the same system prompt, the same evidence, the same 24k-token evidence
-  budget, the same validator feedback, and the same output budget: max(4096, 2 × the size of a
-  correct answer).
+  budget, the same validator feedback, and the same answer budget: max(4096, 2 × the size of a
+  correct answer). Models that think get an extra 16k tokens for thinking. Ollama models run with
+  thinking off unless you set `options: {think: true}`.
+- Claude runs through **Claude Code with your own login** (`provider: claude-cli` for the raw arm,
+  `claude-code` for the skills arm), so no API key is needed. Cost is the API-equivalent
+  `total_cost_usd` that Claude Code reports. Claude Code adds about 2k input tokens of harness
+  context to each raw call, and the token figures include it. Hitting a rate limit crashes the
+  run, which is then retried rather than scored. `provider: anthropic` uses `ANTHROPIC_API_KEY`
+  instead.
 - Local models run at temperature 0. Opus 5 and Sonnet 5 don't accept a temperature, so they use
   their defaults.
-- The skills arm runs Claude Code with `--bare`, a copy of the plugin with its bundled annotations
-  removed, no MCP servers and no web tools, and read access denied under `$HOME`. Any file access
+- The skills arm runs Claude Code with `--restricted`, which ignores your user and project settings
+  (so your other plugins, hooks and CLAUDE.md don't load) and confines file tools to a throwaway
+  workspace. It also uses a copy of the plugin with its bundled annotations removed, no MCP servers
+  and no web tools, and Bash only for `parse_sdrf validate-sdrf`. Claude Code's built-in skills are
+  still listed; they're the same in every install. Any file access
   outside the workspace flags the run as `leak_suspect`.
 - **Flags** (listed in `summary.tsv`, and shown as ⚠ on the slide):
   - `context_limited`: the prompt plus a correct answer doesn't fit the model's context
@@ -116,7 +126,7 @@ appears on the shared slide. If you'd rather not use our runner, see [SUBMISSION
 
 ```bash
 uv run sdrf-bench select --datasets ../sdrf-annotated-datasets/datasets   # re-select: creates a NEW benchmark version
-uv run sdrf-bench run                                                      # full roster (needs ANTHROPIC_API_KEY, ollama)
+uv run sdrf-bench run                                                      # full roster (Claude Code login + ollama)
 uv run sdrf-bench pack                                                     # sdrf-model-bench-v1.tar.gz for collaborators
 ```
 

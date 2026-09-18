@@ -51,7 +51,7 @@ def test_workspace_respects_manuscript_flag(tmp_path):
 def test_command_is_locked_down(tmp_path):
     cmd = build_command("claude", "claude-opus-5", tmp_path / "p", "do it")
     joined = " ".join(cmd)
-    for flag in ("--bare", "--strict-mcp-config", "--plugin-dir", "--no-session-persistence"):
+    for flag in ("--restricted", "--strict-mcp-config", "--plugin-dir", "--no-session-persistence"):
         assert flag in cmd
     assert "WebFetch" in joined and "Read(~/**)" in joined and "Bash(parse_sdrf validate-sdrf:*)" in joined
 
@@ -112,3 +112,35 @@ def test_run_skills_with_fake_cli(tmp_path):
     assert (run_dir / "transcript.jsonl").exists()
     cwd = json.loads((run_dir / "transcript.jsonl").read_text())["cwd"]
     assert not os.path.exists(cwd)  # scratch workspace removed
+
+
+def _fake_cli(tmp_path, body: str):
+    import sys
+
+    fake = tmp_path / "claude"
+    fake.write_text(f"#!{sys.executable}\nimport json, pathlib, time\n{body}\n")
+    fake.chmod(0o755)
+    ev = tmp_path / "ev"
+    ev.mkdir(exist_ok=True)
+    for n in ("pride.json", "files.json"):
+        (ev / n).write_text("{}")
+    (tmp_path / "plugin" / "skills").mkdir(parents=True, exist_ok=True)
+    return fake, ev
+
+
+def test_rate_limit_raises_so_the_run_is_retried(tmp_path):
+    from sdrf_model_bench.skills_arm import run_skills
+
+    fake, ev = _fake_cli(tmp_path, "print(json.dumps({'type': 'result', 'is_error': True, "
+                                   "'api_error_status': 429, 'result': 'usage limit reached'}))")
+    with pytest.raises(RuntimeError, match="429"):
+        run_skills("m", ev, "PXD1", False, [], tmp_path / "run", tmp_path / "plugin", claude_bin=str(fake))
+
+
+def test_timeout_is_a_scored_failure(tmp_path):
+    from sdrf_model_bench.skills_arm import run_skills
+
+    fake, ev = _fake_cli(tmp_path, "time.sleep(5)")
+    out = run_skills("m", ev, "PXD1", False, [], tmp_path / "run", tmp_path / "plugin",
+                     claude_bin=str(fake), timeout=1)
+    assert out["timed_out"] and out["sdrf"] is None

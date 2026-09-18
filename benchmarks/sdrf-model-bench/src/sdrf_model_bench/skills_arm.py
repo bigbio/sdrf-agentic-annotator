@@ -1,7 +1,9 @@
 """Skills arm: Claude Code headless with only the sdrf-skills plugin, offline, sandboxed to a workspace.
 
 Isolation, from strongest to weakest:
-  * --bare: no user hooks, CLAUDE.md, other plugins, memory; --strict-mcp-config: no MCP servers.
+  * --restricted: ignores user/project/local settings (so no user plugins, hooks or CLAUDE.md
+    instructions), confines file tools to the workspace; works with the Claude Code login.
+    --strict-mcp-config: no MCP servers.
   * a sanitised plugin copy: no bundled annotations/examples, audited for benchmark accessions.
   * permissions: web tools and subagents denied; Read denied under the home directory, where the
     curated datasets live; Bash only for `parse_sdrf validate-sdrf`.
@@ -24,8 +26,8 @@ KEEP = ["skills", "spec/sdrf-proteomics", "criteria", "scripts", "tools",
 EVIDENCE_FILES = ["pride.json", "files.json"]
 ACCESSION_RE = re.compile(r"\b(?:PXD|MSV|IPX|MTBLS)\d{3,}\b")
 PATH_KEYS = ("file_path", "path", "notebook_path")
-ALLOWED = ["Read", "Write", "Edit", "Glob", "Grep", "Skill", "TodoWrite",
-           "Bash(parse_sdrf validate-sdrf:*)"]
+TOOLS = ["Read", "Write", "Edit", "Glob", "Grep", "Skill", "TodoWrite", "Bash"]
+ALLOWED = [*TOOLS[:-1], "Bash(parse_sdrf validate-sdrf:*)"]  # Bash only for the validator
 DENIED = ["WebFetch", "WebSearch", "Agent", "Task", "Read(~/**)", "Glob(~/**)", "Grep(~/**)"]
 
 PROMPT = """Create an SDRF-Proteomics file for the proteomics dataset {accession}.
@@ -91,7 +93,8 @@ def prepare_workspace(ws: Path, ev_dir: Path, manuscript: bool) -> list[str]:
 def build_command(claude_bin: str, model: str, plugin_dir: Path, prompt: str) -> list[str]:
     return [
         claude_bin, "-p", prompt,
-        "--bare", "--plugin-dir", str(plugin_dir), "--strict-mcp-config",
+        "--restricted", "--plugin-dir", str(plugin_dir), "--strict-mcp-config",
+        "--tools", *TOOLS,
         "--model", model, "--output-format", "stream-json", "--verbose",
         "--no-session-persistence", "--permission-mode", "dontAsk",
         "--allowedTools", *ALLOWED,
@@ -104,7 +107,8 @@ def _outside(path: str, workspace: str) -> bool:
 
 
 def parse_stream(lines, workspace: str) -> dict:
-    out = {"usage": {}, "cost_usd": None, "num_turns": 0, "is_error": True, "tool_calls": [], "leak_suspect": False}
+    out = {"usage": {}, "cost_usd": None, "num_turns": 0, "is_error": True, "tool_calls": [], "leak_suspect": False,
+           "api_error_status": None, "result": "", "saw_result": False}
     for line in lines:
         try:
             ev = json.loads(line)
@@ -125,6 +129,9 @@ def parse_stream(lines, workspace: str) -> dict:
             out["cost_usd"] = ev.get("total_cost_usd")
             out["num_turns"] = ev.get("num_turns", 0)
             out["is_error"] = bool(ev.get("is_error"))
+            out["api_error_status"] = ev.get("api_error_status")
+            out["result"] = ev.get("result") or ""
+            out["saw_result"] = True
     return out
 
 
@@ -158,18 +165,27 @@ def _run_in_workspace(ws, model, ev_dir, accession, manuscript, templates, run_d
     prompt = PROMPT.format(accession=accession, listing=", ".join(copied), templates=tmpl)
     cmd = build_command(claude_bin, model, local_plugin, prompt)
     t0 = time.monotonic()
+    timed_out = False
     try:
         proc = subprocess.run(cmd, cwd=ws, capture_output=True, text=True, timeout=timeout,
                               stdin=subprocess.DEVNULL)
         stdout, returncode = proc.stdout, proc.returncode
     except subprocess.TimeoutExpired as exc:
-        stdout, returncode = (exc.stdout or b"").decode() if isinstance(exc.stdout, bytes) else (exc.stdout or ""), -1
+        # too slow is the model's failure, scored as such (not retried)
+        stdout = exc.stdout.decode() if isinstance(exc.stdout, bytes) else (exc.stdout or "")
+        returncode, timed_out = -1, True
     (run_dir / "transcript.jsonl").write_text(stdout)
     parsed = parse_stream(stdout.splitlines(), str(ws))
     out_file = ws / "output.sdrf.tsv"
+    if not timed_out and not out_file.exists() and (
+            not parsed["saw_result"] or parsed["api_error_status"] is not None):
+        # rate limit, auth failure or a crashed CLI: retry the run rather than score a failure
+        raise RuntimeError(f"claude run did not complete (status {parsed['api_error_status']}, "
+                           f"exit {returncode}): {parsed['result'][:300]}")
     return {
         **parsed,
         "sdrf": out_file.read_text() if out_file.exists() else None,
         "wall_s": time.monotonic() - t0,
         "returncode": returncode,
+        "timed_out": timed_out,
     }

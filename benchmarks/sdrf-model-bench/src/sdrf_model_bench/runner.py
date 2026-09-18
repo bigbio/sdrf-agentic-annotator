@@ -19,7 +19,8 @@ from sdrf_model_bench.rawloop import run_raw
 from sdrf_model_bench.validator import validate
 
 OUTPUT_FALLBACK = 8192  # expected SDRF output tokens when the truth size is unknown
-WORKERS = {"ollama": 1, "anthropic": 4, "openai": 4, "custom": 2, "claude-code": 2}
+THINKING_ALLOWANCE = 16384  # extra output tokens for models that reason before answering
+WORKERS = {"ollama": 1, "anthropic": 4, "claude-cli": 2, "openai": 4, "custom": 2, "claude-code": 2}
 
 
 @dataclass(frozen=True)
@@ -95,11 +96,14 @@ def execute_run(key: RunKey, spec: ModelSpec, cfg: RunConfig) -> dict:
                 base["flags"].append("context_limited")
             budget = output_budget(cfg.data_dir, key.accession)
             generate = cfg.generate_factory(spec)
-            res = run_raw(lambda m: generate(m, max_output_tokens=budget), messages, run_dir,
+            res = run_raw(lambda m: generate(m, max_output_tokens=budget, thinking_tokens=THINKING_ALLOWANCE),
+                          messages, run_dir,
                           lambda p: cfg.validate_fn(p, templates), cfg.max_repairs)
             (run_dir / "transcript.json").write_text(json.dumps(res.transcript, indent=1))
-            record = {**base, **info, "max_output_tokens": budget, "usage": res.usage, "turns": res.turns, "wall_s": res.wall_s,
-                      "stop_reasons": res.stop_reasons, "cost_usd": cost_usd(cfg.pricing, spec.model, res.usage)}
+            record = {**base, **info, "max_output_tokens": budget, "thinking_tokens": THINKING_ALLOWANCE,
+                      "usage": res.usage, "turns": res.turns, "wall_s": res.wall_s,
+                      "stop_reasons": res.stop_reasons, "cost_usd": res.cost_usd if res.cost_usd is not None
+                      else cost_usd(cfg.pricing, spec.model, res.usage)}
             if "refusal" in res.stop_reasons:
                 record["flags"].append("refusal")
             sdrf = res.sdrf
@@ -110,6 +114,8 @@ def execute_run(key: RunKey, spec: ModelSpec, cfg: RunConfig) -> dict:
                       "cost_usd": res["cost_usd"], "returncode": res["returncode"]}
             if res["leak_suspect"]:
                 record["flags"].append("leak_suspect")
+            if res.get("timed_out"):
+                record["flags"].append("timeout")
             sdrf = res["sdrf"]
     except Exception as exc:
         # Crashes (API overload, network, OOM) are not scored and not cached: the next `run` retries them.

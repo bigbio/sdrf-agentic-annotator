@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 ARMS = ("raw", "skills")
-PROVIDERS = ("anthropic", "ollama", "openai", "claude-code", "custom")
+PROVIDERS = ("anthropic", "claude-cli", "ollama", "openai", "claude-code", "custom")
 
 
 @dataclass(frozen=True)

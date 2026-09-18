@@ -38,6 +38,7 @@ class RawResult:
     wall_s: float = 0.0
     stop_reasons: list[str] = field(default_factory=list)
     validation: ValidationResult | None = None
+    cost_usd: float | None = None  # summed when the provider reports cost (Claude Code)
     transcript: list[dict] = field(default_factory=list)
 
 
@@ -51,6 +52,8 @@ def run_raw(generate, messages: list[dict], workdir: Path, validate_fn, max_repa
     for turn in range(max_repairs + 1):
         completion = generate(msgs)
         usage.update(completion.usage)
+        if completion.cost_usd is not None:
+            result.cost_usd = (result.cost_usd or 0.0) + completion.cost_usd
         result.turns = turn + 1
         result.stop_reasons.append(completion.stop_reason)
         msgs = msgs + [{"role": "assistant", "content": completion.text}]

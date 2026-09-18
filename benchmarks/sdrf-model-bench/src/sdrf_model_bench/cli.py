@@ -51,6 +51,8 @@ def build_parser() -> argparse.ArgumentParser:
     c.add_argument("--data", type=Path, default=Path("data"))
     c.add_argument("--out", type=Path, default=Path("results/runs.jsonl"))
     c.add_argument("--judge-model", default="claude-sonnet-5")
+    c.add_argument("--judge-provider", default="claude-cli", choices=["claude-cli", "anthropic"],
+                   help="claude-cli uses your Claude Code login; anthropic needs ANTHROPIC_API_KEY")
     c.add_argument("--no-judge", action="store_true")
     c.add_argument("--rescore", action="store_true")
 
@@ -160,15 +162,9 @@ def cmd_freeze(args) -> int:
 
 # ---------------------------------------------------------------- run / score / report
 
-def _find_claude(explicit: str | None) -> str:
-    for cand in (explicit, shutil.which("claude"), str(Path.home() / ".local/bin/claude")):
-        if cand and Path(cand).exists():
-            return cand
-    return "claude"
-
-
 def cmd_run(args) -> int:
     from sdrf_model_bench.config import load_models, load_pricing
+    from sdrf_model_bench.providers import find_claude
     from sdrf_model_bench.runner import RunConfig, load_manifest, plan_runs, run_matrix
     from sdrf_model_bench.skills_arm import build_sanitized_plugin, scratch_workspace
 
@@ -193,7 +189,7 @@ def cmd_run(args) -> int:
         plugin_dir = build_sanitized_plugin(args.plugin_src, scratch_workspace() / "sdrf-skills",
                                             forbidden=[m["accession"] for m in load_manifest(args.data / "manifest.tsv")])
     cfg = RunConfig(data_dir=args.data, outputs=args.outputs, pricing=load_pricing(args.pricing),
-                    plugin_dir=plugin_dir, claude_bin=_find_claude(args.claude_bin))
+                    plugin_dir=plugin_dir, claude_bin=find_claude(args.claude_bin))
     print(f"{len(keys)} runs across {len(specs)} model-arms")
     try:
         results = run_matrix(specs, keys, cfg)
@@ -214,7 +210,7 @@ def cmd_score(args) -> int:
 
     judge_fn = None
     if not args.no_judge:
-        gen = make_generate(ModelSpec(id="judge", provider="anthropic", model=args.judge_model, arm="raw"))
+        gen = make_generate(ModelSpec(id="judge", provider=args.judge_provider, model=args.judge_model, arm="raw"))
         judge_fn = lambda truth, pred: judge(gen, truth, pred)  # noqa: E731
     records = score_tree(args.outputs, args.data, validate, judge_fn, rescore=args.rescore)
     args.out.parent.mkdir(parents=True, exist_ok=True)

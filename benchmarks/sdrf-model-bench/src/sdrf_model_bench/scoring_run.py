@@ -56,8 +56,8 @@ def score_run(run_dir: Path, data_dir: Path, validate_fn, judge_fn=None) -> dict
 def score_tree(outputs: Path, data_dir: Path, validate_fn, judge_fn=None, rescore: bool = False) -> list[dict]:
     records = []
     for run_dir in sorted(Path(outputs).glob("*/*__ms-*__r*")):
-        if (run_dir / "error.json").exists() and not (run_dir / "usage.json").exists():
-            continue  # crashed, awaiting retry: neither a success nor a model failure
+        if not (run_dir / "usage.json").exists():
+            continue  # in progress, or crashed and awaiting retry: neither a success nor a model failure
         cached = run_dir / "score.json"
         if cached.exists() and not rescore:
             records.append(json.loads(cached.read_text()))

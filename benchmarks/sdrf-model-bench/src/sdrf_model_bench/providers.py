@@ -8,10 +8,15 @@ from __future__ import annotations
 
 import importlib
 import inspect
+import json
 import os
+import shutil
+import subprocess
+import tempfile
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 
 import requests
 
@@ -24,6 +29,7 @@ class Completion:
     usage: dict[str, int] = field(default_factory=dict)
     stop_reason: str = ""
     wall_s: float = 0.0
+    cost_usd: float | None = None  # set when the provider reports it (Claude Code: API-equivalent)
 
 
 Generate = Callable[..., Completion]  # generate(messages, max_output_tokens=None) -> Completion
@@ -35,7 +41,8 @@ def _session(session=None):
     return sess
 
 
-def anthropic_generate(messages, *, model: str, max_output_tokens: int = 64000, client=None, **_opts) -> Completion:
+def anthropic_generate(messages, *, model: str, max_output_tokens: int = 64000, thinking_tokens: int = 0,
+                       client=None, **_opts) -> Completion:
     """Claude via the official SDK. No temperature (rejected by Opus 5 / Sonnet 5) and no
     server-side fallbacks (a fallback would mix models inside one benchmark run)."""
     if client is None:
@@ -44,7 +51,8 @@ def anthropic_generate(messages, *, model: str, max_output_tokens: int = 64000, 
         client = anthropic.Anthropic(max_retries=4)
     system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
     chat = [m for m in messages if m["role"] != "system"]
-    kwargs = {"model": model, "max_tokens": max_output_tokens, "messages": chat}
+    # max_tokens covers thinking too, so the thinking allowance is added on top of the answer budget
+    kwargs = {"model": model, "max_tokens": max_output_tokens + thinking_tokens, "messages": chat}
     if system:
         kwargs["system"] = system
     t0 = time.monotonic()
@@ -62,14 +70,18 @@ def anthropic_generate(messages, *, model: str, max_output_tokens: int = 64000, 
 
 
 def ollama_generate(messages, *, model: str, num_ctx: int, max_output_tokens: int | None = None,
-                    host: str = "http://localhost:11434", timeout: int = 3600, session=None, **_opts) -> Completion:
+                    think: bool = False, thinking_tokens: int = 0, host: str = "http://localhost:11434",
+                    timeout: int = 3600, session=None, **_opts) -> Completion:
     """Local Ollama. `num_ctx` is mandatory: Ollama's default window silently truncates prompts.
     `max_output_tokens` becomes `num_predict`; without it a looping model generates until the
-    context is full."""
+    context is full. Thinking is off unless `think: true`: a thinking model otherwise spends the
+    answer budget on hidden reasoning (and local thinking is slow); when on, it gets the same
+    thinking allowance as Claude."""
     options = {"num_ctx": int(num_ctx), "temperature": 0}
     if max_output_tokens:
-        options["num_predict"] = int(max_output_tokens)
-    payload = {"model": model, "messages": list(messages), "stream": False, "options": options}
+        options["num_predict"] = int(max_output_tokens) + (int(thinking_tokens) if think else 0)
+    payload = {"model": model, "messages": list(messages), "stream": False, "think": bool(think),
+               "options": options}
     t0 = time.monotonic()
     resp = _session(session).post(host.rstrip("/") + "/api/chat", json=payload, timeout=timeout)
     resp.raise_for_status()
@@ -79,13 +91,13 @@ def ollama_generate(messages, *, model: str, num_ctx: int, max_output_tokens: in
 
 
 def openai_generate(messages, *, model: str, base_url: str, api_key_env: str = "OPENAI_API_KEY",
-                    max_output_tokens: int | None = None, timeout: int = 1800, session=None,
-                    **_opts) -> Completion:
+                    max_output_tokens: int | None = None, thinking_tokens: int = 0, timeout: int = 1800,
+                    session=None, **_opts) -> Completion:
     """Any OpenAI-compatible /chat/completions endpoint (vLLM, LiteLLM, hosted APIs)."""
     key = os.environ.get(api_key_env, "not-needed")
     body = {"model": model, "messages": list(messages)}
     if max_output_tokens:
-        body["max_tokens"] = int(max_output_tokens)
+        body["max_tokens"] = int(max_output_tokens) + int(thinking_tokens)  # reasoning models count it here
     t0 = time.monotonic()
     resp = _session(session).post(
         base_url.rstrip("/") + "/chat/completions",
@@ -100,6 +112,59 @@ def openai_generate(messages, *, model: str, base_url: str, api_key_env: str = "
     usage = {"input_tokens": u.get("prompt_tokens", 0), "output_tokens": u.get("completion_tokens", 0)}
     return Completion(choice["message"]["content"] or "", usage, choice.get("finish_reason") or "",
                       time.monotonic() - t0)
+
+
+class ClaudeCliError(RuntimeError):
+    """Rate limit, auth or API failure from the Claude Code CLI: retried, never scored."""
+
+
+def find_claude(explicit: str | None = None) -> str:
+    for cand in (explicit, shutil.which("claude"), str(Path.home() / ".local/bin/claude")):
+        if cand and Path(cand).exists():
+            return cand
+    return "claude"
+
+
+def _flatten(chat: list[dict]) -> str:
+    """One prompt for `claude -p`: a single user turn as-is, a repair history as a labelled transcript."""
+    if len(chat) == 1:
+        return chat[0]["content"]
+    return "\n\n".join(f"[{m['role'].upper()}]\n{m['content']}" for m in chat)
+
+
+def claude_cli_generate(messages, *, model: str, max_output_tokens: int | None = None, thinking_tokens: int = 0,
+                        claude_bin: str | None = None, timeout: int = 3600, **_opts) -> Completion:
+    """Claude through the Claude Code CLI with the user's own login (no API key): our system prompt
+    replaces Claude Code's, no tools, no skills, no settings or MCP. Claude Code still adds ~2k input
+    tokens of harness context per call, which the usage figures include."""
+    system = "\n\n".join(m["content"] for m in messages if m["role"] == "system")
+    chat = [m for m in messages if m["role"] != "system"]
+    cmd = [find_claude(claude_bin), "-p", _flatten(chat), "--restricted", "--tools", "",
+           "--disable-slash-commands", "--strict-mcp-config", "--no-session-persistence",
+           "--model", model, "--output-format", "json"]
+    if system:
+        cmd += ["--system-prompt", system]
+    env = dict(os.environ)
+    if max_output_tokens:
+        env["CLAUDE_CODE_MAX_OUTPUT_TOKENS"] = str(int(max_output_tokens) + int(thinking_tokens))
+    t0 = time.monotonic()
+    with tempfile.TemporaryDirectory(prefix="sdrf-bench-cli-") as cwd:
+        proc = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True, text=True, timeout=timeout,
+                              stdin=subprocess.DEVNULL)
+    try:
+        d = json.loads(proc.stdout.strip().splitlines()[-1])
+    except (IndexError, json.JSONDecodeError) as exc:
+        raise ClaudeCliError(f"no JSON result from claude (exit {proc.returncode}): {proc.stderr[-300:]}") from exc
+    u = d.get("usage") or {}
+    usage = {k: u.get(k, 0) or 0 for k in
+             ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")}
+    text, stop = d.get("result") or "", d.get("stop_reason") or d.get("subtype") or ""
+    if d.get("is_error"):
+        if d.get("api_error_status") is None and "output token maximum" in text:
+            text, stop = "", "length"  # hit the output budget: a model failure, scored as such
+        else:
+            raise ClaudeCliError(f"claude error (status {d.get('api_error_status')}): {text[:300]}")
+    return Completion(text, usage, stop, time.monotonic() - t0, cost_usd=d.get("total_cost_usd"))
 
 
 def custom_generate(messages, *, callable: str, **opts) -> Completion:
@@ -123,6 +188,8 @@ def make_generate(spec: ModelSpec) -> Generate:
         return lambda m, **kw: ollama_generate(m, model=spec.model, **opts, **kw)
     if spec.provider == "openai":
         return lambda m, **kw: openai_generate(m, model=spec.model, **opts, **kw)
+    if spec.provider == "claude-cli":
+        return lambda m, **kw: claude_cli_generate(m, model=spec.model, **opts, **kw)
     if spec.provider == "custom":
         return lambda m, **kw: custom_generate(m, **opts, **kw)
     raise ValueError(f"{spec.id}: provider {spec.provider!r} has no raw-arm generate()")
