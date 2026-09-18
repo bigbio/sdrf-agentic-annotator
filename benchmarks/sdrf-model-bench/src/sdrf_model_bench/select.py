@@ -13,6 +13,10 @@ from sdrf_model_bench.sdrf_io import column_values, first_value, is_na, read_sdr
 MAX_ROWS = {"TMT": 100, "LFQ": 60, "DIA": 60}
 DIA_RE = re.compile(r"data.independent|\bdia\b|swath", re.I)
 AI_RE = re.compile(r"sdrf-skills|annotator|agentic|co-authored-by:\s*claude|generated with claude", re.I)
+# Evidence *inside* a truth file that it was machine-generated. Commit messages of batch imports
+# often say nothing ("Add 500 community SDRF annotations"), so the content is checked too.
+AUTOMATED_RE = re.compile(r"sdrf-skills|sdrf-skeleton-gen|codex|openai|chatgpt|\bgpt-?\d|claude|anthropic|"
+                          r"gemini|copilot|\bllm\b|ai[- ]assisted|agentic", re.I)
 QTYPES = ("TMT", "LFQ", "DIA")
 
 
@@ -34,6 +38,26 @@ def quant_type(header, rows) -> str | None:
 def truth_ok(text: str, max_rows: int = MAX_ROWS["LFQ"]) -> bool:
     header, rows = read_sdrf(text)
     return "comment[data file]" in header and 1 <= len(rows) <= max_rows
+
+
+def automated_truth(text: str) -> str | None:
+    """Why a truth file looks machine-generated, or None. A blank annotation-tool column is not
+    evidence: older hand-curated files predate that column."""
+    match = AUTOMATED_RE.search(text)
+    return f"automated provenance in file: {match.group(0)!r}" if match else None
+
+
+def eligible_replacement(cand: dict, quality: float, tier: str, manifest: list[dict]) -> bool:
+    """Same quantification type, not already selected, and inside the tier it replaces: a 'poor'
+    stand-in may be no richer than the manifest's poorest-tier maximum, a 'rich' one no poorer
+    than the rich-tier minimum."""
+    same = [m for m in manifest if m["qtype"] == cand["qtype"]]
+    if not same or cand["accession"] in {m["accession"] for m in manifest}:
+        return False
+    tier_q = [float(m["pride_quality"]) for m in same if m["tier"] == tier]
+    if not tier_q:
+        return False
+    return quality <= max(tier_q) if tier == "poor" else quality >= min(tier_q)
 
 
 def made_with_ai(repo: Path, path: Path) -> bool:
@@ -65,7 +89,7 @@ def iter_candidates(datasets_dir: Path):
         if not truth_ok(text, max(MAX_ROWS.values())):
             continue
         info = describe_truth(text)
-        if info["qtype"] and info["n_rows"] <= MAX_ROWS[info["qtype"]]:
+        if info["qtype"] and info["n_rows"] <= MAX_ROWS[info["qtype"]] and not automated_truth(text):
             yield {"accession": path.parent.name, "truth_path": str(path), **info}
 
 

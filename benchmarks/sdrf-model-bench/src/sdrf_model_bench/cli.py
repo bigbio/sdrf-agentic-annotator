@@ -34,6 +34,14 @@ def build_parser() -> argparse.ArgumentParser:
     f.add_argument("--datasets", type=Path)
     f.add_argument("--data", type=Path, default=Path("data"))
 
+    x = sub.add_parser("replace", help="swap selected datasets for the next eligible ones (same type and tier)")
+    x.add_argument("--accessions", required=False, default="", help="comma-separated accessions to drop")
+    x.add_argument("--reason", default="replaced")
+    x.add_argument("--datasets", type=Path)
+    x.add_argument("--data", type=Path, default=Path("data"))
+    x.add_argument("--seed", type=int, default=20260918)
+    x.add_argument("--plugin-src", type=Path, default=DEFAULT_PLUGIN)
+
     r = sub.add_parser("run", help="generate SDRFs for the roster")
     r.add_argument("--models", type=Path, default=Path("models.yaml"))
     r.add_argument("--pricing", type=Path, default=Path("pricing.yaml"))
@@ -142,6 +150,64 @@ def cmd_select(args) -> int:
     _write_manifest(args.data / "manifest.tsv", picked)
     (args.data / "selection_log.tsv").write_text("".join(f"{a}\t{why}\n" for a, why in log))
     print(f"selected {len(picked)} datasets -> {args.data / 'manifest.tsv'}")
+    return 0
+
+
+def cmd_replace(args) -> int:
+    """Replace datasets one for one, keeping every other selection (and its finished runs) intact."""
+    import requests
+
+    from sdrf_model_bench.freeze import SkipDataset, freeze_dataset
+    from sdrf_model_bench.runner import load_manifest
+    from sdrf_model_bench.select import eligible_replacement, iter_candidates, made_with_ai
+    from sdrf_model_bench.skills_arm import build_sanitized_plugin, mentioned_accessions, scratch_workspace
+
+    if not args.datasets or not args.accessions:
+        sys.exit("--datasets and --accessions are required")
+    repo = args.datasets.resolve().parent
+    manifest = load_manifest(args.data / "manifest.tsv")
+    probe = scratch_workspace()
+    cited = mentioned_accessions(build_sanitized_plugin(args.plugin_src, probe / "plugin", forbidden=[]))
+    shutil.rmtree(probe, ignore_errors=True)
+    candidates = [c for c in iter_candidates(args.datasets)
+                  if c["accession"] not in cited and not EXCLUDED_TEMPLATES & set(c["templates"])]
+    log = (args.data / "selection_log.tsv").read_text() if (args.data / "selection_log.tsv").exists() else ""
+    session = requests.Session()
+    for drop in args.accessions.split(","):
+        old = next(m for m in manifest if m["accession"] == drop)
+        pool = sorted((c for c in candidates if c["qtype"] == old["qtype"]), key=lambda c: c["accession"])
+        random.Random(f"{args.seed}:{drop}").shuffle(pool)
+        new = None
+        for cand in pool:
+            acc = cand["accession"]
+            if acc in {m["accession"] for m in manifest}:
+                continue
+            if made_with_ai(repo, Path(cand["truth_path"]).resolve().relative_to(repo)):
+                continue
+            try:
+                meta = freeze_dataset(acc, Path(cand["truth_path"]), args.data, session,
+                                      extra_meta={k: cand[k] for k in ("qtype", "templates", "organism", "n_rows")})
+            except Exception:  # SkipDataset or a network/record problem: try the next one
+                continue
+            if eligible_replacement(cand, meta["pride_quality"], old["tier"], manifest):
+                new = {**cand, **meta, "tier": old["tier"]}
+                break
+            shutil.rmtree(args.data / "evidence" / acc, ignore_errors=True)
+            (args.data / "truth" / f"{acc}.sdrf.tsv").unlink(missing_ok=True)
+        if new is None:
+            print(f"{drop}: no eligible {old['qtype']}/{old['tier']} replacement found; kept")
+            continue
+        meta_path = args.data / "evidence" / new["accession"] / "meta.json"
+        meta = json.loads(meta_path.read_text())
+        meta["tier"] = old["tier"]
+        meta_path.write_text(json.dumps(meta, indent=1, sort_keys=True))
+        shutil.rmtree(args.data / "evidence" / drop, ignore_errors=True)
+        (args.data / "truth" / f"{drop}.sdrf.tsv").unlink(missing_ok=True)
+        manifest = [new if m["accession"] == drop else m for m in manifest]
+        log += f"{drop}\t{args.reason}; replaced by {new['accession']}\n"
+        print(f"{drop} -> {new['accession']} ({old['qtype']}/{old['tier']}, quality {new['pride_quality']:.2f})")
+    _write_manifest(args.data / "manifest.tsv", manifest)
+    (args.data / "selection_log.tsv").write_text(log)
     return 0
 
 
@@ -279,7 +345,7 @@ def cmd_pack(args) -> int:
 
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
-    return {"select": cmd_select, "freeze": cmd_freeze, "run": cmd_run, "score": cmd_score,
+    return {"select": cmd_select, "replace": cmd_replace, "freeze": cmd_freeze, "run": cmd_run, "score": cmd_score,
             "report": cmd_report, "prompt": cmd_prompt, "pack": cmd_pack}[args.command](args)
 
 

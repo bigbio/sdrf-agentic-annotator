@@ -142,3 +142,26 @@ def test_file_list_is_scoped_to_the_curated_files():
     truth = "source name\tcomment[data file]\ns1\tRun_A.raw\ns2\tRun_A.raw\ns3\tsub/run_b.RAW\n"
     raws = ["Run_A.raw", "run_b.raw", "Library_DDA_1.raw", "Library_DDA_2.raw"]
     assert scope_to_truth(raws, truth) == ["Run_A.raw", "run_b.raw"]
+
+
+def test_automated_truth_is_detected_from_content():
+    from sdrf_model_bench.select import automated_truth
+
+    head = "source name\tcomment[data file]\tcomment[sdrf annotation tool]\n"
+    assert automated_truth(head + "s\ta.raw\tNT=sdrf-skills-autoresearch;VV=v0.0.0\n")
+    assert automated_truth(head + "s\ta.raw\tNT=sdrf-skeleton-gen;VV=v2.0.0\n")
+    assert automated_truth("source name\tcomment[data file]\tcomment[notes]\ns\ta.raw\tOpenAI Codex-assisted curation\n")
+    assert automated_truth(head + "s\ta.raw\tmanual curation\n") is None
+    assert automated_truth("source name\tcomment[data file]\ns\ta.raw\n") is None
+
+
+def test_replacement_respects_type_tier_and_manifest():
+    from sdrf_model_bench.select import eligible_replacement
+
+    manifest = [{"accession": "A", "qtype": "TMT", "tier": "poor", "pride_quality": "0.75"},
+                {"accession": "B", "qtype": "TMT", "tier": "rich", "pride_quality": "1.0"}]
+    assert eligible_replacement({"accession": "C", "qtype": "TMT"}, 0.75, "poor", manifest)
+    assert not eligible_replacement({"accession": "C", "qtype": "TMT"}, 1.0, "poor", manifest)
+    assert eligible_replacement({"accession": "C", "qtype": "TMT"}, 1.0, "rich", manifest)
+    assert not eligible_replacement({"accession": "B", "qtype": "TMT"}, 1.0, "rich", manifest)
+    assert not eligible_replacement({"accession": "C", "qtype": "LFQ"}, 0.75, "poor", manifest)

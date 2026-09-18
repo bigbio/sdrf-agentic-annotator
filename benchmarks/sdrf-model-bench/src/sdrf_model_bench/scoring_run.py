@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 
@@ -54,8 +55,12 @@ def score_run(run_dir: Path, data_dir: Path, validate_fn, judge_fn=None) -> dict
 
 
 def score_tree(outputs: Path, data_dir: Path, validate_fn, judge_fn=None, rescore: bool = False) -> list[dict]:
+    manifest = Path(data_dir) / "manifest.tsv"
+    selected = {r["accession"] for r in csv.DictReader(open(manifest), delimiter="\t")} if manifest.exists() else None
     records = []
     for run_dir in sorted(Path(outputs).glob("*/*__ms-*__r*")):
+        if selected is not None and parse_dirname(run_dir.name)[0] not in selected:
+            continue  # dataset was replaced (e.g. its truth turned out to be machine-generated)
         if not (run_dir / "usage.json").exists():
             continue  # in progress, or crashed and awaiting retry: neither a success nor a model failure
         cached = run_dir / "score.json"

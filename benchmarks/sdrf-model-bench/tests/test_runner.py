@@ -133,3 +133,14 @@ def test_context_flag_uses_num_ctx_and_thinking(tmp_path):
     plain = ModelSpec("p", "ollama", "m", "raw", context_window=40960, options={"num_ctx": 40960})
     assert needs_context(thinker, prompt_tokens=10000, answer_tokens=10000) == 10000 + 10000 + 16384
     assert needs_context(plain, prompt_tokens=10000, answer_tokens=10000) == 20000
+
+
+def test_scoring_ignores_datasets_dropped_from_the_manifest(tmp_path):
+    data = setup_data(tmp_path)
+    spec = ModelSpec("m", "custom", "f", "raw")
+    cfg = RunConfig(data_dir=data, outputs=tmp_path / "out", pricing={},
+                    validate_fn=lambda p, t=(): ValidationResult(),
+                    generate_factory=lambda s: (lambda m, **kw: Completion(f"```tsv\n{TRUTH}```", {})))
+    execute_run(RunKey("m", "PXD1", True, 1), spec, cfg)
+    (data / "manifest.tsv").write_text("accession\tqtype\ttier\n")  # PXD1 replaced
+    assert score_tree(tmp_path / "out", data, validate_fn=lambda p, t=(): ValidationResult()) == []
