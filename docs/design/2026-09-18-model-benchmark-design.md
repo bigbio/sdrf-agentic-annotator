@@ -178,3 +178,6 @@ Each change was driven by something observed when running the code, not by a cha
 | The judge makes 3 calls and takes the median, instead of 1 call at temperature 0 | Sonnet 5 rejects `temperature`. |
 | Validity counts distinct error messages, not error types | With types, many missing required columns collapse into one penalty. |
 | Parent/child ontology credit replaced by label-match credit (0.5) | Keeps scoring offline and deterministic. |
+| Claude runs through the Claude Code login (`claude -p`): raw arm and judge with `--restricted --tools ""` and our system prompt; skills arm with `--restricted` instead of `--bare` | The user asked for no API key. `--bare` only accepts API keys. `--restricted` was verified live: no user plugins, hooks, MCP or CLAUDE.md, and file tools confined to the workspace. Cost is the API-equivalent `total_cost_usd`. |
+| Local models think when they can: gemma4:12b (think on, `num_ctx` 64k, measured 9.2 GB) and **qwen3:4b added** (thinking). gemma2:9b and qwen2.5:3b can't think and are the no-thinking baselines | User request. qwen3:4b vs qwen2.5:3b gives a same-size thinking vs no-thinking pair. Every thinking model gets the same 16k allowance as Claude. |
+| The non-thinking gemma4 entry was removed; its smoke run moved to `outputs-smoke/` | Keeps the slide free of n = 1 rows; the smoke run is kept for reference. |
