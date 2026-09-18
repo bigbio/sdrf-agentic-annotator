@@ -156,3 +156,25 @@ Written to `results/`: `runs.jsonl`, `summary.tsv` and `slide.svg`/`slide.png` (
 - Parent/child ontology reasoning.
 - Techsdrf raw-file analysis.
 - Datasets without a manuscript (these are covered by the ablation instead).
+
+## Changes made during implementation (found against real data)
+
+Each change was driven by something observed when running the code, not by a change of intent.
+
+| change | why |
+|---|---|
+| Datasets with a deposited SDRF in PRIDE are **not** excluded; it's recorded as a covariate (`has_deposited_sdrf`) | 34 of 45 TMT candidates had one. The evidence carries RAW file names only and runs are offline, so the file can't leak. |
+| `has_deposited_sdrf` ignores `*_community_annotated.sdrf.tsv` | PRIDE republishes the curated SDRFs (our ground truth) under that name. Every dataset had one. |
+| TMT truth must have at least 2 distinct labels (channel-level rows) | Some curated TMT files have one row per file with a generic `TMT6plex` label, which doesn't encode the design. |
+| Row cap is 100 for TMT, 60 for LFQ and DIA | Only 83 channel-level TMT truth files exist in about 9,000; a 60-row cap left 2 usable TMT datasets. Approved by the user. |
+| Licences with NoDerivatives are excluded | A Methods excerpt redistributed in the pack is arguably a derivative. |
+| The paper must have a real Methods section (at least 500 characters, heading anchored as a Methods heading, body or back matter; an empty heading followed by sibling sections is supported) | Some full texts have no Methods section (it's in the supplement); a loose regex matched Results sub-headings. |
+| Accessions cited anywhere in the skills text are excluded (28) | The skills use real PXDs as worked examples. |
+| Datasets using the crosslinking template are excluded | A different experiment type, not a standard TMT/LFQ/DIA study. |
+| One output budget for every raw model: max(4096, 2 × the size of a correct answer) | A 3B model looped until the 32k context was full (more than 10 minutes a call); Claude had 64k output tokens and Ollama had no cap. |
+| `context_limited` uses the expected answer size instead of a fixed 8,192-token reserve | 8,192 was gemma2:9b's entire window, so every gemma2 run would have been flagged. |
+| Crashed runs write `error.json` and are retried, not scored | A transient API error shouldn't count as a model failure. |
+| The skills workspace is a throwaway folder in the system temp directory, not the outputs folder | The agent is denied reads under `$HOME`, which is where the outputs folder lives. |
+| The judge makes 3 calls and takes the median, instead of 1 call at temperature 0 | Sonnet 5 rejects `temperature`. |
+| Validity counts distinct error messages, not error types | With types, many missing required columns collapse into one penalty. |
+| Parent/child ontology credit replaced by label-match credit (0.5) | Keeps scoring offline and deterministic. |
