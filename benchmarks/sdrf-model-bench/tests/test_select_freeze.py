@@ -134,3 +134,11 @@ def test_empty_methods_heading_takes_following_siblings():
     text = extract_methods(xml)
     assert "HeLa pellets." in text and "Orbitrap." in text
     assert "We found." not in text and "Intro." not in text
+
+
+def test_file_list_is_scoped_to_the_curated_files():
+    from sdrf_model_bench.freeze import scope_to_truth
+
+    truth = "source name\tcomment[data file]\ns1\tRun_A.raw\ns2\tRun_A.raw\ns3\tsub/run_b.RAW\n"
+    raws = ["Run_A.raw", "run_b.raw", "Library_DDA_1.raw", "Library_DDA_2.raw"]
+    assert scope_to_truth(raws, truth) == ["Run_A.raw", "run_b.raw"]

@@ -5,3 +5,4 @@ __pycache__/
 outputs/
 results/
 outputs-smoke/
+outputs-invalid/

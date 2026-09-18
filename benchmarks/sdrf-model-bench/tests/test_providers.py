@@ -106,15 +106,18 @@ def test_output_budget_reaches_every_provider():
     assert o.calls[0][1]["json"]["max_tokens"] == 777
 
 
-def _fake_claude(tmp_path, payload: dict, record=None):
-    """A stand-in `claude` binary that prints one JSON result and records its argv/env."""
+def _fake_claude(tmp_path, payload: dict, record=None, segments=None):
+    """A stand-in `claude` that streams assistant text segments then one result event."""
     fake = tmp_path / "claude"
     rec = record or (tmp_path / "argv.json")
+    segments = segments if segments is not None else ([payload["result"]] if payload.get("result") else [])
+    events = [{"type": "assistant", "message": {"content": [{"type": "text", "text": seg}]}} for seg in segments]
+    events.append(payload)
     fake.write_text(
         f"#!{sys.executable}\n"
         "import json, os, sys\n"
         f"json.dump({{'argv': sys.argv[1:], 'max': os.environ.get('CLAUDE_CODE_MAX_OUTPUT_TOKENS')}}, open({str(rec)!r}, 'w'))\n"
-        f"print(json.dumps({payload!r}))\n")
+        f"for e in {events!r}:\n    print(json.dumps(e))\n")
     fake.chmod(0o755)
     return fake, rec
 
@@ -150,7 +153,7 @@ def test_claude_cli_output_cap_is_a_truncation_not_a_crash(tmp_path):
 
     fake, _ = _fake_claude(tmp_path, {"type": "result", "is_error": True, "api_error_status": None,
                                       "result": "API Error: Claude's response exceeded the 60 output token maximum.",
-                                      "usage": {"output_tokens": 60}})
+                                      "usage": {"output_tokens": 60}}, segments=[])
     c = claude_cli_generate(MSGS, model="m", claude_bin=str(fake))
     assert c.text == "" and c.stop_reason == "length"
 
@@ -181,3 +184,22 @@ def test_claude_cli_cap_includes_thinking_allowance(tmp_path):
     fake, rec = _fake_claude(tmp_path, {"type": "result", "is_error": False, "result": "ok", "usage": {}})
     claude_cli_generate(MSGS, model="m", max_output_tokens=4096, thinking_tokens=16384, claude_bin=str(fake))
     assert json.loads(rec.read_text())["max"] == str(4096 + 16384)
+
+
+def test_claude_cli_joins_auto_continued_segments(tmp_path):
+    from sdrf_model_bench.providers import claude_cli_generate
+
+    fake, _ = _fake_claude(tmp_path, {"type": "result", "is_error": False, "result": "\tb\n```",
+                                      "usage": {"output_tokens": 50}},
+                           segments=["```tsv\nsource name\tcomment[data file]\ns1", "\tb\n```"])
+    c = claude_cli_generate(MSGS, model="m", max_output_tokens=4096, claude_bin=str(fake))
+    assert c.text == "```tsv\nsource name\tcomment[data file]\ns1\tb\n```"
+
+
+def test_claude_cli_over_budget_is_marked_length(tmp_path):
+    from sdrf_model_bench.providers import claude_cli_generate
+
+    fake, _ = _fake_claude(tmp_path, {"type": "result", "is_error": False, "result": "x",
+                                      "usage": {"output_tokens": 50000}})
+    c = claude_cli_generate(MSGS, model="m", max_output_tokens=4096, thinking_tokens=16384, claude_bin=str(fake))
+    assert c.stop_reason == "length"

@@ -11,6 +11,8 @@ from pathlib import Path
 import requests
 
 from sdrf_model_bench.evidence import evidence_dir
+from sdrf_model_bench.score import file_key
+from sdrf_model_bench.sdrf_io import column_values, read_sdrf
 
 PRIDE = "https://www.ebi.ac.uk/pride/ws/archive/v3/projects/{acc}"
 EPMC = "https://www.ebi.ac.uk/europepmc/webservices/rest"
@@ -40,6 +42,15 @@ def pride_quality(pride: dict) -> float:
 
 def raw_file_names(files: list[dict]) -> list[str]:
     return sorted(f["fileName"] for f in files if (f.get("fileCategory") or {}).get("value") == "RAW")
+
+
+def scope_to_truth(raws: list[str], truth_text: str) -> list[str]:
+    """Only the raw files the curators annotated. PRIDE often holds more (e.g. DDA library runs next
+    to the DIA runs); asking for all of them measures scoping, not annotation, and breaks the
+    output budget. The names are public in PRIDE, so this reveals scope, not answers."""
+    header, rows = read_sdrf(truth_text)
+    curated = {file_key(v) for row in rows for v in column_values(header, row, "comment[data file]")}
+    return [f for f in raws if file_key(f) in curated]
 
 
 def has_deposited_sdrf(files: list[dict]) -> bool:
@@ -138,9 +149,10 @@ def freeze_dataset(acc: str, truth_path: Path, data_dir: Path, session=None, ext
     # A deposited SDRF is not exposed: evidence carries RAW file names only and runs are offline.
     # It is recorded as a covariate (it is public, like every curated SDRF - see contamination flag).
     deposited_sdrf = has_deposited_sdrf(files)
-    raws = raw_file_names(files)
+    pride_raws = raw_file_names(files)
+    raws = scope_to_truth(pride_raws, Path(truth_path).read_text(errors="replace"))
     if not raws:
-        raise SkipDataset("no RAW files listed")
+        raise SkipDataset("no curated RAW files listed in PRIDE")
     ms = find_manuscript(session, pride)
     if not ms:
         raise SkipDataset("no CC-licensed open-access full text")
@@ -153,7 +165,7 @@ def freeze_dataset(acc: str, truth_path: Path, data_dir: Path, session=None, ext
     (d / "files.json").write_text(json.dumps(raws, indent=1))
     (d / "manuscript.txt").write_text(methods)
     meta = {"accession": acc, "pmid": ms["pmid"], "pmcid": ms["pmcid"], "license": ms["license"],
-            "pride_quality": pride_quality(pride), "n_raw_files": len(raws),
+            "pride_quality": pride_quality(pride), "n_raw_files": len(raws), "n_raw_files_pride": len(pride_raws),
             "has_deposited_sdrf": deposited_sdrf, **(extra_meta or {})}
     (d / "meta.json").write_text(json.dumps(meta, indent=1, sort_keys=True))
     truth_dir = Path(data_dir) / "truth"

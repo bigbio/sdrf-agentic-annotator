@@ -141,7 +141,7 @@ def claude_cli_generate(messages, *, model: str, max_output_tokens: int | None =
     chat = [m for m in messages if m["role"] != "system"]
     cmd = [find_claude(claude_bin), "-p", _flatten(chat), "--restricted", "--tools", "",
            "--disable-slash-commands", "--strict-mcp-config", "--no-session-persistence",
-           "--model", model, "--output-format", "json"]
+           "--model", model, "--output-format", "stream-json", "--verbose"]
     if system:
         cmd += ["--system-prompt", system]
     env = dict(os.environ)
@@ -151,19 +151,32 @@ def claude_cli_generate(messages, *, model: str, max_output_tokens: int | None =
     with tempfile.TemporaryDirectory(prefix="sdrf-bench-cli-") as cwd:
         proc = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True, text=True, timeout=timeout,
                               stdin=subprocess.DEVNULL)
-    try:
-        d = json.loads(proc.stdout.strip().splitlines()[-1])
-    except (IndexError, json.JSONDecodeError) as exc:
-        raise ClaudeCliError(f"no JSON result from claude (exit {proc.returncode}): {proc.stderr[-300:]}") from exc
+    # Claude Code auto-continues a reply that hits the output cap and its final `result` holds only
+    # the last segment, so the answer is rebuilt from every streamed assistant text block.
+    segments, d = [], None
+    for line in proc.stdout.splitlines():
+        try:
+            ev = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if ev.get("type") == "assistant":
+            segments += [b.get("text", "") for b in ev.get("message", {}).get("content", []) if b.get("type") == "text"]
+        elif ev.get("type") == "result":
+            d = ev
+    if d is None:
+        raise ClaudeCliError(f"no result from claude (exit {proc.returncode}): {proc.stderr[-300:]}")
     u = d.get("usage") or {}
     usage = {k: u.get(k, 0) or 0 for k in
              ("input_tokens", "output_tokens", "cache_read_input_tokens", "cache_creation_input_tokens")}
-    text, stop = d.get("result") or "", d.get("stop_reason") or d.get("subtype") or ""
+    text, stop = "".join(segments), d.get("stop_reason") or d.get("subtype") or ""
     if d.get("is_error"):
-        if d.get("api_error_status") is None and "output token maximum" in text:
-            text, stop = "", "length"  # hit the output budget: a model failure, scored as such
+        if d.get("api_error_status") is None and "output token maximum" in (d.get("result") or ""):
+            stop = "length"  # hit the output budget: keep whatever was written, score it as is
         else:
-            raise ClaudeCliError(f"claude error (status {d.get('api_error_status')}): {text[:300]}")
+            raise ClaudeCliError(f"claude error (status {d.get('api_error_status')}): {(d.get('result') or '')[:300]}")
+    cap = (max_output_tokens or 0) + int(thinking_tokens)
+    if max_output_tokens and usage["output_tokens"] > cap:
+        stop = "length"  # continued past the budget; the budget is recorded as exceeded
     return Completion(text, usage, stop, time.monotonic() - t0, cost_usd=d.get("total_cost_usd"))
 
 
