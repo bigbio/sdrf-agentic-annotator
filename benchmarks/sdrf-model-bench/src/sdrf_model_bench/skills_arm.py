@@ -141,7 +141,8 @@ def run_skills(model: str, ev_dir: Path, accession: str, manuscript: bool, templ
     cmd = build_command(claude_bin, model, local_plugin, prompt)
     t0 = time.monotonic()
     try:
-        proc = subprocess.run(cmd, cwd=ws, capture_output=True, text=True, timeout=timeout)
+        proc = subprocess.run(cmd, cwd=ws, capture_output=True, text=True, timeout=timeout,
+                              stdin=subprocess.DEVNULL)
         stdout, returncode = proc.stdout, proc.returncode
     except subprocess.TimeoutExpired as exc:
         stdout, returncode = (exc.stdout or b"").decode() if isinstance(exc.stdout, bytes) else (exc.stdout or ""), -1
