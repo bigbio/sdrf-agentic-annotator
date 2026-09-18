@@ -167,7 +167,7 @@ def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=
             ax.text(x, y + dy, f"{x:.0f}", ha="center", va="center", fontsize=12, color=t["ink"], zorder=4)
     for y in ys[len(groups):]:
         ax.scatter([50], [y], s=150, facecolors="none", edgecolors=t["ink2"], linewidths=1.5, linestyle="--")
-    ax.set_xlim(0, 100)
+    ax.set_xlim(-3, 100)  # room for a score of 0
     ax.set_ylim(-0.7, n_rows - 0.3)
     ax.set_yticks(ys, names, fontsize=15, color=t["ink"])
     ax.set_xlabel("score (0-100)", color=t["ink2"], fontsize=12)
@@ -181,7 +181,7 @@ def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=
     # Cost column: text, in ink tokens (never the series colour).
     ax_cost.axis("off")
     ax_cost.set_ylim(ax.get_ylim())
-    ax_cost.set_title("cost per SDRF (API-equiv. $ | local min)", loc="left", color=t["ink"], fontsize=12.5, pad=10)
+    ax_cost.set_title("cost per SDRF\n(API-equiv. $ · local min)", loc="left", color=t["ink"], fontsize=12.5, pad=10)
     for y, (base, arms) in zip(ys, groups):
         lines = [_cost_line(arms.get("skills")), _cost_line(arms.get("raw"))]
         ax_cost.text(0, y, "\n".join(x for x in lines if x), va="center", ha="left", fontsize=11.5,
@@ -228,9 +228,11 @@ def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=
     ax_ms.set_title("manuscript effect", loc="left", color=t["ink"], fontsize=14, pad=10)
 
     n_ds = max((r["n"] for r in summary), default=0)
+    present = [q for q in QTYPES if any(r["by_qtype"].get(q) is not None for r in summary)]
     uplifts = [(arms["skills"]["headline"] - arms["raw"]["headline"], base)
                for base, arms in groups if "raw" in arms and "skills" in arms]
-    subtitle = f"n = {n_ds} datasets (TMT, LFQ, DIA) × with/without manuscript"
+    subtitle = (f"n = {n_ds} dataset{'s' if n_ds != 1 else ''} ({', '.join(present)})"
+                " × with/without manuscript")
     if uplifts:
         gain, base = max(uplifts)
         subtitle = f"The SDRF skills add up to {gain:+.0f} points ({display_name(base)})  ·  " + subtitle
