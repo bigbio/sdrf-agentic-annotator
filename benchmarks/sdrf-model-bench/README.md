@@ -113,6 +113,10 @@ appears on the shared slide. If you'd rather not use our runner, see [SUBMISSION
 
 ## Known limitations
 
+- **Scores measure agreement with the curators, not objective truth.** A model can annotate a
+  study *better* than the curated reference (for example by modelling an IP-vs-IgG design that the
+  reference collapses into one constant factor) and still lose points on both the deterministic
+  score and the reference-guided judge. Read low judge scores next to the SDRFs themselves.
 - The curated SDRFs are public, and PRIDE republishes them as `*_community_annotated.sdrf.tsv`.
   Models may have seen them during training. The `contamination_suspect` flag is a signal, not proof.
 - TMT is scarce in the curated corpus (83 channel-level files in about 9,000 curated SDRFs), so

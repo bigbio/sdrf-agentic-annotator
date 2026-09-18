@@ -181,7 +181,7 @@ def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=
     # Cost column: text, in ink tokens (never the series colour).
     ax_cost.axis("off")
     ax_cost.set_ylim(ax.get_ylim())
-    ax_cost.set_title("cost per SDRF", loc="left", color=t["ink"], fontsize=14, pad=10)
+    ax_cost.set_title("cost per SDRF (API-equiv. $ | local min)", loc="left", color=t["ink"], fontsize=12.5, pad=10)
     for y, (base, arms) in zip(ys, groups):
         lines = [_cost_line(arms.get("skills")), _cost_line(arms.get("raw"))]
         ax_cost.text(0, y, "\n".join(x for x in lines if x), va="center", ha="left", fontsize=11.5,
@@ -238,7 +238,8 @@ def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=
     fig.text(0.02, 0.895, subtitle, fontsize=15, color=t["ink2"])
     fig.text(0.02, 0.025, "Score: 80% deterministic match to the curated SDRF (validity, completeness, "
              "ontology-aware cell accuracy, specificity) + 20% reference-guided LLM judge.\n"
-             "Whiskers: ±1 SEM across datasets.  ⚠ n = runs that failed or exceeded the model's context window.",
+             "Scores measure agreement with the curated SDRFs.  Whiskers: ±1 SEM across datasets.  "
+             "⚠ n = runs that failed or exceeded the model's context window.",
              fontsize=10.5, color=t["ink2"], linespacing=1.5)
     path = Path(path)
     for ext, kw in (("svg", {}), ("png", {"dpi": 200})):
