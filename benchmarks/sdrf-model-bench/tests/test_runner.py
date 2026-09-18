@@ -37,7 +37,7 @@ def test_execute_and_score_end_to_end(tmp_path):
     spec = ModelSpec("fake-raw", "custom", "fake", "raw", context_window=100_000)
     calls = []
 
-    def gen(msgs):
+    def gen(msgs, **kw):
         calls.append(msgs)
         return Completion(f"```tsv\n{TRUTH}```", {"input_tokens": 100, "output_tokens": 10})
 
@@ -61,7 +61,7 @@ def test_crash_is_retried_not_cached(tmp_path):
     spec = ModelSpec("flaky", "custom", "fake", "raw")
     outcomes = iter([RuntimeError("529 overloaded"), Completion(f"```tsv\n{TRUTH}```", {})])
 
-    def gen(msgs):
+    def gen(msgs, **kw):
         o = next(outcomes)
         if isinstance(o, Exception):
             raise o
@@ -82,7 +82,7 @@ def test_context_limited_flag(tmp_path):
     spec = ModelSpec("tiny", "custom", "fake", "raw", context_window=50)
     cfg = RunConfig(data_dir=data, outputs=tmp_path / "out", pricing={},
                     validate_fn=lambda p, t=(): ValidationResult(),
-                    generate_factory=lambda s: (lambda m: Completion("nothing", {})))
+                    generate_factory=lambda s: (lambda m, **kw: Completion("nothing", {})))
     rec = execute_run(RunKey("tiny", "PXD1", True, 1), spec, cfg)
     assert "context_limited" in rec["flags"] and "failed" in rec["flags"]
 
@@ -96,5 +96,21 @@ def test_context_flag_scales_with_expected_output(tmp_path):
     spec = ModelSpec("small", "custom", "fake", "raw", context_window=8192)
     cfg = RunConfig(data_dir=data, outputs=tmp_path / "out", pricing={},
                     validate_fn=lambda p, t=(): ValidationResult(),
-                    generate_factory=lambda s: (lambda m: Completion(f"```tsv\n{TRUTH}```", {})))
+                    generate_factory=lambda s: (lambda m, **kw: Completion(f"```tsv\n{TRUTH}```", {})))
     assert "context_limited" not in execute_run(RunKey("small", "PXD1", True, 1), spec, cfg)["flags"]
+
+
+def test_runner_passes_the_same_output_budget(tmp_path):
+    data = setup_data(tmp_path)
+    seen = {}
+
+    def factory(spec):
+        def gen(msgs, **kw):
+            seen.update(kw)
+            return Completion(f"```tsv\n{TRUTH}```", {})
+        return gen
+
+    cfg = RunConfig(data_dir=data, outputs=tmp_path / "out", pricing={},
+                    validate_fn=lambda p, t=(): ValidationResult(), generate_factory=factory)
+    execute_run(RunKey("x", "PXD1", True, 1), ModelSpec("x", "custom", "f", "raw"), cfg)
+    assert seen["max_output_tokens"] == 4096  # floor; 2x a tiny truth is smaller

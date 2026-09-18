@@ -66,6 +66,11 @@ def expected_output_tokens(data_dir: Path, accession: str) -> int:
     return int(estimate_tokens(truth.read_text()) * 1.2) if truth.exists() else OUTPUT_FALLBACK
 
 
+def output_budget(data_dir: Path, accession: str) -> int:
+    """Per-run output cap, identical for every raw model: twice a correct answer, at least 4096."""
+    return max(4096, 2 * expected_output_tokens(data_dir, accession))
+
+
 def _write(run_dir: Path, sdrf: str | None, record: dict) -> dict:
     run_dir.mkdir(parents=True, exist_ok=True)
     if sdrf:
@@ -88,10 +93,12 @@ def execute_run(key: RunKey, spec: ModelSpec, cfg: RunConfig) -> dict:
             if spec.context_window and info["prompt_tokens"] + expected_output_tokens(cfg.data_dir, key.accession) \
                     > spec.context_window:
                 base["flags"].append("context_limited")
-            res = run_raw(cfg.generate_factory(spec), messages, run_dir,
+            budget = output_budget(cfg.data_dir, key.accession)
+            generate = cfg.generate_factory(spec)
+            res = run_raw(lambda m: generate(m, max_output_tokens=budget), messages, run_dir,
                           lambda p: cfg.validate_fn(p, templates), cfg.max_repairs)
             (run_dir / "transcript.json").write_text(json.dumps(res.transcript, indent=1))
-            record = {**base, **info, "usage": res.usage, "turns": res.turns, "wall_s": res.wall_s,
+            record = {**base, **info, "max_output_tokens": budget, "usage": res.usage, "turns": res.turns, "wall_s": res.wall_s,
                       "stop_reasons": res.stop_reasons, "cost_usd": cost_usd(cfg.pricing, spec.model, res.usage)}
             if "refusal" in res.stop_reasons:
                 record["flags"].append("refusal")

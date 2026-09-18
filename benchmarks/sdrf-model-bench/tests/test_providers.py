@@ -80,10 +80,10 @@ def test_anthropic_splits_system_and_reads_usage():
 
 def test_custom_accepts_str_or_tuple(tmp_path, monkeypatch):
     (tmp_path / "myprov.py").write_text(
-        "def plain(messages, **kw):\n    return 'a'\n"
+        "def plain(messages):\n    return 'a'\n"
         "def rich(messages, **kw):\n    return 'b', {'input_tokens': 1}\n")
     monkeypatch.syspath_prepend(str(tmp_path))
-    assert custom_generate(MSGS, callable="myprov:plain").text == "a"
+    assert custom_generate(MSGS, callable="myprov:plain", max_output_tokens=10).text == "a"
     assert custom_generate(MSGS, callable="myprov:rich").usage == {"input_tokens": 1}
 
 
@@ -94,3 +94,12 @@ def test_make_generate_rejects_skills_provider():
 
 def test_completion_is_a_dataclass():
     assert Completion("t", {}).stop_reason == ""
+
+
+def test_output_budget_reaches_every_provider():
+    s = FakeSession({"message": {"content": "x"}, "prompt_eval_count": 1, "eval_count": 1})
+    ollama_generate(MSGS, model="m", num_ctx=8192, max_output_tokens=4096, session=s)
+    assert s.calls[0][1]["json"]["options"]["num_predict"] == 4096
+    o = FakeSession({"choices": [{"message": {"content": "x"}}], "usage": {}})
+    openai_generate(MSGS, model="m", base_url="http://h/v1", max_output_tokens=777, session=o)
+    assert o.calls[0][1]["json"]["max_tokens"] == 777
