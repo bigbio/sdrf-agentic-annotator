@@ -1,0 +1,7 @@
+# USD per million tokens, Anthropic first-party API (reference cached 2026-06-24).
+# Cache reads bill at 0.1x input, 5-minute cache writes at 1.25x input.
+# Re-check against the live pricing page before publishing numbers.
+models:
+  claude-opus-5:    {input: 5.0, output: 25.0}
+  claude-sonnet-5:  {input: 2.0, output: 10.0}
+  claude-haiku-4-5: {input: 1.0, output: 5.0}
