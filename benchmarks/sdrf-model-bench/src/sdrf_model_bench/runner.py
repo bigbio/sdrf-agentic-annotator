@@ -46,6 +46,7 @@ class RunConfig:
     claude_bin: str = "claude"
     budget_tokens: int = 24000
     max_repairs: int = 2
+    max_workers: int | None = None  # caps every provider group and runs the groups one after another
     extra: dict = field(default_factory=dict)
 
 
@@ -147,11 +148,12 @@ def run_matrix(specs: list[ModelSpec], keys: list[RunKey], cfg: RunConfig, log=p
     results: list[dict] = []
 
     def run_group(provider: str, group: list[RunKey]):
-        with ThreadPoolExecutor(max_workers=WORKERS.get(provider, 1)) as pool:
+        workers = WORKERS.get(provider, 1) if cfg.max_workers is None else min(cfg.max_workers, WORKERS.get(provider, 1))
+        with ThreadPoolExecutor(max_workers=workers) as pool:
             for rec, k in zip(pool.map(lambda k: execute_run(k, by_id[k.model_id], cfg), group), group):
                 log(f"{k.model_id:22s} {k.dirname:32s} flags={rec.get('flags')}")
                 results.append(rec)
 
-    with ThreadPoolExecutor(max_workers=len(groups) or 1) as outer:
+    with ThreadPoolExecutor(max_workers=1 if cfg.max_workers == 1 else (len(groups) or 1)) as outer:
         list(outer.map(lambda item: run_group(*item), groups.items()))
     return results

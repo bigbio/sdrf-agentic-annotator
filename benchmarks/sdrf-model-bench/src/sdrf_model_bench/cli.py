@@ -53,6 +53,8 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument("--outputs", type=Path, default=Path("outputs"))
     r.add_argument("--plugin-src", type=Path, default=DEFAULT_PLUGIN)
     r.add_argument("--claude-bin", default=None)
+    r.add_argument("--workers", type=int, default=None,
+                   help="cap concurrent runs (1 = one run at a time, groups in sequence); default per provider")
 
     c = sub.add_parser("score", help="score an outputs tree (ours or a submission)")
     c.add_argument("--outputs", type=Path, default=Path("outputs"))
@@ -255,7 +257,7 @@ def cmd_run(args) -> int:
         plugin_dir = build_sanitized_plugin(args.plugin_src, scratch_workspace() / "sdrf-skills",
                                             forbidden=[m["accession"] for m in load_manifest(args.data / "manifest.tsv")])
     cfg = RunConfig(data_dir=args.data, outputs=args.outputs, pricing=load_pricing(args.pricing),
-                    plugin_dir=plugin_dir, claude_bin=find_claude(args.claude_bin))
+                    plugin_dir=plugin_dir, claude_bin=find_claude(args.claude_bin), max_workers=args.workers)
     print(f"{len(keys)} runs across {len(specs)} model-arms")
     try:
         results = run_matrix(specs, keys, cfg)

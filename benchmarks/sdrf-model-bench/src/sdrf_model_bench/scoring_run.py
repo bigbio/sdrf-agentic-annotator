@@ -27,13 +27,20 @@ def score_run(run_dir: Path, data_dir: Path, validate_fn, judge_fn=None) -> dict
     pred = sdrf_path.read_text() if sdrf_path.exists() else ""
     validation = validate_fn(sdrf_path, meta.get("templates") or []) if pred else None
     det = score_deterministic(truth, pred, validity_score(validation) if validation else 0.0)
-    judged = judge_fn(truth, pred) if (judge_fn and pred) else None
+    judged, judge_failed = None, False
+    if judge_fn and pred:
+        try:
+            judged = judge_fn(truth, pred)
+        except Exception:  # usage limit or CLI failure: score without the judge now, retry it next time
+            judge_failed = True
     judge_score = judged["judge"] if judged else None
     headline = det["deterministic"] if judge_score is None else (
         (1 - JUDGE_WEIGHT) * det["deterministic"] + JUDGE_WEIGHT * judge_score)
     flags = list(usage.get("flags", []))
     if not pred and "failed" not in flags:
         flags.append("failed")
+    if judge_failed:
+        flags.append("judge_pending")
     if not manuscript and meta.get("tier") == "poor" and det["deterministic"] >= CONTAMINATION_THRESHOLD:
         flags.append("contamination_suspect")
     record = {
@@ -50,7 +57,8 @@ def score_run(run_dir: Path, data_dir: Path, validate_fn, judge_fn=None) -> dict
         "usage": usage.get("usage", {}), "cost_usd": usage.get("cost_usd"), "wall_s": usage.get("wall_s"),
         "flags": flags,
     }
-    (run_dir / "score.json").write_text(json.dumps(record, indent=1))
+    if not judge_failed:
+        (run_dir / "score.json").write_text(json.dumps(record, indent=1))
     return record
 
 

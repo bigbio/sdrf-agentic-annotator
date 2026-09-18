@@ -144,3 +144,45 @@ def test_scoring_ignores_datasets_dropped_from_the_manifest(tmp_path):
     execute_run(RunKey("m", "PXD1", True, 1), spec, cfg)
     (data / "manifest.tsv").write_text("accession\tqtype\ttier\n")  # PXD1 replaced
     assert score_tree(tmp_path / "out", data, validate_fn=lambda p, t=(): ValidationResult()) == []
+
+
+def test_worker_cap_serialises_every_group(tmp_path):
+    import threading
+
+    from sdrf_model_bench.runner import run_matrix
+
+    data = setup_data(tmp_path)
+    live, peak, lock = [0], [0], threading.Lock()
+
+    def gen(msgs, **kw):
+        with lock:
+            live[0] += 1
+            peak[0] = max(peak[0], live[0])
+        import time
+        time.sleep(0.05)
+        with lock:
+            live[0] -= 1
+        return Completion(f"```tsv\n{TRUTH}```", {})
+
+    specs = [ModelSpec("a", "claude-cli", "m", "raw"), ModelSpec("b", "custom", "m", "raw")]
+    cfg = RunConfig(data_dir=data, outputs=tmp_path / "out", pricing={},
+                    validate_fn=lambda p, t=(): ValidationResult(), generate_factory=lambda s: gen, max_workers=1)
+    keys = plan_runs(specs, load_manifest(data / "manifest.tsv"))
+    run_matrix(specs, keys, cfg, log=lambda *_: None)
+    assert peak[0] == 1
+
+
+def test_judge_failure_is_not_cached(tmp_path):
+    data = setup_data(tmp_path)
+    spec = ModelSpec("m", "custom", "f", "raw")
+    cfg = RunConfig(data_dir=data, outputs=tmp_path / "out", pricing={},
+                    validate_fn=lambda p, t=(): ValidationResult(),
+                    generate_factory=lambda s: (lambda m, **kw: Completion(f"```tsv\n{TRUTH}```", {})))
+    execute_run(RunKey("m", "PXD1", True, 1), spec, cfg)
+
+    def broken_judge(truth, pred):
+        raise RuntimeError("429 usage limit")
+
+    recs = score_tree(tmp_path / "out", data, validate_fn=lambda p, t=(): ValidationResult(), judge_fn=broken_judge)
+    assert recs[0]["judge"] is None and "judge_pending" in recs[0]["flags"]
+    assert not (tmp_path / "out" / "m" / "PXD1__ms-on__r1" / "score.json").exists()  # retried next time
