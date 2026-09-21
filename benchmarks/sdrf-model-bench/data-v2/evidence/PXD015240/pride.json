@@ -1,0 +1,588 @@
+{
+ "accession": "PXD015240",
+ "additionalAttributes": [],
+ "botCount": 2006,
+ "countries": [
+  "United Kingdom"
+ ],
+ "dataProcessingProtocol": "MS data was searched against a database comprising the 23/12/2017 download Uniprot entries for organism bos bovis (32207 entries) concatenated with 4084 Theileria muguga protein sequences annotated from RNAseq data of the schizont stage of T. parva (GenBank, BioSample accession SAMN03981746) plus a single antry for beta-galactosidase of E. coli. 36692 entries were searched simultaneously in Peaks v8.5. No specificity was set for enzymatic digestion and no modifications of amino acids allowed. Mass tolerance for precursor ions was 5 ppm, while fragment mass tolerance was set to 0.03 Da. Score threshold was set to 15, with false discovery rates ranging from 1.6-2.7% as determined by simultaneous decoy database searches integrated in the Peaks 8.5 software.",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:3733",
+   "cvLabel": "DOID",
+   "name": "Theileriasis"
+  }
+ ],
+ "doi": "10.6019/PXD015240",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000433",
+   "cvLabel": "PRIDE",
+   "name": "Affinity purification coupled with mass spectrometry proteomics"
+  }
+ ],
+ "hubCount": 2161,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:424",
+   "cvLabel": "UNIMOD",
+   "name": "MolybdopterinGD"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:39",
+   "cvLabel": "UNIMOD",
+   "name": "Methylthio"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:2",
+   "cvLabel": "UNIMOD",
+   "name": "Amidated"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:24",
+   "cvLabel": "UNIMOD",
+   "name": "Propionamide"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:989",
+   "cvLabel": "UNIMOD",
+   "name": "Ammonium"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:276",
+   "cvLabel": "UNIMOD",
+   "name": "AEBS"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:253",
+   "cvLabel": "UNIMOD",
+   "name": "Crotonaldehyde"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:314",
+   "cvLabel": "UNIMOD",
+   "name": "Nmethylmaleimide"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:23",
+   "cvLabel": "UNIMOD",
+   "name": "Dehydrated"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:949",
+   "cvLabel": "UNIMOD",
+   "name": "3-deoxyglucosone"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:1014",
+   "cvLabel": "UNIMOD",
+   "name": "glycidamide"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:385",
+   "cvLabel": "UNIMOD",
+   "name": "Ammonia-loss"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:121",
+   "cvLabel": "UNIMOD",
+   "name": "GG"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:368",
+   "cvLabel": "UNIMOD",
+   "name": "Cys->Dha"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:445",
+   "cvLabel": "UNIMOD",
+   "name": "Hydroxytrimethyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:40",
+   "cvLabel": "UNIMOD",
+   "name": "Sulfo"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:374",
+   "cvLabel": "UNIMOD",
+   "name": "Dehydro"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:728",
+   "cvLabel": "UNIMOD",
+   "name": "Methylphosphonate"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:1",
+   "cvLabel": "UNIMOD",
+   "name": "Acetyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:28",
+   "cvLabel": "UNIMOD",
+   "name": "Gln->pyro-Glu"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:345",
+   "cvLabel": "UNIMOD",
+   "name": "Trioxidation"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:342",
+   "cvLabel": "UNIMOD",
+   "name": "Amino"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:425",
+   "cvLabel": "UNIMOD",
+   "name": "Dioxidation"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:5",
+   "cvLabel": "UNIMOD",
+   "name": "Carbamyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:55",
+   "cvLabel": "UNIMOD",
+   "name": "Glutathione"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:89",
+   "cvLabel": "UNIMOD",
+   "name": "Iminobiotin"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:29",
+   "cvLabel": "UNIMOD",
+   "name": "SMA"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:734",
+   "cvLabel": "UNIMOD",
+   "name": "Ethanolamine"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:414",
+   "cvLabel": "UNIMOD",
+   "name": "Hydroxymethyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:312",
+   "cvLabel": "UNIMOD",
+   "name": "Cysteinyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:141",
+   "cvLabel": "UNIMOD",
+   "name": "Amidine"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:360",
+   "cvLabel": "UNIMOD",
+   "name": "Pro->Pyrrolidinone"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:3",
+   "cvLabel": "UNIMOD",
+   "name": "Biotin"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:352",
+   "cvLabel": "UNIMOD",
+   "name": "Lys->Allysine"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:52",
+   "cvLabel": "UNIMOD",
+   "name": "Guanidinyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:45",
+   "cvLabel": "UNIMOD",
+   "name": "Myristoyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:518",
+   "cvLabel": "UNIMOD",
+   "name": "Diethyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:42",
+   "cvLabel": "UNIMOD",
+   "name": "Lipoyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:369",
+   "cvLabel": "UNIMOD",
+   "name": "Pro->Pyrrolidone"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:280",
+   "cvLabel": "UNIMOD",
+   "name": "Ethyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:299",
+   "cvLabel": "UNIMOD",
+   "name": "Carboxy"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:31",
+   "cvLabel": "UNIMOD",
+   "name": "Pyridylethyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:408",
+   "cvLabel": "UNIMOD",
+   "name": "Glycosyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:11",
+   "cvLabel": "UNIMOD",
+   "name": "Met->Hsl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:25",
+   "cvLabel": "UNIMOD",
+   "name": "Pyridylacetyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:528",
+   "cvLabel": "UNIMOD",
+   "name": "Methyl+Deamidated"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:41",
+   "cvLabel": "UNIMOD",
+   "name": "Hex"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:472",
+   "cvLabel": "UNIMOD",
+   "name": "AEC-MAEC"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:953",
+   "cvLabel": "UNIMOD",
+   "name": "Cation:Ni[II]"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:378",
+   "cvLabel": "UNIMOD",
+   "name": "Carboxyethyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:6",
+   "cvLabel": "UNIMOD",
+   "name": "Carboxymethyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:454",
+   "cvLabel": "UNIMOD",
+   "name": "HexN"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:21",
+   "cvLabel": "UNIMOD",
+   "name": "Phospho"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:447",
+   "cvLabel": "UNIMOD",
+   "name": "Deoxy"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:278",
+   "cvLabel": "UNIMOD",
+   "name": "Ethanolyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:351",
+   "cvLabel": "UNIMOD",
+   "name": "Trp->Kynurenin"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:30",
+   "cvLabel": "UNIMOD",
+   "name": "Cation:Na"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:126",
+   "cvLabel": "UNIMOD",
+   "name": "Xlink:DTSSP[88]"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:401",
+   "cvLabel": "UNIMOD",
+   "name": "Didehydro"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:27",
+   "cvLabel": "UNIMOD",
+   "name": "Glu->pyro-Glu"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:37",
+   "cvLabel": "UNIMOD",
+   "name": "Trimethyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:7",
+   "cvLabel": "UNIMOD",
+   "name": "Deamidated"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:43",
+   "cvLabel": "UNIMOD",
+   "name": "HexNAc"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:727",
+   "cvLabel": "UNIMOD",
+   "name": "O-pinacolylmethylphosphonate"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:178",
+   "cvLabel": "UNIMOD",
+   "name": "DAET"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:1009",
+   "cvLabel": "UNIMOD",
+   "name": "Thiazolidine"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:122",
+   "cvLabel": "UNIMOD",
+   "name": "Formyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:288",
+   "cvLabel": "UNIMOD",
+   "name": "Trp->Oxolactone"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:4",
+   "cvLabel": "UNIMOD",
+   "name": "Carbamidomethyl"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UNIMOD:35",
+   "cvLabel": "UNIMOD",
+   "name": "Oxidation"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1002732",
+   "cvLabel": "MS",
+   "name": "Orbitrap Fusion Lumos"
+  }
+ ],
+ "keywords": [
+  "Immunopeptidomics",
+  "Bola ligandome"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "University of Oxford",
+   "country": "",
+   "email": "nicola.ternette@ndm.ox.ac.uk",
+   "firstName": "Nicola",
+   "id": "157470100",
+   "identifier": "157470100",
+   "lastName": "Ternette",
+   "name": "Nicola Ternette",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 112,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "CL:0000084",
+   "cvLabel": "CL",
+   "name": "T cell"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000214",
+   "cvLabel": "BTO",
+   "name": "Cell culture"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9913",
+   "cvLabel": "NEWT",
+   "name": "Bos taurus (bovine)"
+  }
+ ],
+ "projectDescription": "Current mass spectrometry technologies allow for identification of MHC-associated peptide ligands. Studies have proven these data to be a rich source of information for learning the rules of MHC-mediated antigen presentation. Such immunopeptidomes are usually poly-specific, containing multiple sequence motifs matching the MHC molecules expressed in the system under investigation. Motif deconvolution -the process of associating each ligand to its presenting MHC molecule(s)- is a critical and challenging step in the analysis of MS-eluted MHC ligand data. Here, we describe NNAlign_MA, a computational method designed to address this challenge. NNAlign_MA simultaneously performs the tasks of i) clustering peptides into individual specificities; ii) automatic annotation of each cluster to an MHC molecule; and iii) training of a prediction model covering all MHCs present in the training set. NNAlign_MA was benchmarked on large and diverse datasets, covering class I and class II data. In all cases, the method was demonstrated to outperform state-of-the-art methods, effectively expanding the coverage of alleles for which accurate predictions can be made, resulting in improved identification of both eluted ligands and T cellepitopes. Given its high flexibility and ease of use, we expect NNAlign_MA to serve as an effective tool to increase our understanding of the rules of MHC antigen presentation and guide the development of novel T cell-based therapeutics.",
+ "projectTags": [],
+ "publicationDate": "2019-10-07",
+ "quantificationMethods": [],
+ "references": [
+  {
+   "doi": "10.1074/mcp.tir119.001658",
+   "pubmedID": 31578220,
+   "referenceLine": "Alvarez B, Reynisson B, Barra C, Buus S, Ternette N, Connelley T, Andreatta M, Nielsen M. NNAlign_MA; MHC peptidome deconvolution for accurate MHC binding motif characterization and improved T cell epitope predictions. Mol Cell Proteomics. 2019"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000214",
+     "cvLabel": "BTO",
+     "name": "cell culture"
+    },
+    {
+     "accession": "CL:0000084",
+     "cvLabel": "CL",
+     "name": "T cell"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9913",
+     "cvLabel": "NEWT",
+     "name": "Bos taurus (Bovine)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:3733",
+     "cvLabel": "DOID",
+     "name": "theileriasis"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Theileria parva muguga-infected lines from animals 5072 (BoLA-A11), 2824 (BoLA-A19), 5350 (BoLA-A20), 2408 (BoLA-A15), and 2123 (BoLA-A12/A15) were generated and maintained (indicated in .raw file as \u2018Tpm\u2019). As uninfected controls, lymphoblastic T-cell lines were generated from homozygous MHC-matched animals by stimulation of PBMC with 2.5 \u03bcg/mL of Concavalin (Con) A (Sigma-Aldrich, Dorset, U.K.) and then passage in medium supplemented with 100 U/mL recombinant human IL-2 (indicated in .raw file as \u2018ConA\u2019). The MHCI-allele content of the haplotypes described herein is: A11: 3*01701, 2*01801, 3*03301N. A19: 6*01401, 2*01601. A20: 3*02701, 2*02601. A15: 1*00901, 4*02401, 2*02501. A12: 1*01901, 2*00801, A12: 1*01901, 2*00801. 10E9 cells were washed and then lysed using 10 mL of lysis buffer (1% Igepal 630, 300 mM NaCl, 100 mM Tris pH 8.0, and protease inhibitors) per 109 cells. Lysates were cleared by centrifugation at 500 g for 10 min, followed by 15,000 g for 60 min. BoLA complexes were captured using a pan anti-BoLA class I antibody IL-88 that was covalently conjugated to protein A sepharose immunoresin (GE Healthcare) at a concentration of 5 mg/mL. Bound complexes were washed sequentially using buffers of 50 mM Tris buffer, pH 8.0 containing 150 mM NaCl, then 400 mM NaCl, and finally 0 mM NaCl. BoLA-associated peptides were eluted using 5 mL of 10% acetic acid and dried. Affinity column-eluted material was resuspended in 120 \u03bcL of loading buffer (0.1% formic acid, 1% acetonitrile in water). Samples were loaded onto on a 4.6 \u00d7 50 mm ProSwiftTM RP-1S column (Thermo Scientific) and eluted using a 500 \u03bcL/min flow rate over 10 min from 2 to 35% buffer B (0.1% formic acid in acetonitrile) in buffer A (0.1% formic acid in water) using an Ultimate 3000 HPLC system (Thermo Scientific). Protein detection was performed at 280 nm. Fractions were collected every 30 s, and odd and even fractions up to 12 min that did not contain \u00df2-microglobulin were combined, dried, resuspended in 20 \u03bcL of loading buffer (1% acetonitrile, 0.1% TFA in water) and analyzed on an Ultimate 3000 nano UPLC system online coupled to a Fusion Lumos mass spectrometer (Thermo Scientific). Peptides were separated on a 75 \u03bcm \u00d7 50 cm PepMap C18 column using a 1h linear gradient from 5 to 25% buffer B in buffer A at a flow rate of 250 nL/min (\u223c600 bar). Peptides were introduced into the mass spectrometer using a nano Easy Spray source (Thermo Scientific) at 2000V and ion transfer tube temperature of 305\u00b0C. Subsequent isolation and higher energy C-trap dissociation (HCD) was induced on the most abundant ions per full MS scan at 2s cycle time. Ions with a charge of 2-4 were measured at an accumulation time of 120 ms, AGC target of 200,000, quadrupole isolation width of 1.2 Da, and energy level 28. All fragmented precursor ions were actively excluded from repeated selection for 60 s.",
+ "softwares": [],
+ "submissionDate": "2019-08-30",
+ "submissionType": "COMPLETE",
+ "submitters": [
+  {
+   "affiliation": "University of Oxford",
+   "country": "United Kingdom",
+   "email": "nicola.ternette@ndm.ox.ac.uk",
+   "firstName": "Nicola",
+   "id": "87130128",
+   "identifier": "87130128",
+   "lastName": "Ternette",
+   "name": "Nicola Ternette",
+   "orcid": "0000-0002-9283-0743",
+   "title": "Dr"
+  }
+ ],
+ "title": "NNAlign_MA; MHC peptidome deconvolution for accurate MHC binding motif characterization and improved T cell epitope predictions",
+ "totalFileDownloads": 4279
+}

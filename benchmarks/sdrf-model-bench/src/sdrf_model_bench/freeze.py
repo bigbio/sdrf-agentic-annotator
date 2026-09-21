@@ -142,7 +142,8 @@ def find_manuscript(session, pride: dict) -> dict | None:
     return None
 
 
-def freeze_dataset(acc: str, truth_path: Path, data_dir: Path, session=None, extra_meta: dict | None = None) -> dict:
+def freeze_dataset(acc: str, truth_path: Path, data_dir: Path, session=None, extra_meta: dict | None = None,
+                   require_manuscript: bool = True) -> dict:
     session = session or requests.Session()
     pride = fetch_json(session, PRIDE.format(acc=acc))
     files = fetch_files(session, acc)
@@ -153,22 +154,31 @@ def freeze_dataset(acc: str, truth_path: Path, data_dir: Path, session=None, ext
     raws = scope_to_truth(pride_raws, Path(truth_path).read_text(errors="replace"))
     if not raws:
         raise SkipDataset("no curated RAW files listed in PRIDE")
+    # A manuscript can only be frozen and redistributed under a CC licence, and most papers are not
+    # CC. With require_manuscript=False the dataset is still frozen, minus the paper: it then runs
+    # in the no-manuscript condition only, which needs no licence. That keeps datasets that exercise
+    # the hard parts of annotation instead of selecting the benchmark down to whatever is CC.
     ms = find_manuscript(session, pride)
-    if not ms:
-        raise SkipDataset("no CC-licensed open-access full text")
-    methods = extract_methods(ms["xml"])
-    if not methods:
-        raise SkipDataset("no methods section in the full text")
+    methods = extract_methods(ms["xml"]) if ms else ""
+    if require_manuscript:
+        if not ms:
+            raise SkipDataset("no CC-licensed open-access full text")
+        if not methods:
+            raise SkipDataset("no methods section in the full text")
     d = evidence_dir(data_dir, acc)
     d.mkdir(parents=True, exist_ok=True)
     (d / "pride.json").write_text(json.dumps(pride, indent=1, sort_keys=True))
     (d / "files.json").write_text(json.dumps(raws, indent=1))
-    (d / "manuscript.txt").write_text(methods)
-    meta = {"accession": acc, "pmid": ms["pmid"], "pmcid": ms["pmcid"], "license": ms["license"],
+    (d / "manuscript.txt").unlink(missing_ok=True)
+    if methods:
+        (d / "manuscript.txt").write_text(methods)
+    meta = {"accession": acc, "has_manuscript": bool(methods),
+            "pmid": ms["pmid"] if ms else None, "pmcid": ms["pmcid"] if ms else None,
+            "license": ms["license"] if ms else None,
             "pride_quality": pride_quality(pride), "n_raw_files": len(raws), "n_raw_files_pride": len(pride_raws),
             "has_deposited_sdrf": deposited_sdrf, **(extra_meta or {})}
     (d / "meta.json").write_text(json.dumps(meta, indent=1, sort_keys=True))
     truth_dir = Path(data_dir) / "truth"
     truth_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(truth_path, truth_dir / f"{acc}.sdrf.tsv")
+    shutil.copy2(truth_path, truth_dir / f"{acc}.reference.tsv")
     return meta

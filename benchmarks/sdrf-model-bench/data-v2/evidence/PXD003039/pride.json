@@ -1,0 +1,233 @@
+{
+ "accession": "PXD003039",
+ "additionalAttributes": [],
+ "botCount": 6767,
+ "countries": [
+  "Taiwan"
+ ],
+ "dataProcessingProtocol": "The peak list resulting from the MS/MS spectra was exported to mgf format using Mascot Distiller v2.1.1.0 by the following criteria: the precursor peak charge range on MS and MS/MS processing was 2 to 5; the precursor mass range was 400-4000 and the precursor m/z tolerance was 0.3; S/N \u2265 3. The datasets were batch searched and combined searched with Mascot v2.2 (Matrix Science, London, United Kingdom) against the SwissProt database (v57.8, total 509,019 sequences, 20,329 sequences among which are Mus musculus) using the following constraints: only tryptic peptides with up to two missed cleavage sites were allowed, and the mass tolerance for both peptides and MS/MS fragment ions was 0.1 Da. Nethylmaleimide (Cys), carbamidomethyl (Cys), and oxidation (Met) were specified as variable modifications. Peptides were considered to be identified if their Mascot individual ion score was higher than the Mascot identity score (p < 0.05, ion score cut-off is 30). To evaluate the false discovery rate in protein identification, a decoy database search against a randomized decoy database created by Mascot using identical search parameters and validation criteria was also performed. The search results obtained in Mascot were exported in eXtensive Markup Language (XML) data format.",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:987",
+   "cvLabel": "DOID",
+   "name": "Alopecia"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "DOID:9120",
+   "cvLabel": "DOID",
+   "name": "Amyloidosis"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "DOID:11476",
+   "cvLabel": "DOID",
+   "name": "Osteoporosis"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "DOID:3146",
+   "cvLabel": "DOID",
+   "name": "Lipid metabolism disorder"
+  }
+ ],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "hubCount": 12192,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00483",
+   "cvLabel": "MOD",
+   "name": "N-ethylmaleimide derivatized cysteine"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000449",
+   "cvLabel": "MS",
+   "name": "LTQ Orbitrap"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000632",
+   "cvLabel": "MS",
+   "name": "Q-Tof Premier"
+  }
+ ],
+ "keywords": [
+  "Zdhhc13",
+  "Mouse",
+  "S-palmitoylation",
+  "Liver",
+  "Lc-ms/ms"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Institute of Chemistry, Academia Sinica, Taiwan",
+   "country": "",
+   "email": "tp7249@gmail.com",
+   "firstName": "Yi-Ju",
+   "id": "32100100",
+   "identifier": "32100100",
+   "lastName": "Chen",
+   "name": "Yi-Ju Chen",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "EBI terms of use",
+ "organicCount": 290,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000759",
+   "cvLabel": "BTO",
+   "name": "Liver"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:10090",
+   "cvLabel": "NEWT",
+   "name": "Mus musculus (mouse)"
+  }
+ ],
+ "projectDescription": "Protein S-palmitoylation is a reversible post-translational modification which adding 16-carbon palmitate to specific cysteines and contributes to variable biological functions such as protein trafficking, scaffolding and signaling. ZDHHC13 is one of the members of DHHC-containing palmitoyl-acyltransferase (PAT) family of enzyme. The Zdhhc13 deficient mice show the most severe phenotype with amyloidosis, alopecia, and osteoporosis. Here we used quantitative proteomic approach, combining resin-assisted capture (RAC) method and mass spectrometry-based label free strategy to identify the candidate Zdhhc13 substrates from mouse liver tissue.",
+ "projectTags": [
+  "Biomedical"
+ ],
+ "publicationDate": "2017-09-29",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000312",
+   "cvLabel": "PRIDE",
+   "name": "Label free"
+  }
+ ],
+ "references": [
+  {
+   "doi": "10.1038/s41598-017-02159-4",
+   "pubmedID": 28526873,
+   "referenceLine": "Shen LF, Chen YJ, Liu KM, Haddad ANS, Song IW, Roan HY, Chen LY, Yen JJY, Chen YJ, Wu JY, Chen YT. Role of S-Palmitoylation by ZDHHC13 in Mitochondrial function and Metabolism in Liver. Sci Rep. 2017 7(1):2182"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000759",
+     "cvLabel": "BTO",
+     "name": "liver"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:10090",
+     "cvLabel": "NEWT",
+     "name": "Mus musculus (Mouse)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:9120",
+     "cvLabel": "DOID",
+     "name": "amyloidosis"
+    },
+    {
+     "accession": "DOID:987",
+     "cvLabel": "DOID",
+     "name": "alopecia"
+    },
+    {
+     "accession": "DOID:3146",
+     "cvLabel": "DOID",
+     "name": "lipid metabolism disorder"
+    },
+    {
+     "accession": "DOID:11476",
+     "cvLabel": "DOID",
+     "name": "osteoporosis"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Mice liver of 6 weeks age from wild type or Zdhhc13 mutation in LB buffer(150 mM NaCl, 50 mM Tris, 5mM EDTA, pH7.2) with 10 mM N-ethylmaleimide, 2XPI, and 2 mM PMSF were homogenized for 2 min at 24000 r.p.m using an Polytron PT3000 homogenizer. Tissues were further sonicated by Brainson Sonifer 150 with ten cycles of 1 s ON and 2 s OFF. Total membranes were collected by high speed centrifugation (200,000 x g , 30 min, 4\u00b0C) and resuspended membrane pellet in 3ml LB buffer with 1.7% triton X-100, 10 mM NEM , 1X PI and 1 mM PMSF for 1 h at 4\u00b0C with end-to end rotation. Remove particles with low-speed centrifugation (250 x g, 4\u00b0C, 5 min). Chloroform-methanol precipitation was performed to precipitate membrane pellet, and incubated with 4SB buffer (4% SDS, 50 mM NEM, 50 mM Tris, 5 min EDTA, pH7.2) in 37\u00b0C until membrane pellet dissolved. The NEM-blocked membrane proteins were adjusted as 2 mg/ml, reduced by final 5 mM TCEP, and reacted with final 200 mM IAM. After acetone precipitation to remove excess IAM, the mixture was centrifuged at 16000 x g for 20 min. The protein pellet was then washed three times with 95% ice-cold ethanol and resuspended in 20 mM HEPES (pH 7.2)/1 mM EDTA buffer/1% SDS. The protein concentration was determined using the BCA Protein Assay Kit (Pierce) and adjusted to 2 mg/ml. The S-palmitoyl groups on proteins were reduced with or without final 0.7 M hydroxylamine (HA, pH 7.2) at 37\u00b0C for 2 h to reduce the thioester linkages. After removing excess hydroxylamine by acetone precipitation and washed three times with 95% ice cold ethanol, the protein pellets were resuspended in 20 mM HEPES (pH 7.2)/1 mM EDTA buffer/1% SDS. Then, 300 \u03bcl (5:1, proteins: sepharose, w/v) of activated thiol sepharose 4B (GE Healthcare) pre-washing three times with degas PBS was reacted with each sample at 30\u00b0C for 1 h with frequent vortexing. After washing three times by PBS and removing the buffer, the capture proteins on sepharoses were resuspended by 25 mM TEABC (Sigma-Aldrich) and digested with 25 \u03bcg trypsin at 37\u00b0C for 16 h with frequent vortexing. The supernatant of digested samples was removed and the captured sepharoses were washed three times by PBS. The captured peptides on sepharoses were resuspended in 25 mM TEABC, eluted by final 5 mM TCEP at 37\u2103 for 30 min, and dried completely under vacuum. The eluted peptides were desalted by C18 Zip-tipTM (Millipore) and subjected to downstream MS analysis.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001207",
+   "cvLabel": "MS",
+   "name": "Mascot"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001561",
+   "cvLabel": "MS",
+   "name": "Scaffold"
+  }
+ ],
+ "submissionDate": "2015-10-12",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "National Yang Ming Chiao Tung University",
+   "country": "Taiwan",
+   "email": "tp7249@gmail.com",
+   "firstName": "Yi-Ju",
+   "id": "700139",
+   "identifier": "700139",
+   "lastName": "Chen",
+   "name": "Yi-Ju Chen",
+   "orcid": "0000-0002-7203-9188",
+   "title": "Professor"
+  }
+ ],
+ "title": "Mouse Liver S-Palmitoylation ZDHHC13 LC-MS/MS",
+ "totalFileDownloads": 19249
+}

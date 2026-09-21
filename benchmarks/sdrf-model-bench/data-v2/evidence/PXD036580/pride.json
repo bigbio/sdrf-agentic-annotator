@@ -1,0 +1,157 @@
+{
+ "accession": "PXD036580",
+ "additionalAttributes": [],
+ "botCount": 256,
+ "countries": [
+  "Sweden"
+ ],
+ "dataProcessingProtocol": "Identification and relative quantification were performed using Proteome Discoverer version 2.4 (Thermo Fisher Scientific). The reference E. coli K12 database was downloaded from Uniprot (December 2018) and supplemented with the mutant sequences and common proteomic contaminants (4523 sequences in total). Database matching was performed using the Mascot search engine v. 2.5.1 (Matrix Science, London, UK) with precursor tolerance of 5 ppm and fragment ion tolerance of 0.6 Da. Tryptic peptides were accepted with no missed cleavages; methionine oxidation was set as a variable modification, cysteine methylthiolation, TMT-6 on lysine and peptide N-termini were set as fixed modifications. Percolator was used for PSM validation with the strict FDR threshold of 1%. For quantification TMT reporter ions were identified in the MS3 HCD spectra with 3 mmu mass tolerance, and the TMT reporter intensity values for each sample were normalized on the total peptide amount. Only the unique peptides were taken into account for relative quantification, SPS was set to 40 and S/N to 10 and proteins were filtered at 1% FDR.",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "hubCount": 611,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000398",
+   "cvLabel": "PRIDE",
+   "name": "No PTMs are included in the dataset"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1002416",
+   "cvLabel": "MS",
+   "name": "Orbitrap Fusion"
+  }
+ ],
+ "keywords": [
+  "Escherichia coli",
+  "Dna replication initiation",
+  "Cell growth",
+  "Dnaa"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Department of Cell and Molecular Biology, Science for Life Laboratory, Uppsala University, Sweden",
+   "country": "",
+   "email": "david.fange@icm.uu.se",
+   "firstName": "David",
+   "id": "2557146",
+   "identifier": "2557146",
+   "lastName": "Fange",
+   "name": "David Fange",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 4,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000214",
+   "cvLabel": "BTO",
+   "name": "Cell culture"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:562",
+   "cvLabel": "NEWT",
+   "name": "Escherichia coli"
+  }
+ ],
+ "projectDescription": "Escherichia coli coordinates replication and division cycles by initiating replication at a narrow range of cell sizes. By tracking replisomes in individual cells through thousands of division cycles in wild-type and mutant strains, we were able to compare the relative importance of previously described control systems. We found that accurate triggering of initiation does not require synthesis of new DnaA. The initiation size increased only marginally as DnaA was diluted by growth after dnaA expression had been turned off. This suggests that the conversion of DnaA between its active ATP- and inactive ADP-bound states is more important for initiation size control than the total free concentration of DnaA. In addition, we found that the known ATP/ADP-converters DARS and datA compensate for each other, although the removal of them makes the initiation size more sensitive to the concentration of DnaA. Only disruption of the regulatory inactivation of DnaA (RIDA) mechanism had a radical impact on replication initiation. This result was corroborated by the finding that termination of one round of replication correlates with the next initiation at intermediate growth rates, as would be the case if RIDA-mediated conversion from DnaA-ATP to DnaA-ADP abruptly stops at termination and DnaA-ATP starts accumulating.",
+ "projectTags": [],
+ "publicationDate": "2023-05-12",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000314",
+   "cvLabel": "PRIDE",
+   "name": "TMT"
+  }
+ ],
+ "references": [],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000214",
+     "cvLabel": "BTO",
+     "name": "cell culture"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:562",
+     "cvLabel": "NEWT",
+     "name": "Escherichia coli"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Protein extraction, trypsin digestion and TMT-labeling The samples were homogenized using the lysis matrix B on FastPrep\u00ae-24 instrument (MP Biomedicals) in lysis buffer (300 \u03bcl, 50 mM triethylammonium bicarbonate (TEAB), 2% sodium dodecyl sulfate (SDS)). Protein concentration was determined using Pierce\u2122 BCA Protein Assay (Thermo Scientific) and the Benchmark Plus microplate reader (BIO-RAD) with BSA solutions as standards.   Proteins were digested with trypsin using modified filter-aided sample preparation (FASP) method (Wisniewski JR et. al. Nat Methods. 2009 May;6(5):359-62)). In short, samples (30 \u00b5g) were reduced with 100 mM dithiothreitol at 60\u00b0C for 30 min, transferred to 30 kDa MWCO Pall Nanosep centrifugation filters (Sigma-Aldrich), washed several times with 8 M urea and once with digestion buffer (DB, 50 mM TEAB, 0.5% sodium deoxycholate (SDC)) prior to alkylation with 10 mM methyl methanethiosulfonate in DB for 30 min in room temperature. Samples were digested with trypsin (Pierce MS grade Trypsin, Thermo Fisher Scientific, ratio 1:100) at 37\u00b0C overnight and an additional portion of trypsin was added and incubated for another two hours. Peptides were collected by centrifugation and labelled using TMT 11-plex isobaric mass tagging reagents (Thermo Fisher Scientific) according to the manufacturer instructions. The peptide samples were combined, SDC was removed by acidification with 10% TFA and samples were desalted (Pierce peptide desalting spin columns, Thermo Fischer Scientific) according to the manufacturer instructions. The TMT-sets were pre-fractionated into 20 fractions by basic reversed-phase chromatography (bRP-LC) using a Dionex Ultimate 3000 UPLC system (Thermo Fisher Scientific). Peptide separation was performed using a reversed-phase XBridge BEH C18 column (3.5 \u03bcm, 3.0x150 mm, Waters Corporation) and a gradient from 3% to 90% acetonitrile in 10 mM ammonium formate buffer, pH 10.00 over 18 min. The fractions were concatenated into 10 fractions (1+11, 2+12\u2026,10+20) dried and reconstituted in 3% acetonitrile, 0.2% formic acid. LC-MS/MS analysis The fractions were analyzed on an Orbitrap Fusion Tribrid mass spectrometer interfaced with Easy-nLC1200 liquid chromatography system (both Thermo Fisher Scientific). Peptides were trapped on an Acclaim Pepmap 100 C18 trap column (100 \u03bcm x 2 cm, particle size 5 \u03bcm, Thermo Fischer Scientific) and separated on an in-house packed analytical column (75 \u03bcm x 30 cm, particle size 3 \u03bcm, Reprosil-Pur C18, Dr. Maisch) using a gradient from 5% to 80% acetonitrile in 0.2% formic acid over 90 min at a flow of 300 nL/min. The instrument operated in data-dependent mode where the precursor ion mass spectra were acquired at a resolution of 120 000, m/z range 375-1375. MS scans were performed at 120 000 resolution in m/z range 380\u20131380. The most abundant precursors with charges 2\u20137 were isolated with the m/z window 0.7 (maximum 3s \u201ctop speed\u201d duty cycle, dynamic exclusion enabled with 10 ppm width for 60s), fragmented by collision induced dissociation (CID) at 35% energy setting with a maximum injection time of 50ms, and the fragment spectra were recorded in the ion trap. Ten most abundant MS2 fragment ions were isolated by the multinotch (simultaneous precursor selection in the m/z range 400\u20131200, fragmented by higher-energy collision dissociation (HCD) at 65% energy and the MS3 spectra were recorded in the Orbitrap at 50 000 resolution, m/z range 100\u2013500.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001207",
+   "cvLabel": "MS",
+   "name": "Mascot"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000650",
+   "cvLabel": "MS",
+   "name": "Proteome Discoverer"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001490",
+   "cvLabel": "MS",
+   "name": "Percolator"
+  }
+ ],
+ "submissionDate": "2023-04-05",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "Gothenburg University",
+   "country": "Sweden",
+   "email": "johannes.fuchs@gu.se",
+   "firstName": "Johannes",
+   "id": "133910137",
+   "identifier": "133910137",
+   "lastName": "Fuchs",
+   "name": "Johannes Fuchs",
+   "orcid": "",
+   "title": "Mr"
+  }
+ ],
+ "title": "Regulatory elements coordinating initiation of chromosome replication to the Escherichia coli cell cycle",
+ "totalFileDownloads": 871
+}

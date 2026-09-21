@@ -1,0 +1,222 @@
+{
+ "accession": "PXD062322",
+ "additionalAttributes": [],
+ "botCount": 351,
+ "countries": [
+  "United States"
+ ],
+ "dataProcessingProtocol": "Global data analysis: The global DIA raw data were processed with DIA-NN version 1.8.1 (https://github.com/vdemichev/DIA-NN) using library-free analysis mode. The library was annotated using Mus musculus UniProt database (UP000005640_9606). For precursor ion generation, the maximum number of missed cleavages was set to 1, maximum number of variable modifications to 1 for Ox(M), peptide length range to 7-30, precursor charge range to 2-3, precursor m/z range to 380-980, and fragment m/z range to 150-2000. The quantification was set to \u2018Robust LC (high precision)\u2019 mode with RT-dependent median-based cross-run normalization enabled, MBR enabled, protein inferences set to \u2018Genes\u2019, and \u2018Heuristic protein inference\u2019 turned off. Precursors were filtered at library precursor q-value (1%), library protein group q-value (1%), and posterior error probability (50%). Protein quantification was carried out using the MaxLFQ algorithm (https://github.com/vdemichev/diann-rpackage) and the number of peptides quantified in each protein group with the DiannReportGenerator Package (https://github.com/URMC-MSRL/DIANN-Report-Generator). Further filtering, missing value imputation, and statistical tests were performed using Perseus.  Phospho-peptide data analysis: Phosphoproteome raw data was searched using the CHIMERYS within the Proteome Discoverer software platform v3.1 (ThermoFisher), allowing up to 2 missed cleavages, with a fragment mass tolerance of 10 ppm. Carbamidomethyl on cysteine, and TMT on lysine and peptide N-terminus were set as fixed modifications, while oxidation of methionine and phosphorylation of serine, threonine, and tyrosine were set as variable modifications. Reporter ions were quantified using the Reporter Ions Quantifier node, with an integration tolerance of 20 ppm, and the integration method being set to \u201cmost confident centroid\u201d.",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:12603",
+   "cvLabel": "DOID",
+   "name": "Acute leukemia"
+  }
+ ],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000450",
+   "cvLabel": "PRIDE",
+   "name": "Data-independent acquisition"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000428",
+   "cvLabel": "PRIDE",
+   "name": "Bottom-up proteomics"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000627",
+   "cvLabel": "PRIDE",
+   "name": "Data-dependent acquisition"
+  }
+ ],
+ "hubCount": 383,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:01720",
+   "cvLabel": "MOD",
+   "name": "TMT6plex-126 reporter+balance reagent acylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00696",
+   "cvLabel": "MOD",
+   "name": "phosphorylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003378",
+   "cvLabel": "MS",
+   "name": "Orbitrap Astral"
+  }
+ ],
+ "keywords": [
+  "Human",
+  "Cancer",
+  "Proteomics",
+  "Taurine",
+  "Leukemia",
+  "Phospho-proteomics"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Department of Biomedical Genetics, University of Rochester Medical Center, Rochester, NY 14642, USA Wilmot Cancer Institute, University of Rochester Medical Center, Rochester, NY 14642, USA",
+   "country": "",
+   "email": "Jeevisha_Bajaj@URMC.Rochester.edu",
+   "firstName": "Jeevisha",
+   "id": "3127147",
+   "identifier": "3127147",
+   "lastName": "Bajaj",
+   "name": "Jeevisha Bajaj",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 60,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001281",
+   "cvLabel": "BTO",
+   "name": "Spleen"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "CL:0000034",
+   "cvLabel": "CL",
+   "name": "Stem cell"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:10090",
+   "cvLabel": "NEWT",
+   "name": "Mus musculus (mouse)"
+  }
+ ],
+ "projectDescription": "Signals from the microenvironment are known to be critical for development, sustaining adult stem cells, and for oncogenic progression. While candidate niche-driven signals that can promote cancer progression have been identified, concerted efforts to comprehensively map microenvironmental ligands for cancer stem cell specific surface receptors have been lacking. Here, we use temporal single cell RNA-sequencing to identify molecular cues from the bone marrow stromal niche that engage leukemia stem cells (LSC) during oncogenic progression. We integrate these data with our RNA-seq analysis of human LSCs from distinct aggressive myeloid cancer subtypes and our CRISPR based in vivo LSC dependency map7 to develop a temporal receptor-ligand interactome essential for disease progression. These analyses identify the taurine transporter (TauT)-taurine axis as a critical dependency of myeloid malignancies. We show that taurine production is restricted to the osteolineage population during cancer initiation and expansion. Inhibiting taurine synthesis in osteolineage cells impairs LSC growth in vitro and improves survival outcomes in vivo. Using TauT genetic loss of function murine models and patient-derived AML cells, we show that TauT inhibition significantly impairs in vivo myeloid leukemia progression. Consistent with elevated TauT expression in venetoclax resistant AML, TauT inhibition synergizes with venetoclax to block growth of primary human AML cells. Mechanistically, our metabolomic, proteomic and transcriptomic approaches indicate that loss of taurine uptake inhibits Rag-GTP dependent mTOR activation and downstream glycolytic metabolism. Collectively, our work establishes the temporal landscape of stromal signals during leukemia progression and identifies taurine as an important regulator of myeloid malignancies.",
+ "projectTags": [],
+ "publicationDate": "2025-03-28",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000652",
+   "cvLabel": "PRIDE",
+   "name": "Relative quantification"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000314",
+   "cvLabel": "PRIDE",
+   "name": "TMT"
+  }
+ ],
+ "references": [],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0001281",
+     "cvLabel": "BTO",
+     "name": "spleen"
+    },
+    {
+     "accession": "CL:0000034",
+     "cvLabel": "CL",
+     "name": "stem cell"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:10090",
+     "cvLabel": "NEWT",
+     "name": "Mus musculus (Mouse)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:12603",
+     "cvLabel": "DOID",
+     "name": "acute leukemia"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Protein extraction and digestion: Cells were lysed in 50uL of 5% SDS, 100mM triethylammonium bicarbonate (TEAB, ThermoFisher). 50ug of protein from each sample was reduced with dithiothreitol (DTT, Sigma-Aldrich). Proteins were alkylated and trapped to S-Trap micros (Protifi), digested with trypsin and extracted by sequential additions of 0.1% TFA in acetonitrile. 1% of each sample was used for global DIA analysis, and the remaining sample was frozen and dried down in a Speed Vac (Labconco) prior to TMT labeling.  TMT Labeling: Samples were reconstituted in TEAB and labeled with TMT 10plex reagents (ThermoFisher) following manufacturer\u2019s protocol. All samples were combined and dried down in a speed vac prior to desaltin with 0.1% TFA in acetonitrile using 130mg C18 sorbent sep-pak attached to a 3 ml syringe (Waters). Desalted samples were frozen and dried down.  Phospho-peptide enrichment and fractionation: Phosphorylation enrichment was performed using High-Select FeNTA Enrichment Kit (ThermoFisher) following the manufacturer\u2019s protocol. Enriched phosphorylated samples were frozen, dried down and fractionated using homemade C18 spin columns. Fractions were eluted by stepwise addition of 10 mM AmmOH with increasing acetonitrile concentrations: 3.5, 6.5, 9.5, 12.5, 15.5, 18.5, 27, 50%. The 8 fractions were concatenated to 4 by combining fractions 1/5, 2/6, 3/7, 4/8. Fractionated samples were frozen and dried down. Global Data Acquisition: Peptides were reconstituted in 0.1% TFA for mass spectrometry analysis and injected onto a 75um x 2cm trap column prior to refocusing on a 100um x 15 cm C18 column with 1.8 um beads (Sepax) using Vanquish Neo UHPLC (ThermoFisher) connected to Orbitrap Astral mass spectrometer (ThermoFisher). Ions were introduced to the mass spectrometer using a Nanospray Flex source operating at 2 kV. Solvent A (0.1% formic acid in water) and Solvent B (0.1% formic acid in 80% acetonitrile) formed the gradient starting at 1% B and ramped to 99% B for a total runtime of 14 m. After each run was completed, the column was re-equilibrated with 1% B prior to the next injection. The Orbitrap Astral was operated in data-independent acquisition (DIA) mode for global proteomic analysis, with MS1 scans acquired at a resolution of 240,000 with a maximum injection time of 5 ms over a range of 390-980 m/z. DIA MS2 scans were acquired using 2 Da windows, a 3 ms maximum injection time, an HCD collision energy of 25%, and a normalized AGC of 500%. Fragment ions were collected over a scan range of 150-2000 m/z. Phospho-peptide Data Acquisition: Phosphopeptides were reconsituted in 0.1% TFA and analysis was carried out on the same Vanquish Neo UHPLC and Orbitrap Astral mass spectrometer system, but with several changes to the LC and instrument settings. To account for ratio compression inherent with TMT, samples were high pH fractionated to reduce complexity prior to mass spectrometry analysis. A longer gradient of 5%-30% B over 48 minutes was used to further separate phospho-peptides. A data-dependent acquisition (DDA) method utilizing a FAIMS Pro Duo (ThermoFisher) was used with three compensation voltages (-40 V, -60 V, -80 V) to further reduce sample complexity. For each CV, a full scan was acquired over a range of 400-1500 m/z in the Orbitrap, while MS2 scans were analyzed in the Astral analyzer for 1s, after which the instrument switched to the next CV and the process was repeated for a total cycle time of 3s. Peptides with a charge state between 2-6 were isolated based on intensity with a 0.5 Da isolation window, and were fragmented with an HCD collision energy of 35%. The maximum injection time was 20 ms, and the normalized AGC target was 100%. Dynamic exclusion was set to 15s.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000650",
+   "cvLabel": "MS",
+   "name": "Proteome Discoverer"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003253",
+   "cvLabel": "MS",
+   "name": "DIA-NN"
+  }
+ ],
+ "submissionDate": "2025-03-27",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "University of Rochester Medical Center Mass Spectrometry Shared Resource Laboratory",
+   "country": "United States",
+   "email": "kswovick@ur.rochester.edu",
+   "firstName": "Kyle",
+   "id": "79750110",
+   "identifier": "79750110",
+   "lastName": "Swovick",
+   "name": "Kyle Swovick",
+   "orcid": "0000-0003-1161-7957",
+   "title": "Dr"
+  }
+ ],
+ "title": "Phosphoproteomics and Proteomics of wild-type and TauT-/- leukemia cells",
+ "totalFileDownloads": 794
+}

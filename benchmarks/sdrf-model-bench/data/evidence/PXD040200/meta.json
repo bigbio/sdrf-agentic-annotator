@@ -1,0 +1,18 @@
+{
+ "accession": "PXD040200",
+ "has_deposited_sdrf": false,
+ "license": "cc by",
+ "n_raw_files": 2,
+ "n_raw_files_pride": 2,
+ "n_rows": 2,
+ "organism": "homo sapiens",
+ "pmcid": "PMC10163259",
+ "pmid": 37147285,
+ "pride_quality": 0.875,
+ "qtype": "LFQ",
+ "templates": [
+  "human",
+  "ms-proteomics"
+ ],
+ "tier": "rich"
+}

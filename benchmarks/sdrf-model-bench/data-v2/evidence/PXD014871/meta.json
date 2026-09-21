@@ -1,0 +1,16 @@
+{
+ "accession": "PXD014871",
+ "baseline": 67.7,
+ "has_deposited_sdrf": false,
+ "has_manuscript": true,
+ "license": "cc by",
+ "n_raw_files": 4,
+ "n_raw_files_pride": 4,
+ "n_rows": 11,
+ "organism": "Homo sapiens",
+ "pmcid": "PMC6879431",
+ "pmid": 31824947,
+ "pride_quality": 1.0,
+ "qtype": "TMT",
+ "slot": "ms/TMT"
+}

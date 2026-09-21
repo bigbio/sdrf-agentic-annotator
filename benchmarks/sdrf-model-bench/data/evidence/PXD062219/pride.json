@@ -1,0 +1,159 @@
+{
+ "accession": "PXD062219",
+ "additionalAttributes": [],
+ "botCount": 94,
+ "countries": [
+  "France"
+ ],
+ "dataProcessingProtocol": "Peak list files in .mgf format (Mascot Generic Format) were generated using Proteome Discoverer 2.4 (ThermoFisher). Protein identification was carried out using MASCOT 2.3 software, querying a database containing PcuC and common contaminants (246 sequences, including trypsin, keratins, etc.). Search parameters were set as follows: trypsin as the digestion enzyme, up to 4 missed cleavages, precursor mass tolerance of 10 ppm, product ion mass accuracy of 0.02 Da, with fixed modifications of TMT6plex (N-term) and TMT6plex (K), and variable modifications including deamidation (Gln, Asn), 16O-oxidation (Met, monoisotopic mass = 15.994915 Da), 18O-oxidation (Met, monoisotopic mass = 17.99916), 16O-dioxidation (Met, monoisotopic mass = 31.989829 Da), 18O-dioxidation (Met, monoisotopic mass = 35.998321 Da), 16O/18O-dioxidation (Met, monoisotopic mass = 33.994075 Da) or oxaziridine modification (Met, monoisotopic mass = 167.080710 Da). Quantification was performed by exporting reporter ion intensity data for all peptides to Excel using Mascot software.",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000428",
+   "cvLabel": "PRIDE",
+   "name": "Bottom-up proteomics"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000627",
+   "cvLabel": "PRIDE",
+   "name": "Data-dependent acquisition"
+  }
+ ],
+ "hubCount": 7,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:01720",
+   "cvLabel": "MOD",
+   "name": "TMT6plex-126 reporter+balance reagent acylated residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001911",
+   "cvLabel": "MS",
+   "name": "Q Exactive"
+  }
+ ],
+ "keywords": [
+  "Methionine oxidation",
+  "Cofactor biosynthesis",
+  "Periplasm",
+  "Copper chaperone",
+  "Oxaziridine"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Fungal Biodiversity and Biotechnology Laboratory team \"Responses and adaptation of fungi to environmental constraints\" 163 Avenue de Luminy, CP925 13288 Marseille, Cedex 9, FRANCE",
+   "country": "",
+   "email": "lionel.tarrago@inrae.fr",
+   "firstName": "Lionel",
+   "id": "3127126",
+   "identifier": "3127126",
+   "lastName": "Tarrago",
+   "name": "Lionel Tarrago",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 2,
+ "organismParts": [],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:1063",
+   "cvLabel": "NEWT",
+   "name": "Cereibacter sphaeroides"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "NCBITaxon:2",
+   "cvLabel": "NCBITAXON",
+   "name": "Bacteria"
+  }
+ ],
+ "projectDescription": "Copper is typically coordinated by histidine, cysteine, or methionine residues in enzyme or chaperones and these residues are particularly sensitive to oxidation. However, it remains unclear whether copper-coordinating residues exhibit different sensitivity to oxidation compared to their non-coordinating counterparts, nor whether their oxidation susceptibility varies between the apo and copper-bound states of the protein. To evaluate this, we combined redox proteomics to structural analysis using the Cereibacter sphaeroides copper chaperone PcuC, which participates in the assembly of bacterial respiratory cytochrome oxidase. PcuC contains a canonical copper binding site made of two Met and two His (H51xnM63x22H86xM88), binding a Cu(I), and an unfolded C-terminal extension, rich in Met and His, proposed to coordinate an extra Cu atom. Our results showed that, in the apo-PcuC, Met135 in the C-terminal extension is highly sensitive to oxidation contrary to copper-coordinating Met, but that in the holo-PcuC, the presence of Cu strongly increased their sensitivity.",
+ "projectTags": [],
+ "publicationDate": "2026-02-09",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000314",
+   "cvLabel": "PRIDE",
+   "name": "TMT"
+  }
+ ],
+ "references": [
+  {
+   "doi": "10.1016/j.redox.2026.104037",
+   "pubmedID": 41579735,
+   "referenceLine": "Tarrago L, Molinelli L, Belghazi M, Tribout M, Lemaire D, Legrand P, Grosse S, Pignol D, Sabaty M, Tron T, Arnoux P. Quantitative mapping of methionine sensitivity to oxidation in the copper-bound PcuC chaperone. Redox Biol. 2026 90:104037"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:1063",
+     "cvLabel": "NEWT",
+     "name": "Cereibacter sphaeroides"
+    },
+    {
+     "accession": "NCBITaxon:2",
+     "cvLabel": "NCBITAXON",
+     "name": "Bacteria"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "PcuC was produced and purified as described in (Tarrago L. et al, 2020). 18O-labeled hydrogen peroxide and dibenzocyclooctyne-Cyanine5 fluorophore (DBCO-Cy5) were purchased from Sigma-Aldrich. Initial concentration of commercial H218O2 was estimated to be \u223c450 mM using FOX method. The oxaziridine probe ((4-azidopiperidin-1-yl)(3-phenyl-1,2-oxaziridin-2-yl)methanone) was synthetized according to (Elledge S.K et al, 2020) and validated by NMR. Protein concentrations were determined using the Bradford method (Bio-Rad Protein Assay Dye Reagent Concentrate). For proteolysis and LC-MS/MS analyses, 20 \u00b5L of PcuC solution (7 \u00b5M) in 50 mM MOPS buffer (pH 8.0) with 20% acetonitrile (ACN) were digested by adding 3 \u00b5L of trypsin/Lys C (Promega) at a concentration of 12.5 ng.\u00b5L-1 in 0.1% formic acid (FA) for 3 h at 37\u00b0C. For TMT labeling, the manufacturer's protocol (ThermoFisher) was followed. Peptides from each experimental condition (various concentrations of oxaziridine or different reaction times with H\u2082\u00b9\u2078O\u2082) were incubated with one of the six 6-plex TMT reagents, consisting of reporter ions 126, 127, 128, 129, 130, and 131 (0.8 mg in 41 \u00b5L of anhydrous ACN) for 1 h at room temperature. The reactions were quenched by adding 2 \u00b5L of 5% ammonium hydroxide for 15 minutes. Experiments were conducted in triplicate, each time using a different TMT reageant to limit labeling bias. For each experiment (oxaziridine or H\u2082\u00b9\u2078O\u2082), the six conditions were pooled and diluted in 300 \u00b5L of 0.1% trifluoroacetic acid (TFA). The labeled peptides were desalted using a peptide desalting spin column (Pierce) to remove excess TMT reagents, eluted with 2\u00d7300 \u00b5L of 50% ACN/0.1% TFA, and dried using a SpeedVac. The dried samples were reconstituted in 2% ACN/0.1% FA to achieve a theoretical protein concentration of 1 \u00b5g.\u00b5L-1. The samples were injected into an LC-MS/MS system using a high-performance nano-liquid chromatography (UHPLC RSLC, ThermoFisher) equipped with online desalting (PEPMAP C18, 5 \u00b5m, 300 \u00c5 trap column, 300 \u00b5m \u00d7 5 mm), coupled to a Q-Exactive Plus hybrid mass spectrometer (ThermoFisher). The analytical column used was an Acclaim PepMap RSLC capillary column (nanoViper C18, 2 \u00b5m, 100 \u00c5, 75 \u00b5m \u00d7 15 cm). The gradient for peptide elution was as follows: solvent A: 0.1% FA, solvent B: ACN with 0.1% FA. The gradient program included the following steps: (1) 2.5\u201325% B over 57 min, (2) 25\u201350% B over 6 min, (3) 50\u201390% B in 1 min, and (4) 90% B for 10 min. A data-dependent acquisition (DDA) method was employed with a Top10 approach, where the 10 most abundant peptides were selected for fragmentation in each survey scan. MS settings were: precursor mass range 375 to 1400 m/z, resolution 70,000, AGC target 3\u00d710\u2076, maximum IT 100 ms. MS/MS parameters: fragment mass range 100 to 2000 m/z, resolution 70,000, AGC target 2\u00d710\u2075, and normalized collision energy of 33 (TMT-labeled samples).",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001207",
+   "cvLabel": "MS",
+   "name": "Mascot"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000650",
+   "cvLabel": "MS",
+   "name": "Proteome Discoverer"
+  }
+ ],
+ "submissionDate": "2025-03-25",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "CNRS",
+   "country": "France",
+   "email": "maya.belghazi@univ-amu.fr",
+   "firstName": "Maya",
+   "id": "163210112",
+   "identifier": "163210112",
+   "lastName": "BELGHAZI",
+   "name": "Maya BELGHAZI",
+   "orcid": "0000-0002-3600-4754",
+   "title": "Dr"
+  }
+ ],
+ "title": "Quantitative mapping of methionine sensitivity to oxidation in the two-copper chaperone PcuC from Cereibacter sphaeroides",
+ "totalFileDownloads": 103
+}

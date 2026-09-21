@@ -1,0 +1,16 @@
+{
+ "accession": "PXD000878",
+ "baseline": 63.6,
+ "has_deposited_sdrf": false,
+ "has_manuscript": false,
+ "license": null,
+ "n_raw_files": 70,
+ "n_raw_files_pride": 70,
+ "n_rows": 70,
+ "organism": "mus musculus",
+ "pmcid": null,
+ "pmid": null,
+ "pride_quality": 0.875,
+ "qtype": "LFQ",
+ "slot": "free/frac-filename"
+}

@@ -1,0 +1,165 @@
+{
+ "accession": "PXD041421",
+ "additionalAttributes": [],
+ "countries": [
+  "Singapore"
+ ],
+ "dataProcessingProtocol": "DDA-PASEF by FragPipe\n\nDDA-PASEF raw data was processed using the FragPipe platform (version 19.1), integrating tools such as MSFragger (version 3.7), IonQuant (version 1.8.10), Philosopher (version 4.8.0), and Python (version 3.9.12). The database search was directed against a FASTA file comprising 20,437 protein entries, which includes 20,389 human proteins from UniProt and 48 supplemented contamination proteins from FragPipe, and an equal number of decoy sequences added by FragPipe.\n\nThe analysis was set to the \"LFQ-MBR (Label-Free Quantification and Match-Between-Runs)\" workflow, utilizing the \"IM-MS (Ion Mobility, timsTOF only)\" input mode. Peak matching was characterized by a precursor tolerance of -20 to 20 PPM and a fragment mass tolerance of 20 PPM. We engaged functions like deisotoping, mass calibration, and parameter optimization. Digestion settings ensured usage of the \u201cstricttrypsin\u201d enzyme, focusing on fully tryptic peptides (with up to 2 missed cleavages), within a peptide length range of 7-50 and mass range of 500-5000. The modifications were categorized with methionine oxidation and protein N-terminal acetylation as variable, while carbamidomethylation in cysteine was deemed fixed. Constraints were set for a maximum of 3 variable modifications on a peptide and 5 modification combinations.\n\nFor validation, we incorporated Percolator with a 0.5 minimal probability for peptide-spectrum match (PSM) validation and enabled MSBooster for rescoring using deep learning-aided retention time and spectra prediction. A false discovery rate (FDR) of 1% was applied at both the PSM and protein levels (sequential filtering), utilizing the corresponding decoy sequences for FDR estimation. The quantification stage witnessed normalization of intensities across runs, adopting the peptide-protein uniqueness option as \u201cunique plus razor\u201d. Specifications for feature detection mandated a minimum of 3 scans and 2 isotopic peaks. Tolerances for peak tracing were 10 PPM (m/z), 0.4 minutes (retention time), and 0.05 1/K0 (ion mobility). Additionally, MaxLFQ intensity was integrated into quantification results, necessitating a minimum of 2 ions for protein quantification. Match-between-runs was activated, aligning with FDR 1% at ion, peptide and protein levels, retention time tolerance 1 minute, and ion mobility tolerance 0.05 1/K0, with constraints on minimal correlation and top runs set to 0 and 100 respectively. Unless specified, default settings were maintained for all parameters.\n\ndiaPASEF by DIANN\n\nThe diaPASEF raw data was processed using DIA-NN (version 1.8.1) in a library-free search mode. This analysis utilized a FASTA file encompassing 20,368 human protein entries and 286 contamination proteins. The precursor ions were generated from FASTA in silico digest with deep learning-based spectra, retention times (RTs), and ion mobilities (IMs) prediction. The DIA runs then facilitated the creation of a spectral library based on protein IDs, RTs, and IM profiling strategies. This library was subsequently employed to re-analyze the DIA runs.\n\nSeveral parameters were optimized automatically from the first experimental run, including MS1 and MS2 mass accuracies and the scan window. The proteolytic enzyme Trypsin/P was selected, allowing for up to one missed cleavage. Modification settings incorporated the enablement of N-terminal methionine excision and the specification of cysteine carbamidomethylation as a fixed modification. Variable modifications were restricted to none. Parameter specifics include peptide lengths ranging from 7-30, precursor charges from 1-4, precursor m/z from 300-1800, and fragment ion m/z from 200-1800.\n\nFurther enhancements included enabling match-between-runs, isotopologues, heuristic protein inference, and no shared spectra. The neural network classifier operated in single-pass mode, while the quantification strategy was denoted as robust LC for high precision. In all instances, protein isoforms were consistently grouped according to their FASTA protein names. To facilitate cross-run normalization, an RT-dependent normalization strategy was adopted. The FDR was specified at 1% for both precursors and protein groups. All other parameters remained at their default settings.",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000447",
+   "cvLabel": "PRIDE",
+   "name": "SWATH MS"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1002864",
+   "cvLabel": "MS",
+   "name": "No PTMs are included in the dataset",
+   "value": ""
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003005",
+   "cvLabel": "MS",
+   "name": "timsTOF Pro",
+   "value": ""
+  }
+ ],
+ "keywords": [
+  "Dda",
+  "Pasef",
+  "Dia",
+  "K562",
+  "A549",
+  "Batch effects"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Lee Kong Chian School of Medicine, School of Biological Sciences, Nanyang Technological University, Singapore",
+   "country": "",
+   "email": "wilsongoh@ntu.edu.sg",
+   "firstName": "Wilson",
+   "id": "2559156",
+   "identifier": "2559156",
+   "lastName": "Goh",
+   "name": "Wilson Goh",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000214",
+   "cvLabel": "BTO",
+   "name": "Cell culture",
+   "value": ""
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)",
+   "value": ""
+  }
+ ],
+ "otherOmicsLinks": [
+  "px:PXD041391",
+  "pride.project:PXD041391"
+ ],
+ "projectDescription": "We generated two comprehensive large-scale proteomics datasets with deliberate batch effects using the latest parallel accumulation-serial fragmentation in both Data-Dependent and Data-Indepentdent Acquisition modes. This dataset contain a balanced two-class design (cell lines: A549 vs K562), allowing for investigating mixed effects from class, batch and acquisition method. Investigators can also compare and integrate DDA and DIA platforms, delve into the various patterns and mechanisms of missing values, benchmark batch effects correction algorithms and assess confounding between different technical issues.",
+ "projectTags": [],
+ "publicationDate": "2023-11-21",
+ "quantificationMethods": [],
+ "references": [
+  {
+   "doi": "10.1038/s41597-023-02779-8",
+   "pubmedID": 38042886,
+   "referenceLine": "Wang H, Lim KP, Kong W, Gao H, Wong BJH, Phua SX, Guo T, Goh WWB. MultiPro: DDA-PASEF and diaPASEF acquired cell line proteomic datasets with deliberate batch effects. Sci Data. 2023 10(1):858"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000214",
+     "cvLabel": "BTO",
+     "name": "cell culture",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)",
+     "value": ""
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Cell culture and sample preparation\n\nThe A549 and K562 cell lines (National Collection of Authenticated Cell Cultures, China) were cultured in Ham's F-12K medium (Invitrogen, USA) and Iscove's modified Dulbecco's medium (Invitrogen, USA) separately, supplemented with 10% fetal bovine serum and 1% penicillin-streptomycin. Cells were split into three dishes as biological replicates, then washed with phosphate-buffered saline and collected by centrifugation for three times.\n\nThe cells for each biological replicate were then subjected to denaturation, reduction, alkylation and digestion referring to the accelerated pressure cycling technology (PCT) workflow. Briefly, each sample was transferred into a PCT-MicroTube (Pressure Biosciences Inc., USA) with 30 \u03bcL lysis buffer (6\u2009M urea and 2\u2009M thiourea from Sigma-Aldrich, Germany), 20\u2009mM tris (2-carboxyethyl) phosphine (TCEP, Adamas-beta, China), and 40\u2009mM iodoacetamide (IAA, Sigma-Aldrich, Germany) added. The PCT scheme in this step involved 90 oscillating cycles, each with 45,000\u2009psi for 30\u2009s and ambient pressure for 10\u2009s at 30\u2009\u00b0C using the Barocycler (Pressure Biosciences Inc., USA). Next, the processed proteins were digested by a mixture of trypsin and Lys-C (Hualishi Tech. Ltd, China) with an enzyme-to-substrate ratio of 1:20 and 1:80, respectively, using the PCT scheme consisting of 120 cycles at 30\u2009\u00b0C, with 50\u2009s of high pressure at 20,000\u2009psi and 10\u2009s of ambient pressure for each cycle. Trifluoroacetic acid (TFA, Thermo Fisher Scientific, USA) was added to the solution to a final concentration of 1% to stop enzymatic digestion. Subsequently, peptides were desalted by the SOLA\u03bc HRP 96-well plate (Thermo Fisher Scientific, USA) and dried by a SpeedVac (Thermo Fisher Scientific, USA) based on the manufacturer\u2019s protocol. The peptide concentration was measured using a ScanDrop2 spectrophotometer (Analytik Jena, Germany).\n\nLC-MS/MS in DDA-PASEF and diaPASEF modes\n\nFor each biological replicate, the protein digest samples were split into two vials (one for each timsTOF Pro machine), each vial includes enough peptides for four injections to derive four technical replicates. Then the injected peptides were analysed using a nanoElute ultra-high-performance liquid chromatography (UHPLC) system (Bruker Daltonics, Germany). Around 200 ng peptides were reconstituted in buffer A (0.1% formic acid in water (0.1% FA/water), MS grade, Thermo Fisher Scientific, USA), trapped by 5mm \u00d7 300 \u03bcm ID trap column (Thermo Fisher Scientific, USA) packed with 5 \u03bcm 100 \u00c5 C18 aqua in 0.1% FA/water and then separated at a flow rate of 300 nL/min using a 60-minute gradient on a 15 cm analytical column (75 \u03bcm ID, 1.9 \u03bcm, C18 beads, homemade). The mobile phase B consisted of 0.1% formic acid in acetonitrile (ACN), and its gradient comprised of three linear segments: from 5 to 27% in 50 min, from 27 to 40% in 10 min, and from 40 to 80% in 2 min, with an additional 3-minute 80% sustain for analytical column washing. All separation processes were performed in an integrated toaster column oven at 50\u00b0C.\n\nThe LC was coupled to a timsTOF Pro mass spectrometer (Bruker Daltonics, Germany) equipped with a CaptiveSpray nano-electrospray ion source. DDA was performed in PASEF mode with 10 PASEF MS/MS scans. The capillary voltage was set to 1500 V and the spectra were acquired in the range of m/z from 100 to 1700 Th with an ion mobility range (1/K0) from 0.6 to 1.6 Vs/cm2. The ramp and accumulation time were set to 100 ms to achieve a duty cycle close to 100% and a total cycle time of 1.17\u2009s. The collision energy was ramped linearly as a function of mobility from 59 eV at 1/K0 = 1.6 Vs/cm2 to 20 eV at 1/K0 = 0.6 Vs/cm2. Precursors with charge state from 0 to 5 (If the charge state of a peptide precursor is 0, it indicates that the isotope ion was not detected for that peptide precursor) were selected with the target value of 20,000 and intensity threshold of 2500. Any precursors that reached the target value arbitrary units were dynamically excluded for 0.4\u2009min.\n\nFor diaPASEF acquisition, the capillary voltage was set to 1400 V. The MS1 and MS2 spectra were obtained over a mass-to-charge (m/z) range of 100-1700 Th, with an ion mobility range (1/K0) of 0.7-1.3 Vs/cm2. The other setting was the same as DDA-PASEF mode. Additionally, a 28 Th isolation window was defined, ranging from 384 to 1059 Th.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003429",
+   "cvLabel": "MS",
+   "name": "FragPipe"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003253",
+   "cvLabel": "MS",
+   "name": "DIA-NN"
+  }
+ ],
+ "submissionDate": "2023-04-10",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "Nanyang Technological University",
+   "country": "Singapore",
+   "email": "he009@e.ntu.edu.sg",
+   "firstName": "HE",
+   "id": "2719910",
+   "identifier": "2719910",
+   "lastName": "WANG",
+   "name": "HE WANG",
+   "orcid": "",
+   "title": "Mr"
+  }
+ ],
+ "title": "DDA-PASEF and diaPASEF acquired A549/K562 proteomic datasets with deliberate batch effects",
+ "totalFileDownloads": 7418
+}

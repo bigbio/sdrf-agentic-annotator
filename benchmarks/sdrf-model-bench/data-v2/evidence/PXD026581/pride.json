@@ -1,0 +1,168 @@
+{
+ "accession": "PXD026581",
+ "additionalAttributes": [],
+ "botCount": 28109,
+ "countries": [
+  "United States"
+ ],
+ "dataProcessingProtocol": "A compilation of commercially available software (Core software program described in the Code Availability section) was used to convert mass spectrometric data (Thermo \u201c.RAW\u201d files) to mzXML format and to correct monoisotopic m/z measurements and erroneous peptide charge state assignments. Assignment of MS/MS spectra was performed using the Sequest20 (version 28 (http://fields.scripps.edu/yates/wp/?page_id=17)) and the Human UniProt database (downloaded February 2014). The database search included reversed protein sequences and known contaminants such as human keratins which were excluded for subsequent analyses.   Linear discriminant analysis was used to distinguish forward and reverse hits. Peptides were identified using an MS2 spectrum and a false discovery rate of 1% was set for PSM following linear discriminant analysis and FDR for final collapsed proteins was 1% as well. Filtering was performed as described previously. Oxidized methionine residues were dynamically searched (+15.9949 Da). For protein identification and quantification, shared peptides were collapsed into the minimally sufficient number of proteins using rules of parsimony.  Relative protein quantification used summed MS3 TMT signal / noise (s/n) per protein filtered for summed s/n >200 over all channels per peptide and an isolation specificity >70% for each peptide. Details of the TMT intensity quantification method can be found in (Paulo et al., 2016).",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:1612",
+   "cvLabel": "DOID",
+   "name": "Breast cancer"
+  }
+ ],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "hubCount": 33968,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1002732",
+   "cvLabel": "MS",
+   "name": "Orbitrap Fusion Lumos"
+  }
+ ],
+ "keywords": [
+  "Protein expression",
+  "Tmt",
+  "Proteomic profiling",
+  "Quantitative proteomics",
+  "Breast cancer cell lines"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Otto Krayer Professor Department of Systems Biology Head of the Harvard Program in Therapeutic Sciences - HiTS Harvard Medical School",
+   "country": "",
+   "email": "peter_sorger@hms.harvard.edu",
+   "firstName": "Peter K. Sorger,",
+   "id": "2485134",
+   "identifier": "2485134",
+   "lastName": "PhD",
+   "name": "Peter K. Sorger, PhD",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 1255,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000214",
+   "cvLabel": "BTO",
+   "name": "Cell culture"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)"
+  }
+ ],
+ "projectDescription": "We performed quantitative proteomics of 60 human-derived breast cancer cell lines to a depth of ~13,000 proteins. The resulting high-throughput datasets were assessed for quality and reproducibility. We used the two omics datasets to identify and characterize the subtypes of breast cancer and showed that they conform with known transcriptional subtypes, revealing that molecular subtypes are preserved even in under-sampled molecular feature datasets. The datasets are made freely available as a public resource on the LINCS portal. We anticipate that these datasets, either in isolation or combination with measurements of complementary molecular features, can be mined for the purpose of predicting drug response, informing context in mathematical models of signaling pathways, inferring cell-type or subtype specific pathways activities of unperturbed cellular states, and identifying markers of sensitivity or resistance to therapeutics.",
+ "projectTags": [],
+ "publicationDate": "2023-03-15",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000314",
+   "cvLabel": "PRIDE",
+   "name": "TMT"
+  }
+ ],
+ "references": [],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000214",
+     "cvLabel": "BTO",
+     "name": "cell culture"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:1612",
+     "cvLabel": "DOID",
+     "name": "breast cancer"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Cell pellets were solubilized in lysis Buffer (2% SDS, 150 mM NaCl, 50 mM Tris pH 7.4) supplemented with Halt Protease and Phosphatase Inhibitor Single-Use Cocktail (EDTA Free) with a hand-held tissue homogenizer. Disulfide reduction was performed by adding dithiothreitol (DTT) to a final concentration of 5 mM and heating to 37\u00b0C for 1 h, followed by alkylation with iodoacetamide at a final concentration of 15 mM and incubation at RT in the dark for 30 min. Protein concentration was determined using a Micro BCA Protein Assay Kit following the manufacturer\u2019s protocol. Detergent was removed by methanol/chloroform protein precipitation. Precipitates were solubilized in freshly prepared 8 M urea in 200 mM EPPS, pH 8.5. Following a 10 min incubation at 37\u00b0C, the urea concentration was diluted with 200 mM EPPS, pH 8.5 to 4 M (sets 1-4) or 2 M (sets 5-8) final urea concentration. Digestion was performed by overnight incubation at RT in the presence of Lys-C protease (Wako, Catalog Number 129-02541) at an enzyme-to-substrate ratio of 1:75. Following further dilution of the sample with 200 mM EPPS to a final urea concentration of 1.6 M (sets 1-4) or 0.5 M (sets 5-8), digestion was continued by incubation of the sample at 37\u00b0C for 6 h with trypsin (Promega, Catalog Number V5113) at an enzyme-to-substrate ratio of 1:75. The missed cleavage rate was measured by LC-MS/MS to evaluate the quality of the digest; a result <15% of potential cleavage sites remaining uncleaved was deemed sufficient to proceed with labelling. Aliquots corresponding to 65 \u03bcg per sample (sets 1-4) or 150 \u03bcg per sample (sets 5-8) were withdrawn for TMT labelling. Equal amounts of protein were removed from each sample and labeled using a TMT10plex (sets 1-4) or TMT11plex (sets 5-8) kit following the manufacturer\u2019s protocol. Labeling efficiency and ratio checks were measured by LC-MS3 analysis for each set. Quenching of TMT labeling reactions was performed by adding hydroxylamine to a final concentration of 0.5% (v/v) and incubating samples for 15 min at RT. Formic acid (FA) was added to a final volume of 2% (v/v) to lower the pH below 3.0. Equal amounts of labelled peptide from each sample (as judged from ratio check data) were then combined and de-salted using a SepPak tC18 Vac RC Cartridge. HPLC fractionation was performed over a period of 75 min using an Agilent 1200 Series instrument with a flow rate of 600 \u00b5l/min. Peptides were collected in a 96-well plate over a 65 min-gradient of 13-44 %B with Buffer A comprising 5% acetonitrile (ACN), 10 mM ammonium bicarbonate, pH 8 and Buffer B comprising 90% ACN,10 mM ammonium bicarbonate, pH 8. Fractions were then pooled into 24 samples, followed by sample clean-up using the Stage Tip protocol. This protocol uses C18 Empore Extraction Disks. Matrix was primed with methanol and equilibrated with 70% ACN, 1% FA followed by washing twice with 1% FA, loading the sample in 1% FA, followed once again by two 1% FA washes, and finally peptide elution using 80% ACN, 1% FA. Samples were dried before resuspension in MS Loading Buffer (3% ACN, 5% FA). Sets 1-4 were recorded after peptide separation on 100 \u03bcm columns packed with 1.8 \u03bcm C18 beads with a pore size of 12 nm (Sepax Technologies Inc.). Sets 5-8 were obtained after peptide separation on 75 \u03bcm columns packed with 2.6 \u03bcm Accucore beads (Thermo Fisher Scientific). Peptides were injected onto a 30-40 cm, 100 \u03bcm (sets 1-4) and 75 \u00b5m (sets 5-8) internal diameter columns, respectively, and separated using an EASY-nLC 1200 HPLC. The flow rate was 450 nl/min for the 100 \u03bcm column (sets1-4) with gradient of 6-28% Buffer B over 170 min with Buffer A comprising 3% ACN, 0.4% FA and Buffer B comprising 100% ACN, 0.4% FA. The flow rate was 300 nl/min for the 75 \u03bcm columns (sets5-8) with a gradient of 5-100% Buffer B over 240 min with Buffer A comprising 0.125% FA and Buffer B comprising 95% ACN, 0.125% FA. The columns were heated to 60\u02daC using a column heater (constructed in-house). Samples from the HPLC were injected into an Orbitrap Fusion Lumos Tribrid MS using a multi-notch MS3 method. MS scans were performed in the Orbitrap over a scan range of 400-1400 m/z with dynamic exclusion. Rapid rate (sets 1-4) and Turbo rate (sets 5-8) scans were performed in the Ion Trap with a collision energy of 35% and maximum injection times of 120 ms (sets 1-4), and 200 ms (sets 5-8) respectively. TMT quantification was performed using SPS-MS3 in the Orbitrap with a scan range of 100-1000 m/z and an HCD collision energy of 55%. Orbitrap resolution was 50,000 with maximum injection times of 120 ms (sets1-4) and 450 ms (sets 5-8). MS isolation windows were varied depending on the charge state.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001208",
+   "cvLabel": "MS",
+   "name": "Sequest"
+  }
+ ],
+ "submissionDate": "2022-11-16",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "Harvard Medical School",
+   "country": "United States",
+   "email": "gary_bradshaw@hms.harvard.edu",
+   "firstName": "Gary",
+   "id": "1808956",
+   "identifier": "1808956",
+   "lastName": "Bradshaw",
+   "name": "Gary Bradshaw",
+   "orcid": "0000-0001-9724-6100",
+   "title": "Dr"
+  }
+ ],
+ "title": "Data Descriptor: Proteomic profiling across breast cancer cell lines and models",
+ "totalFileDownloads": 63332
+}

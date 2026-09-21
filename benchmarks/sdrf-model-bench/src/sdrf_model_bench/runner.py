@@ -55,16 +55,26 @@ def load_manifest(path: Path) -> list[dict]:
         return list(csv.DictReader(fh, delimiter="\t"))
 
 
+def has_manuscript(row: dict) -> bool:
+    """A manifest row without a redistributable paper runs in the no-manuscript condition only.
+
+    Absent column means yes, so a manifest written before manuscript-free datasets existed keeps
+    its meaning.
+    """
+    return str(row.get("has_manuscript", "true")).strip().lower() not in ("false", "0", "no", "")
+
+
 def plan_runs(specs: list[ModelSpec], manifest: list[dict], replicates: dict[str, int] | None = None) -> list[RunKey]:
     replicates = replicates or {}
     return [RunKey(s.id, row["accession"], ms, r)
-            for s in specs for row in manifest for ms in (True, False)
+            for s in specs for row in manifest
+            for ms in ((True, False) if has_manuscript(row) else (False,))
             for r in range(1, replicates.get(row["accession"], 1) + 1)]
 
 
 def expected_output_tokens(data_dir: Path, accession: str) -> int:
     """Size of a correct answer, used only to flag context-limited runs (never shown to the model)."""
-    truth = Path(data_dir) / "truth" / f"{accession}.sdrf.tsv"
+    truth = Path(data_dir) / "truth" / f"{accession}.reference.tsv"
     return int(estimate_tokens(truth.read_text()) * 1.2) if truth.exists() else OUTPUT_FALLBACK
 
 

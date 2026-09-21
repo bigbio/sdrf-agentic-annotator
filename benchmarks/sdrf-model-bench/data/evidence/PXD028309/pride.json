@@ -1,0 +1,200 @@
+{
+ "accession": "PXD028309",
+ "additionalAttributes": [],
+ "botCount": 2993,
+ "countries": [
+  "Canada"
+ ],
+ "dataProcessingProtocol": "Database searches were conducted using the PeaksX+ software, version 10.6 (Bioinformatics Solutions Inc.). Error tolerances for precursor mass and fragment ions were set to 10.0ppm and 0.01 Da, respectively. A non-specific digest mode was used. TMT10plex was set as a fixed PTM, and variable modifications included phosphorylation (STY), Oxidation (M), Deamidation (NQ), and TMT10plex STY. For SPS-MS3 quantification, error tolerances for precursor mass and fragment ions were set to 10.0ppm and 0.5 Da, respectively. A non-specific digest mode was used. TMT10plex was set as a fixed PTM, and variable modifications included phosphorylation (STY), Oxidation (M), Deamidation (NQ), and TMT10plex STY.",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:234",
+   "cvLabel": "DOID",
+   "name": "Colon adenocarcinoma"
+  }
+ ],
+ "doi": "10.6019/PXD028309",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "hubCount": 6361,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:01720",
+   "cvLabel": "MOD",
+   "name": "TMT6plex-126 reporter+balance reagent acylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00696",
+   "cvLabel": "MOD",
+   "name": "phosphorylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00400",
+   "cvLabel": "MOD",
+   "name": "deamidated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003028",
+   "cvLabel": "MS",
+   "name": "Orbitrap Exploris 480"
+  }
+ ],
+ "keywords": [
+  "Lc-msms",
+  "Colorectal cancer",
+  "Immunopeptidome",
+  "Mhc class i"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Institute for Research in Immunology and Cancer, Department of Biochemistry, Department of Chemistry, Universit\u00e9 de Montr\u00e9al, Qu\u00e9bec, Canada H3T 1J4",
+   "country": "",
+   "email": "pierre.thibault@umontreal.ca",
+   "firstName": "Pierre",
+   "id": "2285982",
+   "identifier": "2285982",
+   "lastName": "Thibault",
+   "name": "Pierre Thibault",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 145,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000269",
+   "cvLabel": "BTO",
+   "name": "Colon"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)"
+  }
+ ],
+ "otherOmicsLinks": [
+  "geo:GSE195985"
+ ],
+ "projectDescription": "Colorectal cancer is the second leading cause of cancer death worldwide, and the incidence of this disease is expected to increase as global socioeconomic changes occur. Immune checkpoint inhibition therapy is effective in treating a minority of colorectal cancer tumors; however, microsatellite stable tumors do not respond well to this treatment. Emerging cancer immunotherapeutic strategies aim to activate a cytotoxic T cell response against tumor-specific antigens, presented exclusively at the cell surface of cancer cells. These antigens are rare and are most effectively identified with a mass spectrometry-based approach, which allows the direct sampling and sequencing of these peptides. While the few tumor-specific antigens identified to date derived from coding regions of the genome, recent findings indicate that a large proportion of tumor-specific antigens originate from allegedly noncoding regions. Here, we employed a novel proteogenomic approach to identify tumor antigens in a collection of colorectal cancer-derived cell lines and biopsy samples consisting of matched tumor and normal adjacent tissue. The generation of personalized cancer databases paired with mass spectrometry analyses permitted the identification of more than 30 000 unique MHC I-associated peptides. We identified 19 putative tumor-specific antigens in both microsatellite stable and unstable tumors, over two-thirds of which were derived from non-coding regions. Many of these peptides were derived from source genes known to be involved in colorectal cancer progression, suggesting that antigens from these genes could have therapeutic potential in a wide range of tumors. These findings could benefit the development of T cell-based vaccines, in which T cells are primed against these antigens to target and eradicate tumors. Such a vaccine could be used in tandem with existing immune checkpoint inhibition therapies, to bridge the gap in treatment efficacy across subtypes of colorectal cancer with varying prognoses.",
+ "projectTags": [],
+ "publicationDate": "2022-04-13",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000314",
+   "cvLabel": "PRIDE",
+   "name": "TMT"
+  }
+ ],
+ "references": [
+  {
+   "doi": "10.1016/j.mcpro.2022.100228",
+   "pubmedID": 35367648,
+   "referenceLine": "Cleyle J, Hardy MP, Minati R, Courcelles M, Durette C, Lanoix J, Laverdure JP, Vincent K, Perreault C, Thibault P. Immunopeptidomic analyses of colorectal cancers with and without microsatellite instability. Mol Cell Proteomics. 2022:100228"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000269",
+     "cvLabel": "BTO",
+     "name": "colon"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:234",
+     "cvLabel": "DOID",
+     "name": "colon adenocarcinoma"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "CRC cell line pellet samples were resuspended with PBS and then solubilized by adding in ice-cold 2X lysis buffer (1% w/v CHAPS). Tumor and normal adjacent tissue samples were cut into small pieces ice-cold PBS containing protein inhibitor cocktail was added. Tissues were homogenized then 10X lysis buffer (5% w/v CHAPS) was added to each sample. After 60-minute incubation with tumbling at 4\u00b0C, tissue samples and CRC cell line samples were spun at 10000g for 30 minutes at 4\u00b0C. Supernatants were transferred into new tubes containing 1 mg of W6/32 antibody covalently-cross-linked protein A magnetic beads and MAPs were immunoprecipitated. MAP extracts were then dried using a Speed-Vac and kept frozen before MS analyses. MAP extracts were resuspended in 200mM HEPES buffer pH 8.1. 50ug of TMT reagent in anhydrous acetonitrile was added to samples as follows: CRC cell line replicates were labeled with TMT6plex (lot #UG287166) channels TMT6-126-129; Tissue samples were labeled with TMT10plex (lot # UH285228) -126 (NAT) and -127N (tumor). Samples were gently vortexed and reacted at room temperature for 1.5 hours. Samples were then quenched with 50% hydroxylamine for 30 minutes at room temperature, then were diluted with 4%FA/H2O. CRC cell line replicates and individual NAT-tumor pairs were combined. Samples were then desalted on homemade C18 membrane columns (Empore) and stored at -20\uf0b0C until injection. Dried peptide extracts were resuspended in 4% FA and loaded on a homemade C18 analytical column (20 cm x 150 \uf06dm i.d. packed with C18 Jupiter Phenomenex) with a 106-minute gradient from 0% to 30% ACN (0.2% FA) and a 600 nL/min flow rate on an EASY-nLC II system. Samples were analyzed with an Orbitrap Exploris 480 spectrometer (Thermo Fisher Scientific) in positive ion mode with Nanoflex source at 2.8kV. Each full MS spectrum, acquired with a 240,000 resolution was followed by 20 MS/MS spectra, where the most abundant multiply charged ions were selected for MS/MS sequencing with a resolution of 30,000, an automatic gain control target of 100%, an injection time of 700ms, and collisional energy of 40%. Peaklist-generating software was Xcalibur version 4.4. To relatively quantify MAPs of interest in primary tissue samples, synthetic peptides at concentrations of 10, 100, or 1000 fmol labeled with TMT 10plex-129N, 130N, and 131N, respectively, were spiked into remaining NAT and CRC tissue samples labeled with TMT10plex-126 and 127N, respectively. Note that the channel TMT 10plex-127C was left empty to assess contamination. Samples were analyzed with an Orbitrap Fusion Tribid spectrometer (Thermo Fisher Scientific) in positive ion mode with Nanoflex source at 2.4kV. For synchronous precursor selection MS3 (SPS-MS3), full MS were acquired with a scan range of 300-1000 m/z, Orbitrap resolution of 120 000, automatic gain control (AGC) of 5.0e5, and a maximum injection time of 50ms, using an inclusion list for the peptides of interest. We used a 3s top speed approach for MS2 in the ion trap, with an isolation window of 0.4m/z, collision induced dissociation of 35%, a \u2018normal\u2019 ion trap scan rate mode, 2.0e4 AGC target, and 50ms maximum injection time. This was followed by the selection of eight synchronous precursor ions for MS3 acquisition, which was done with a scan range of 110-500m/z, Orbitrap resolution of 50 000, AGC of 1.0e5, maximum injection time of 300ms, an isolation window of 2.0m/z, and 65% HCD collision energy. Peaklist-generating software was Xcalibur version 4.4.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001583",
+   "cvLabel": "MS",
+   "name": "MaxQuant"
+  }
+ ],
+ "submissionDate": "2021-09-09",
+ "submissionType": "COMPLETE",
+ "submitters": [
+  {
+   "affiliation": "IRIC",
+   "country": "Canada",
+   "email": "mathieu.courcelles@umontreal.ca",
+   "firstName": "Courcelles",
+   "id": "650152",
+   "identifier": "650152",
+   "lastName": "Mathieu",
+   "name": "Courcelles Mathieu",
+   "orcid": "0000-0001-5961-8858",
+   "title": "Dr"
+  }
+ ],
+ "title": "Discovery of tumor-specific antigens in colorectal cancer",
+ "totalFileDownloads": 9499
+}

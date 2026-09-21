@@ -1,0 +1,136 @@
+{
+ "accession": "PXD002804",
+ "additionalAttributes": [],
+ "botCount": 3431,
+ "countries": [
+  "Belgium"
+ ],
+ "dataProcessingProtocol": "Raw data collection of approximately 230 000 MS/MS spectra per 2D-LC-MS/MS experiment was followed by protein identification using SEQUEST. In details, peak lists were generated using extract-msn (ThermoScientific) within Proteome Discoverer 1.4.1. From raw files, MS/MS spectra were exported with the following settings: peptide mass range: 350\u20135000 Da, minimal total ion intensity 500. The resulting peak lists were searched using SequestHT against a target-decoy Escherichia Coli protein database (release 07.01.2008, 8 678 entries comprising forward and reversed sequences) obtained from Uniprot. The following parameters were used: trypsin was selected with proteolytic cleavage only after arginine and lysine, number of internal cleavage sites was set to 1, mass tolerance for precursors and fragment ions was 1.0 Da, considered dynamic modifications were + 15.99 Da for oxidized methionine, + 125.12 for N-ethylmaleimide on cysteines. Peptide matches were filtered using the q-value and Posterior Error Probability calculated by the Percolator algorithm ensuring an estimated false positive rate below 5%. The filtered SEQUEST HT output files for each peptide were grouped according to the protein from which they were derived using the multiconsensus results tool within Proteome Discoverer. Then the peptides spectral matches values of only Met containing peptides were combined from the three 2D-LC/MS and exported in a Microsoft Excel spreadsheet with the rows referring to the peptides sequences and the columns to the fractions of the HILIC column. Oxydation of Met residues to Met sulfoxide (Mox) by NaOCl causes an hydrophilic shift which influences their retention time and makes them elute later (4-8 min) than their reduced counterpart on a HILIC column. If these Mox are reduced by MsrP they will then show an hydrophobic shift and elute at the same retention time on the HILIC column than in the control sample. By comparing the retention times and the number of peptide spectral matches of the Mox containing peptides in a periplasmic extract under three experimental conditions( control, oxidized by NaOCl with and without YedY), one can identify \u201cbona fide\u201d potential MsrP substrates.",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "hubCount": 10889,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00483",
+   "cvLabel": "MOD",
+   "name": "N-ethylmaleimide derivatized cysteine"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000447",
+   "cvLabel": "MS",
+   "name": "LTQ"
+  }
+ ],
+ "keywords": [
+  "Methione",
+  "Ros",
+  "Repair",
+  "E. coli"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "UCL - de Duve Institute Brussels Belgium",
+   "country": "",
+   "email": "jfcollet@uclouvain.be",
+   "firstName": "Jean-Fran\u00e7ois",
+   "id": "29430100",
+   "identifier": "29430100",
+   "lastName": "Collet",
+   "name": "Jean-Fran\u00e7ois Collet",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "EBI terms of use",
+ "organicCount": 135,
+ "organismParts": [],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:562",
+   "cvLabel": "NEWT",
+   "name": "Escherichia coli"
+  }
+ ],
+ "projectDescription": "The reactive species of oxygen (ROS) and chlorine (RCS) damage cellular components, potentially leading to cell death. In proteins, the sulfur-containing amino acid methionine (Met) is converted to methionine sulfoxide (Met-O), which can cause a loss of biological activity.",
+ "projectTags": [
+  "Biomedical"
+ ],
+ "publicationDate": "2015-09-16",
+ "quantificationMethods": [],
+ "references": [
+  {
+   "doi": "10.1038/nature15764",
+   "pubmedID": 26641313,
+   "referenceLine": "Gennaris A, Ezraty B, Henry C, Agrebi R, Vergnes A, Oheix E, Bos J, Leverrier P, Espinosa L, Szewczyk J, Vertommen D, Iranzo O, Collet JF, Barras F. Repairing oxidized proteins in the bacterial envelope using respiratory chain electrons. Nature. 2015 Dec 17;528(7582):409-12"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:562",
+     "cvLabel": "NEWT",
+     "name": "Escherichia coli"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Identification of periplasmic proteins targeted by YedY for repair by 2D-LC/MS:  The in vitro identification was performed as following. AG89 cells (2L) were grown aerobically at 37\u00b0C in terrific broth to an A600 of 0.8. Periplasmic extracts were prepared as following. Cells were pelleted by centrifugation at 3000 x g for 20 minutes at 4\u00b0C and incubated on ice with gentle shaking for 30 minutes in 100 mM Tris pH8, 20% sucrose, 1mM EDTA buffer (100ml). The buffer also contained 20 mM NEM in order to alkylate reduced cysteines in proteins to prevent their subsequent oxidation. After this step, periplasmic proteins were isolated in the supernatant by centrifugation of the cells at 3000 x g for 20 minutes at 4\u00b0C. The extract was subsequently concentrated by ultrafiltration in an Amicon cell (3000 Da cutoff, YM-3 membrane), and loaded on a PD-10 column (GE healthcare) equlibrated with 50mM NaPi pH8 50 mM NaCl. It was then further concentrated using a 5 kDa cutoff Vivaspin 4 (Sartorius) concentrator, and separated in 3 samples. All samples were incubated 10 minutes at 37\u00b0C, two of them in the presence of 2 mM NaOCl while one of them was left untreated to serve as a reduced control in the following proteomic analysis. NaOCl was then removed by gel filtration using a NAP-5 column (GE healthcare) equilibrated with 50 mM MOPS pH7. The untreated sample was also subjected to the NAP-5 gel filtration. One of the NaOCl-oxidized fractions was then reduced in vitro by incubation for 1h at 37\u00b0C with 10 \u00b5M YedY, 10 mM benzyl viologen and an excess of Sodium dithionite. The other NaOCl-oxidized fraction, used as an oxidized control in the subsequent proteomic analysis, as well as the non-oxidized fraction were incubated in the same conditions but in the presence of 10 mM benzyl viologen and an excess of sodium dithionite only. After in vitro reduction, all samples were desalted by dialysis against 50 mM MOPS pH7 by using Slide-a-lyser 3500 MWCO G2 cassettes (Pierce). Protein concentration was determined using the BCA assay, and 500 \u00b5g of periplasmic proteins of each of the 3 samples were precipitated by adding trichloroacetic acid (TCA) to a final concentration of 10% w/v. The resulting pellet was washed with ice cold acetone, dried in a Speedvac, resuspended in 0.1 M NH4HCO3 pH 8.0 with 3 \u03bcg sequencing grade trypsin, and digested overnight at 30\u00b0C.  2D-LC/MS analysis was performed essentially as decribed (Arts & al MBio 2013). Briefly peptides were first separated on a first dimension Hydrophilic Interaction Chromatography (HILIC) column with a reverse ACN gradient and 25 fractions of 1 ml collected (2 min/fraction). After drying, peptides were analysed by LC-MC/MS on a C18 column . The MS scan routine was set to analyse by MS/MS the five most intense ions of each full MS scan, dynamic exclusion was enabled to assure detection of co-eluting peptides.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001208",
+   "cvLabel": "MS",
+   "name": "Sequest"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000650",
+   "cvLabel": "MS",
+   "name": "Proteome Discoverer"
+  }
+ ],
+ "submissionDate": "2015-08-27",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "UCL - de Duve Institute, Brussels Belgium",
+   "country": "Belgium",
+   "email": "didier.vertommen@uclouvain.be",
+   "firstName": "Didier",
+   "id": "29610117",
+   "identifier": "29610117",
+   "lastName": "Vertommen",
+   "name": "Didier Vertommen",
+   "orcid": "0000-0001-7648-8282",
+   "title": "Dr"
+  }
+ ],
+ "title": "Repairing oxidatively damaged proteins using electrons from the respiratory chain",
+ "totalFileDownloads": 14455
+}

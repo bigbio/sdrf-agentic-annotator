@@ -1,0 +1,19 @@
+{
+ "accession": "PXD041514",
+ "has_deposited_sdrf": false,
+ "license": "cc by",
+ "n_raw_files": 2,
+ "n_raw_files_pride": 2,
+ "n_rows": 2,
+ "organism": "homo sapiens",
+ "pmcid": "PMC10518100",
+ "pmid": 37742010,
+ "pride_quality": 0.75,
+ "qtype": "DIA",
+ "templates": [
+  "dia-acquisition",
+  "human",
+  "ms-proteomics"
+ ],
+ "tier": "poor"
+}

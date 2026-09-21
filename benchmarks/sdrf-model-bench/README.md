@@ -37,7 +37,8 @@ data/manifest.tsv                 the 12 datasets, quantification type, PRIDE ti
 data/evidence/<PXD>/pride.json    PRIDE project record
 data/evidence/<PXD>/files.json    raw file names
 data/evidence/<PXD>/manuscript.txt  Methods + sample legends (CC-licensed papers only)
-data/truth/<PXD>.sdrf.tsv         the curated reference (never shown to models)
+data/truth/<PXD>.reference.tsv    the curated reference, byte-identical to the file in
+                                  bigbio/sdrf-annotated-datasets (never shown to models)
 ```
 
 Runs never touch the network for evidence. That's what keeps your numbers comparable with ours.

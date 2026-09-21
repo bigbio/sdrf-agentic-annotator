@@ -1,0 +1,16 @@
+{
+ "accession": "PXD003039",
+ "baseline": 64.7,
+ "has_deposited_sdrf": false,
+ "has_manuscript": true,
+ "license": "cc by",
+ "n_raw_files": 84,
+ "n_raw_files_pride": 144,
+ "n_rows": 84,
+ "organism": "mus musculus",
+ "pmcid": "PMC5438363",
+ "pmid": 28526873,
+ "pride_quality": 1.0,
+ "qtype": "LFQ",
+ "slot": "ms/cell-line"
+}

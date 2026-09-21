@@ -1,0 +1,194 @@
+{
+ "accession": "PXD060259",
+ "additionalAttributes": [],
+ "countries": [
+  "Germany"
+ ],
+ "dataProcessingProtocol": "Raw data were processed in Biognosys Spectronaut v16.0.220606.53000 (Hawking). Protein identification and spectral library generation from DIA used the Pulsar search engine against UniProtKB mouse reference proteome v1.2021 with default parameters, all at 1% FDR. DIA quantification used up to 6 fragments per peptide, and up to 10 peptides per protein. Dynamic retention time alignment and dynamic mass recalibration was performed at 1% FDR. The resulting data was imputed globally and normalized using quartile normalization.",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:5844",
+   "cvLabel": "DOID",
+   "name": "Myocardial infarction"
+  }
+ ],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000635",
+   "cvLabel": "PRIDE",
+   "name": "Affinity proteomics"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000428",
+   "cvLabel": "PRIDE",
+   "name": "Bottom-up proteomics"
+  }
+ ],
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1002864",
+   "cvLabel": "MS",
+   "name": "No PTMs are included in the dataset"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003230",
+   "cvLabel": "MS",
+   "name": "timsTOF Pro 2"
+  }
+ ],
+ "keywords": [
+  "Myocardial ischemia",
+  "Proteomics",
+  "Cardiomyocytes",
+  "Connexin-43",
+  "Dysferlin",
+  "Intracellular membranes",
+  "Myocardial infarction"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Core Facilitz Proteomics, Department of Clinical Chemistry, University Medical Center Goettingen",
+   "country": "",
+   "email": "christof.lenz@med.uni-goettingen.de",
+   "firstName": "Christof",
+   "id": "3097161",
+   "identifier": "3097161",
+   "lastName": "Lenz",
+   "name": "Christof Lenz",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001629",
+   "cvLabel": "BTO",
+   "name": "Left ventricle"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000562",
+   "cvLabel": "BTO",
+   "name": "Heart"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:10090",
+   "cvLabel": "NEWT",
+   "name": "Mus musculus (mouse)"
+  }
+ ],
+ "otherOmicsLinks": [
+  "px:PXD060267",
+  "pride.project:PXD060267"
+ ],
+ "projectDescription": "BACKGROUND: Despite significant advances in acute care medicine, myocardial infarction (MI) remains a predominant cause of premature death and heart failure. In the infarct border zone, cardiomyocytes are exposed to high biomechanical stress that impairs the integrity of the sarcolemmal membrane. Here, we hypothesized that the Ca2+-sensitive membrane repair protein dysferlin is key to preserving sarcolemmal nanodomains like the transverse-axial tubule (TAT) endomembrane network and the intercalated disc (ICD) membrane folds in the infarct border zone. METHODS: We employed permanent left anterior descending artery ligation to induce MI in mice, and used data-independent acquisition mass spectrometry (DIA-MS) to analyze the spatial proteomic profile in wild-type versus dysferlin-knockout hearts post-MI. Stimulated emission depletion (STED) nanoscopy and electron tomography were applied to study membrane nanodomain remodeling and dissect the role of dysferlin in local membrane protection and repair in cardiomyocytes of the infarct border zone. Co-immunoprecipitation-based DIA-MS and complexome profiling were used to further decode the cardiac interactome of dysferlin.  RESULTS: DIA-MS quantitatively analyzed 5,700 proteins, segregating the proteomic profiles of the left-ventricular infarct zone, border zone and remote zone in wild-type versus dysferlin-knockout mice one week post-MI. While dysferlin protein expression was significantly upregulated in the MI border and remote zone, dysferlin-knockout mice presented larger infarct sizes and reduced left-ventricular systolic function post-MI. In cardiomyocytes of the WT infarct border zone, STED nanoscopy visualized severely disrupted TAT membranes and enlarged ICD membrane folds. Importantly, extensive dysferlin signals clustered in nanometric proximity to residual TAT structures and connexin-43 plaques at the ICD, stabilizing functional nanodomain organization for preserved excitation-contraction coupling and intercellular communication. Interactomic analyses revealed connexin-43 as a novel dysferlin interaction partner.",
+ "projectTags": [],
+ "publicationDate": "2026-04-05",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000650",
+   "cvLabel": "PRIDE",
+   "name": "diaPASEF"
+  }
+ ],
+ "references": [
+  {
+   "doi": "10.1038/s41598-026-42800-9",
+   "pubmedID": 41882145,
+   "referenceLine": "Wegener JB, Z\u00fchlke Y, Fleischhacker C, Marks J, Foo B, Bader N, Riedemann GC, Wedemeyer J, Vu KC, Vergel Leon AM, Paulke NJ, Kohl T, Urlaub H, Schmidt C, Hasenfu\u00df G, Moser T, Rog-Zielinska EA, Lenz C, Lehnart SE, Brandenburg S. Dysferlin stabilizes membrane nanodomains of cardiomyocytes after myocardial infarction. Sci Rep. 2026 16(1):10488"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0001629",
+     "cvLabel": "BTO",
+     "name": "left ventricle"
+    },
+    {
+     "accession": "BTO:0000562",
+     "cvLabel": "BTO",
+     "name": "heart"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:10090",
+     "cvLabel": "NEWT",
+     "name": "Mus musculus (Mouse)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:5844",
+     "cvLabel": "DOID",
+     "name": "myocardial infarction"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Left-ventricular myocardium from six wild-type and three KO mice, after washing using a modified Langendorff setup to remove myocardial blood as described above, were homogenized using a 1-D Ultra Turrax (Miccra). Homogenates were centrifuged at 5,000 g and 4 \u00b0C for 10 min to eliminate cell debris. The supernatant was used for membrane preparation through ultracentrifugation at 100,000 g and 4\u00b0C for 1 h. The pellet was resolubilized in 1 mL lysis buffer in absence or presence of 1 mmol/L [Ca2+], and the protein concentration was determined using the Pierce BCA protein assay (Thermo Fisher). For coimmunoprecipitation (CoIP) of dysferlin protein interaction candidates, 500 \u00b5g of protein lysate were incubated with 4 \u00b5g of dysferlin antibody (ab124684, Abcam) or 4 \u00b5g of unspecific rabbit IgG (12-370, Millipore) as a negative control in a total volume of 1 mL lysis buffer overnight under rotation at 4 \u00b0C. After washing, 50 \u00b5L of a 50% slurry of magnetic beads (Dynabeads Protein G, Thermo Fisher Scientific) were added to the lysate-antibody mix and incubated for another 1.5 h at 4 \u00b0C under rotation. Subsequently, samples were placed on a magnet (DynaMag2 magnet, Thermo Fisher Scientific) to obtain the beads-antibody-antigen complexes. Samples underwent three 10 min washing steps with 1 mL lysis buffer under rotation to minimize unspecific binding. The precipitated beads-antibody-antigen complexes were ultimately eluted in fresh tubes by 70 \u00b5L of 2x SDS sample buffer. After vigorous mixing at 95\u00b0C for 10 minutes, the supernatant was collected for DIA-MS analysis. CoIP samples were purified by short-run SDS-PAGE and tryptically digested in-gel. Spiking was performed with Biognosys iRT peptide standard. Quantification of peptides by data-independent acquisition (DIA) used the Bruker timsTOF Pro 2 (250 ng equivalent loaded, 60 min gradient, 16 x 2 variable window diaPASEF method, 2 technical replicates per sample).",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001327",
+   "cvLabel": "MS",
+   "name": "Spectronaut"
+  }
+ ],
+ "submissionDate": "2025-01-27",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "Max Planck Institute for Biophysical Chemistry",
+   "country": "Germany",
+   "email": "christof.lenz@mpibpc.mpg.de",
+   "firstName": "Christof",
+   "id": "40140109",
+   "identifier": "40140109",
+   "lastName": "Lenz",
+   "name": "Christof Lenz",
+   "orcid": "0000-0002-0946-8166",
+   "title": "Dr"
+  }
+ ],
+ "title": "Dysferlin stabilizes membrane nanodomains of cardiomyocytes after myocardial infarction",
+ "totalFileDownloads": 0
+}

@@ -143,7 +143,7 @@ def cmd_select(args) -> int:
     for p in pool:
         if p["accession"] not in keep:
             shutil.rmtree(args.data / "evidence" / p["accession"], ignore_errors=True)
-            (args.data / "truth" / f"{p['accession']}.sdrf.tsv").unlink(missing_ok=True)
+            (args.data / "truth" / f"{p['accession']}.reference.tsv").unlink(missing_ok=True)
     for p in picked:
         meta_path = args.data / "evidence" / p["accession"] / "meta.json"
         meta = json.loads(meta_path.read_text())
@@ -195,7 +195,7 @@ def cmd_replace(args) -> int:
                 new = {**cand, **meta, "tier": old["tier"]}
                 break
             shutil.rmtree(args.data / "evidence" / acc, ignore_errors=True)
-            (args.data / "truth" / f"{acc}.sdrf.tsv").unlink(missing_ok=True)
+            (args.data / "truth" / f"{acc}.reference.tsv").unlink(missing_ok=True)
         if new is None:
             print(f"{drop}: no eligible {old['qtype']}/{old['tier']} replacement found; kept")
             continue
@@ -204,7 +204,7 @@ def cmd_replace(args) -> int:
         meta["tier"] = old["tier"]
         meta_path.write_text(json.dumps(meta, indent=1, sort_keys=True))
         shutil.rmtree(args.data / "evidence" / drop, ignore_errors=True)
-        (args.data / "truth" / f"{drop}.sdrf.tsv").unlink(missing_ok=True)
+        (args.data / "truth" / f"{drop}.reference.tsv").unlink(missing_ok=True)
         manifest = [new if m["accession"] == drop else m for m in manifest]
         log += f"{drop}\t{args.reason}; replaced by {new['accession']}\n"
         print(f"{drop} -> {new['accession']} ({old['qtype']}/{old['tier']}, quality {new['pride_quality']:.2f})")
