@@ -83,6 +83,7 @@ def summarise(records: list[dict]) -> list[dict]:
             "base": (recs[0].get("model") or model_id) + (" (thinking)" if recs[0].get("think") else ""),
             "n": len(ds),
             "runs": len(recs),
+            "judged": sum(r.get("judge") is not None for r in recs),
             "headline": statistics.fmean(ds) if ds else 0.0,
             "headline_sem": _sem(ds),
             "deterministic": _mean(_dataset_means(recs, "deterministic")),
@@ -252,10 +253,13 @@ def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=
     qt = ", ".join(_present_qtypes(summary))
     nd = _n_datasets(summary)
     subtitle = f"Mean over {nd} dataset{'s' if nd != 1 else ''} ({qt}), each annotated with and without the paper"
+    judged = sum(r["judged"] for r in summary)
+    runs = sum(r["runs"] for r in summary)
+    coverage = "every run" if judged >= runs else f"a balanced subset ({judged} of {runs} runs)"
     _titles(fig, t, title, subtitle,
-            footer="Score = 80% deterministic match to the curated SDRF + 20% reference-guided LLM judge. "
-                   "Whiskers: ±1 SEM across datasets.\nClaude cost is the API-equivalent reported by Claude Code; "
-                   "local models run free on a laptop, so their cost is time.")
+            footer="Score = 80% deterministic match to the curated SDRF + 20% reference-guided LLM judge, "
+                   f"judged on {coverage}. Whiskers: ±1 SEM across datasets.\n"
+                   "Cost is the API-equivalent reported by Claude Code.")
     _legend(fig, t, {family(r) for r in rows})
     _save(fig, path, t, svg=True)
 

@@ -1,0 +1,213 @@
+{
+ "accession": "PXD055348",
+ "additionalAttributes": [],
+ "botCount": 121,
+ "countries": [
+  "Switzerland"
+ ],
+ "dataProcessingProtocol": "The DDA acquisition method contained a peptide inclusion list for the protein of interest. The acquired MS data were processed for identification using the Maxquant search engine (V2.0.1.0). The spectra were searched against the HEV ORF2 protein sequence merged with the Homo sapiens protein database Swissprot, and also against interstitial markers (cytokeratin 7, complement 3, and collagen 1A1) and specific glomerular marker podocin. The DIA PASEF data were analyed in the lable-free mode with (Version 16, PMID: 31768060) against the same database. Results were summarized in the Proteome Software Scaffold (V 5.0.1) under very stringent settings (1% protein false discovery rate [FDR], a minimum of 2 peptides per protein, 0.1% peptide FDR) and expressed as averaged total spectrum counts \u00b1 s.d.",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:4411",
+   "cvLabel": "DOID",
+   "name": "Hepatitis e"
+  }
+ ],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000450",
+   "cvLabel": "PRIDE",
+   "name": "Data-independent acquisition"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000627",
+   "cvLabel": "PRIDE",
+   "name": "Data-dependent acquisition"
+  }
+ ],
+ "hubCount": 374,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00394",
+   "cvLabel": "MOD",
+   "name": "acetylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:01160",
+   "cvLabel": "MOD",
+   "name": "deaminated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003028",
+   "cvLabel": "MS",
+   "name": "Orbitrap Exploris 480"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003005",
+   "cvLabel": "MS",
+   "name": "timsTOF Pro"
+  }
+ ],
+ "keywords": [
+  "Infected or not with hepatitis e virus. laser-captured samples",
+  "Lc-msms",
+  "Human liver and kidney samples"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Department of Pathology and Molecular Pathology, University of Zurich (UZH) and University Hospital Zurich (USZ), Zurich, Switzerland.",
+   "country": "",
+   "email": "achim.weber@usz.ch",
+   "firstName": "Prof.",
+   "id": "2993179",
+   "identifier": "2993179",
+   "lastName": "Dr.",
+   "name": "Prof. Dr.",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 1,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000759",
+   "cvLabel": "BTO",
+   "name": "Liver"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000671",
+   "cvLabel": "BTO",
+   "name": "Kidney"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)"
+  }
+ ],
+ "projectDescription": "Hepatitis E virus (HEV) infection, one of the most common forms of hepatitis worldwide, is often associated with extrahepatic, particularly renal, manifestations. However, the underlying mechanisms are incompletely understood. Here, we report the development of a de novo immune complex-mediated glomerulonephritis (GN) in a kidney transplant recipient with chronic hepatitis E. Applying immunostaining, electron microscopy, and mass spectrometry after laser-capture microdissection, we show that GN developed in parallel with increasing glomerular deposition of a non-infectious, genome-free and non-glycosylated HEV open reading frame 2 (ORF2) capsid protein. No productive HEV infection of kidney cells is detected. Patients with acute hepatitis E display similar but less pronounced deposits. Our results establish a link between the production of HEV ORF2 protein and the development of hepatitis E-associated GN. The formation of glomerular IgG-HEV ORF2 immune complexes discovered here provides a mechanistic explanation of how the actually hepatotropic HEV can cause variable renal manifestations. These findings directly provide a tool for etiology-based diagnosis of hepatitis E-associated GN as a distinct entity and suggest therapeutic implications.",
+ "projectTags": [],
+ "publicationDate": "2025-01-18",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000436",
+   "cvLabel": "PRIDE",
+   "name": "Spectrum counting"
+  }
+ ],
+ "references": [
+  {
+   "doi": "10.1038/s41467-024-53072-0",
+   "pubmedID": 39397005,
+   "referenceLine": "Leblond AL, Helmchen B, Ankavay M, Lenggenhager D, Jetzer J, Helmchen F, Yurtsever H, Parrotta R, Healy ME, P\u00f6schel A, Markkanen E, Semmo N, Ferri\u00e9 M, Cocquerel L, Seeger H, Hopfer H, M\u00fcllhaupt B, Gouttenoire J, Moradpour D, Gaspert A, Weber A. HEV ORF2 protein-antibody\u00a0complex deposits are associated with glomerulonephritis in hepatitis E with reduced immune status. Nat Commun. 2024 15(1):8849"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000671",
+     "cvLabel": "BTO",
+     "name": "kidney"
+    },
+    {
+     "accession": "BTO:0000759",
+     "cvLabel": "BTO",
+     "name": "liver"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:4411",
+     "cvLabel": "DOID",
+     "name": "hepatitis E"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Eight samples in total (n=4 for laser-captured glomeruli, n=2 for laser-captured interstitial tissue, n=2 for laser-capthured liver tissue, from Patient 1 and non-HEV infected patient) were analysed at the Functional Genomic Center Zurich for mass spectrometry (MS) analysis. Briefly, the samples were lysed by adding 4% SDS lysis buffer and incubated for 60 minutes at 95\u00b0C, 1 minute HIFU (High Intensity Focused Ultrasound), 10 minutes sonication, 30 minutes of additional heating at 95\u00b0C, HIFU, sonication and max spin for 5 minutes, and then digested using trypsin solution on a thermo shaker at 37\u00b0C overnight. The digested samples were dried and dissolved in 3% aqueous Acetronitrile and 0.1% formic acid before being transferred in vials for liquid chromatography-mass spectrometry analysis. For the kidney samples, 200 ng peptides were injected on a M-class UPLC coupled to an Exploris Orbitrap mass spectrometer (ThermoFisher). The liver samples were loaded on evotips (Evosep) following the provided instructions and analyzed on an Evosep One LC coupled to a TIMS TOF Pro mass spectrometer (Bruker). The acquisition was done in diaPASEF mode.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001583",
+   "cvLabel": "MS",
+   "name": "MaxQuant"
+  }
+ ],
+ "submissionDate": "2024-08-29",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "Department of pathology and molecular pathology",
+   "country": "Switzerland",
+   "email": "anne-laure.leblond@usz.ch",
+   "firstName": "Anne-Laure",
+   "id": "3429944",
+   "identifier": "3429944",
+   "lastName": "Leblond",
+   "name": "Anne-Laure Leblond",
+   "orcid": "0000-0003-4080-3126",
+   "title": "Dr"
+  }
+ ],
+ "title": "A HEV ORF2 protein-mediated mechanism of hepatitis E-associated kidney disease",
+ "totalFileDownloads": 496
+}

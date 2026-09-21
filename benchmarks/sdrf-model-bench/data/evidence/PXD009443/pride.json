@@ -1,0 +1,131 @@
+{
+ "accession": "PXD009443",
+ "additionalAttributes": [],
+ "botCount": 369,
+ "countries": [
+  "Israel"
+ ],
+ "dataProcessingProtocol": "For protein identification and quantification, we used MaxQuant software34, version 1.5.3.30. We used Andreomeda search incorporated into MaxQuant to search for MS/MS spectra against the UniProtKB database of Saccharomyces cerevisiae proteome, (Uniprot release, Aug 2016). The identification allowed two missed cleavages.  Enzyme specificity was set to trypsin, allowing N-terminal to proline cleavage and up to two miscleavages. Peptides had to have a minimum length of seven amino acids to be considered for identification. Carbamidomethylation was set as a fixed modification, and methionine oxidation was set as a variable modification. A false discovery rate (FDR) of 0.05 was applied at the peptide and protein levels. An initial precursor mass deviation of up to 4.5 ppm and fragment mass deviation up to 20 ppm were allowed.  Only proteins identified by more than 2 peptides were considered. To quantify changes in protein expression we used the label-free quantification (LFQ) using the MaxQuant default parameters34. For statistical and bioinformatic analysis, as well as for visualization, we used Perseus software (http://141.61.102.17/perseus_doku/doku.php?id=start). For functional enrichment analysis, the DAVID webserver54 was used. The STRING server (http://string-db.org/)55 was used to define protein interaction networks, which were visualized by using Cytoscape software56.",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "hubCount": 687,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00399",
+   "cvLabel": "MOD",
+   "name": "iodoacetic acid derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001911",
+   "cvLabel": "MS",
+   "name": "Q Exactive"
+  }
+ ],
+ "keywords": [
+  "Yeast",
+  "Redox"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Dept. of Biological Chemistry The Alexander Silberman Institute of Life Science The Hebrew University of Jerusalem",
+   "country": "",
+   "email": "danare@mail.huji.ac.il",
+   "firstName": "Dr. Dana",
+   "id": "100140100",
+   "identifier": "100140100",
+   "lastName": "Reichmann",
+   "name": "Dr. Dana Reichmann",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "EBI terms of use",
+ "organicCount": 12,
+ "organismParts": [],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:4932",
+   "cvLabel": "NEWT",
+   "name": "Saccharomyces cerevisiae (baker's yeast)"
+  }
+ ],
+ "otherOmicsLinks": [
+  "geo:GSE112997"
+ ],
+ "projectDescription": "Cellular redox status affects diverse cellular functions, including proliferation, protein homeostasis, and aging. Thus, individual differences in redox status can give rise to distinct sub-populations even among cells with identical genetic backgrounds. Here, we have created a novel methodology to track redox status at single cell resolution using the redox-sensitive probe roGFP. Our method allows identification and sorting of sub-populations with different oxidation levels in either the cytosol, mitochondria or peroxisomes. Using this approach we defined redox-dependent heterogeneity of yeast cells, and characterized growth, as well as proteomic and transcriptomic profiles of subpopulations of cells that differ in their redox status, but are similar in age. We report that, starting in late logarithmic growth, cells of the same age have a bi-modal distribution of oxidation status. A comparative proteomic analysis between these populations identified three key proteins, Hsp30, Dhh1, and Pnc1, which affect basal oxidation levels and may serve as first line of defense proteins in redox homeostasis.",
+ "projectTags": [
+  "Biological"
+ ],
+ "publicationDate": "2018-06-18",
+ "quantificationMethods": [],
+ "references": [
+  {
+   "doi": "10.7554/elife.37623",
+   "pubmedID": 29869985,
+   "referenceLine": "Radzinski M, Fassler R, Yogev O, Breuer W, Shai N, Gutin J, Ilyas S, Geffen Y, Tsytkin-Kirschenzweig S, Nahmias Y, Ravid T, Friedman N, Shuldiner M, Reichmann D. Temporal profiling of redox-dependent heterogeneity in single cells. Elife. 2018 7"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:4932",
+     "cvLabel": "NEWT",
+     "name": "Saccharomyces cerevisiae (Baker's yeast)"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "The peptides were injected into a Nano Trap Column, 100 \u03bcm i.d. \u00d7 2 cm, packed with Acclaim PepMap100 C18, 5 \u03bcm, 100 A\u030a (Thermo Scientific) for 8 min at flow 5ul/min, and then separated on a C18 reverse-phase column coupled to the Nano electrospray, EASY-spray (PepMap, 75mm x 50cm, Thermo Scientific) at flow 300 nl/min using an Dionex Nano-HPLC system (Thermo Scientific) coupled online to Orbitrap Mass spectrometer, Q Extactive Plus (Thermo Scientific). To separate the peptides, the column was applied with a linear gradient with a flow rate of 300 nl/min at 35 \u00b0C: from 1 to 35% in 100 min, from 35 to 55% in 43 min, from 55 to 90% in 5 min, and held at 90% for an additional 30 min, and then equilibrated at 1% for 20 min (solvent A is 0.1% formic acid, and solvent B is 80% acetonitrile, 0.1% formic acid). The Q Exactive was operated in a data-dependent mode. The survey scan range was set to 200 to 2000 m/z, with a resolution of 70,000 at m/z. Up to the 12 most abundant isotope patterns with a charge of \u22652 and less than 7 were subjected to higher-energy collisional dissociation with a normalized collision energy of 28, an isolation window of 1.5 m/z, and a resolution of 17,500 at m/z. To limit repeated sequencing, dynamic exclusion of sequenced peptides was set to 60 s. Thresholds for ion injection time and ion target value were set to 70 ms and 3 \u00d7 106 for the survey scans and to 70 ms and 105 for the MS/MS scans. Only ions with \u201cpeptide preferable\u201d profile were analyzed for MS/MS. Data was acquired using Xcalibur software (Thermo Scientific). Column wash with 80% ACN for 40 min was carried out between each sample run to avoid potential carryover of the peptides.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001583",
+   "cvLabel": "MS",
+   "name": "MaxQuant"
+  }
+ ],
+ "submissionDate": "2018-04-09",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "Hebrew University of Jerusalem",
+   "country": "Israel",
+   "email": "meytal.radzinski@mail.huji.ac.il",
+   "firstName": "Meytal",
+   "id": "101980107",
+   "identifier": "101980107",
+   "lastName": "Radzinski",
+   "name": "Meytal Radzinski",
+   "orcid": "",
+   "title": "Ms"
+  }
+ ],
+ "title": "Temporal profiling of redox-dependent heterogeneity in single cells",
+ "totalFileDownloads": 1068
+}
