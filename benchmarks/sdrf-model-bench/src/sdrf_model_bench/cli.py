@@ -70,6 +70,8 @@ def build_parser() -> argparse.ArgumentParser:
     o.add_argument("--results", type=Path, default=Path("results/runs.jsonl"))
     o.add_argument("--out", type=Path, default=Path("results"))
     o.add_argument("--models", type=Path, default=Path("models.yaml"))
+    o.add_argument("--data", type=Path, default=Path("data"),
+                   help="frozen pack, used to draw the reads-no-evidence baseline")
 
     m = sub.add_parser("prompt", help="print the exact raw-arm messages for one run (for SUBMISSION.md)")
     m.add_argument("--accession", default="")
@@ -299,8 +301,10 @@ def cmd_report(args) -> int:
     pending = [s.id.removesuffix("-raw") for s in load_models(args.models, include_disabled=True)
                if s.id not in seen and not s.enabled and s.provider == "custom"]
     args.out.mkdir(parents=True, exist_ok=True)
-    render_slide(summary, args.out / "slide", pending=pending)
-    render_slide(summary, args.out / "slide-dark", theme="dark", pending=pending)
+    from sdrf_model_bench.score import baseline_for_data
+    baseline = baseline_for_data(args.data)
+    render_slide(summary, args.out / "slide", pending=pending, baseline=baseline)
+    render_slide(summary, args.out / "slide-dark", theme="dark", pending=pending, baseline=baseline)
     render_backups(records, summary, args.out)
     print(f"wrote slide + backups to {args.out}")
     for r in summary:

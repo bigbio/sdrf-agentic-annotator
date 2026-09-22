@@ -170,3 +170,46 @@ def score_deterministic(truth_text: str, pred_text: str, validity: float) -> dic
         "n_aligned": len(pairs),
         "field_accuracy": {f: sum(v) / len(v) for f, v in per_field.items()},
     }
+
+
+#: What a model that never opens the evidence would still write: the commonest value in proteomics.
+#: comment[label] is deliberately absent -- it carries the row identity the aligner needs, so
+#: overwriting it would measure a broken alignment rather than an uninformed annotation.
+PRIOR_VALUES = {
+    "characteristics[organism]": "Homo sapiens",
+    "characteristics[organism part]": "not available",
+    "characteristics[cell type]": "not available",
+    "characteristics[disease]": "not available",
+    "comment[instrument]": "NT=Q Exactive;AC=MS:1001911",
+    "comment[cleavage agent details]": "NT=Trypsin;AC=MS:1001251",
+    "comment[modification parameters]": "NT=Carbamidomethyl;AC=UNIMOD:4;TA=C;MT=Fixed",
+    "comment[precursor mass tolerance]": "10 ppm",
+    "comment[fragment mass tolerance]": "0.02 Da",
+    "comment[technical replicate]": "1",
+    "comment[fraction identifier]": "1",
+}
+
+
+def ignorant_baseline(truth_text: str) -> float:
+    """Score of a file with the right shape and nothing learned from the evidence.
+
+    Structure and validity are granted outright, so this is generous: it is the score a model
+    earns from priors alone. The gap between it and 100 is the benchmark's usable range, and a
+    configuration below it is not reading the evidence at all.
+    """
+    lines = [line.split("\t") for line in truth_text.strip().split("\n")]
+    header = lines[0]
+    pred = [header]
+    for row in lines[1:]:
+        row = list(row) + [""] * (len(header) - len(row))
+        pred.append([PRIOR_VALUES.get(h.strip(), row[i]) for i, h in enumerate(header)])
+    text = "\n".join("\t".join(r) for r in pred) + "\n"
+    return score_deterministic(truth_text, text, validity=1.0)["deterministic"]
+
+
+def baseline_for_data(data_dir) -> float | None:
+    """Mean ignorant baseline over a frozen pack's reference files, or None if there are none."""
+    from pathlib import Path
+    refs = sorted(Path(data_dir).glob("truth/*.reference.tsv"))
+    scores = [ignorant_baseline(p.read_text()) for p in refs]
+    return sum(scores) / len(scores) if scores else None

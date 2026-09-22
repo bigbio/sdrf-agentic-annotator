@@ -217,7 +217,8 @@ def _present_qtypes(summary):
 
 # ---------------------------------------------------------------- main slide
 
-def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=()) -> None:
+def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=(),
+                 baseline: float | None = None) -> None:
     """One chart, one question: which configuration writes the best SDRF, and what does it cost?"""
     t = THEMES[theme]
     cols = _colors(t)
@@ -243,6 +244,12 @@ def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=
                 fontsize=13, color=t["ink2"], clip_on=False)
     for y in ys[len(rows):]:
         ax.barh(y, 100, height=0.62, facecolor="none", edgecolor=t["grid"], linewidth=1.5, linestyle="--")
+    if baseline is not None:
+        # Everything left of this line is obtainable without reading the evidence, so the bar that
+        # matters is the part beyond it. A configuration short of the line is annotating from priors.
+        ax.axvline(baseline, color=t["ink2"], linewidth=1.5, linestyle=(0, (5, 4)), alpha=0.8, zorder=3)
+        ax.text(baseline - 1.5, n - 0.42, f"reads no evidence: {baseline:.0f}", va="bottom", ha="right",
+                fontsize=12, color=t["ink2"], style="italic")
     ax.set_yticks(ys, labels, fontsize=15, color=t["ink"])
     ax.set_xlabel("score (0-100): agreement with the curated SDRF", color=t["ink2"], fontsize=13)
     ax.text(1.03, n - 0.4, "cost per SDRF", transform=beside, va="bottom", ha="left", fontsize=13,
