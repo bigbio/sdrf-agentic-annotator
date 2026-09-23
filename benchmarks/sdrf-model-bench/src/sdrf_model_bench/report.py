@@ -476,11 +476,17 @@ def render_backups(records: list[dict], summary: list[dict], outdir: Path, theme
     ax.set_yticklabels([config_label(r) for r in rows], fontsize=13, color=t["ink"])
     ax.set_xlim(0, 100)
     ax.set_xlabel("share of scored cells (%)", fontsize=12, color=t["ink2"])
+    from matplotlib.patches import Patch
+    names = {"match": "correct", "style": "style only (not penalised)", "accession_conflict": "same term, other accession",
+             "run_wrong": "wrong", "curated_richer": "left blank where the reference has a value",
+             "curated_wrong": "reference malformed (credited)", "curated_unscorable": "unscorable (excluded)",
+             "run_richer": "value where the reference has none (excluded)"}
+    fig.legend(handles=[Patch(facecolor=shades[c], edgecolor=t["surface"], label=names[c]) for c in TRIAGE_CLASSES],
+               loc="upper center", bbox_to_anchor=(0.57, 0.86), ncol=4, frameon=False, fontsize=11,
+               labelcolor=t["ink"])
     _titles(fig, t, "What kind of disagreement is it?",
             "Each scored cell classified against the curated reference: correct, style-only, wrong, or the reference's fault",
-            "style = right term, accession on one side only (not penalised). curated_wrong = reference cell malformed. "
-            "unscorable = ppm vs Da or malformed reference with a different label (excluded). run_richer = value where the "
-            "reference has none (excluded; cannot be verified offline).")
+            "Classes after bigbio/sdrf-skills PR #24, decided by rule. Excluded classes do not enter accuracy.")
     _save(fig, outdir / "backup_7_triage", t)
 
 
