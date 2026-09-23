@@ -38,7 +38,9 @@ DENIED = ["WebFetch", "WebSearch", "Agent", "Task", "Read(~/**)", "Glob(~/**)", 
 PROMPT = """Create an SDRF-Proteomics file for the proteomics dataset {accession}.
 
 Everything you may use is in ./evidence/: {listing}. There is no network access, so do not try to
-fetch anything. Follow the SDRF skills (start with the sdrf-annotate skill). Validate with:
+fetch anything. Follow the SDRF skills (start with the sdrf-annotate skill). The skills' bundled
+helpers are already on PYTHONPATH: run them as plain `python3 -m tools ...` (no PYTHONPATH= prefix,
+no $CLAUDE_PLUGIN_ROOT - a command containing a shell variable is refused here). Validate with:
   parse_sdrf validate-sdrf -s ./output.sdrf.tsv --use_ols_cache_only{templates}
 Write the final SDRF to ./output.sdrf.tsv. Do not ask questions: make your best judgement and finish."""
 
