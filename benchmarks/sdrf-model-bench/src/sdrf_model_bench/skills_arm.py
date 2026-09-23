@@ -28,6 +28,11 @@ ACCESSION_RE = re.compile(r"\b(?:PXD|MSV|IPX|MTBLS)\d{3,}\b")
 PATH_KEYS = ("file_path", "path", "notebook_path")
 TOOLS = ["Read", "Write", "Edit", "Glob", "Grep", "Skill", "TodoWrite", "Bash"]
 ALLOWED = [*TOOLS[:-1], "Bash(parse_sdrf validate-sdrf:*)"]  # Bash only for the validator
+# The skills ship helper tools invoked as `PYTHONPATH="$CLAUDE_PLUGIN_ROOT" python3 -m tools ...`.
+# The v2 baseline denied them (and every other Bash call): 20% of a frontier model's tool calls
+# were permission denials. Opt in with SDRF_BENCH_ALLOW_PLUGIN_TOOLS=1; the pattern below is the
+# one Claude Code's permission matcher accepts for that invocation form (probed 2026-09-23).
+PLUGIN_TOOLS_ALLOWED = ["Bash(PYTHONPATH=*)"]
 DENIED = ["WebFetch", "WebSearch", "Agent", "Task", "Read(~/**)", "Glob(~/**)", "Grep(~/**)"]
 
 PROMPT = """Create an SDRF-Proteomics file for the proteomics dataset {accession}.
@@ -98,6 +103,7 @@ def build_command(claude_bin: str, model: str, plugin_dir: Path, prompt: str) ->
         "--model", model, "--output-format", "stream-json", "--verbose",
         "--no-session-persistence", "--permission-mode", "dontAsk",
         "--allowedTools", *ALLOWED,
+        *(PLUGIN_TOOLS_ALLOWED if os.environ.get("SDRF_BENCH_ALLOW_PLUGIN_TOOLS") == "1" else []),
         "--disallowedTools", *DENIED,
     ]
 
