@@ -32,7 +32,11 @@ ALLOWED = [*TOOLS[:-1], "Bash(parse_sdrf validate-sdrf:*)"]  # Bash only for the
 # The v2 baseline denied them (and every other Bash call): 20% of a frontier model's tool calls
 # were permission denials. Opt in with SDRF_BENCH_ALLOW_PLUGIN_TOOLS=1; the pattern below is the
 # one Claude Code's permission matcher accepts for that invocation form (probed 2026-09-23).
-PLUGIN_TOOLS_ALLOWED = ["Bash(PYTHONPATH=*)", "Bash(python3 -m tools:*)", "Bash(python -m tools:*)"]
+# ...and plain python: the skills have the agent script table generation for many-file datasets,
+# which no real environment forbids. The raw arm has no tools at all, so this widens only the
+# skills arm, which is the arm that is being given its environment.
+PLUGIN_TOOLS_ALLOWED = ["Bash(PYTHONPATH=*)", "Bash(python3 -m tools:*)", "Bash(python -m tools:*)",
+                        "Bash(python3:*)", "Bash(python:*)"]
 DENIED = ["WebFetch", "WebSearch", "Agent", "Task", "Read(~/**)", "Glob(~/**)", "Grep(~/**)"]
 
 PROMPT = """Create an SDRF-Proteomics file for the proteomics dataset {accession}.
