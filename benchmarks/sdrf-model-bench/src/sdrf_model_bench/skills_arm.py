@@ -35,16 +35,16 @@ ALLOWED = [*TOOLS[:-1], "Bash(parse_sdrf validate-sdrf:*)"]  # Bash only for the
 # ...and plain python: the skills have the agent script table generation for many-file datasets,
 # which no real environment forbids. The raw arm has no tools at all, so this widens only the
 # skills arm, which is the arm that is being given its environment.
-PLUGIN_TOOLS_ALLOWED = ["Bash(PYTHONPATH=*)", "Bash(python3 -m tools:*)", "Bash(python -m tools:*)",
-                        "Bash(python3:*)", "Bash(python:*)"]
+PLUGIN_TOOLS_ALLOWED = ["Bash(sdrf-tools:*)", "Bash(PYTHONPATH=*)", "Bash(python3 -m tools:*)",
+                        "Bash(python -m tools:*)", "Bash(python3:*)", "Bash(python:*)"]
 DENIED = ["WebFetch", "WebSearch", "Agent", "Task", "Read(~/**)", "Glob(~/**)", "Grep(~/**)"]
 
 PROMPT = """Create an SDRF-Proteomics file for the proteomics dataset {accession}.
 
 Everything you may use is in ./evidence/: {listing}. There is no network access, so do not try to
 fetch anything. Follow the SDRF skills (start with the sdrf-annotate skill). The skills' bundled
-helpers are already on PYTHONPATH: run them as plain `python3 -m tools ...` (no PYTHONPATH= prefix,
-no $CLAUDE_PLUGIN_ROOT - a command containing a shell variable is refused here). Validate with:
+helpers are installed as the `sdrf-tools` command; run them that way (a command containing a shell
+variable is refused here). Validate with:
   parse_sdrf validate-sdrf -s ./output.sdrf.tsv --use_ols_cache_only{templates}
 Write the final SDRF to ./output.sdrf.tsv. Do not ask questions: make your best judgement and finish."""
 
