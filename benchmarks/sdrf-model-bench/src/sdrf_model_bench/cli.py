@@ -65,6 +65,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help="claude-cli uses your Claude Code login; anthropic needs ANTHROPIC_API_KEY")
     c.add_argument("--no-judge", action="store_true")
     c.add_argument("--rescore", action="store_true")
+    c.add_argument("--deterministic-only", action="store_true",
+                   help="recompute the deterministic score from saved outputs, keeping cached validity and judge")
 
     o = sub.add_parser("report", help="summary table, slide and backup plots")
     o.add_argument("--results", type=Path, default=Path("results/runs.jsonl"))
@@ -282,7 +284,8 @@ def cmd_score(args) -> int:
     if not args.no_judge:
         gen = make_generate(ModelSpec(id="judge", provider=args.judge_provider, model=args.judge_model, arm="raw"))
         judge_fn = lambda truth, pred: judge(gen, truth, pred)  # noqa: E731
-    records = score_tree(args.outputs, args.data, validate, judge_fn, rescore=args.rescore)
+    records = score_tree(args.outputs, args.data, validate, judge_fn, rescore=args.rescore,
+                         deterministic_only=args.deterministic_only)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text("".join(json.dumps(r) + "\n" for r in records))
     print(f"scored {len(records)} runs -> {args.out}")

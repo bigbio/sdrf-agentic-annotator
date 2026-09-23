@@ -18,7 +18,7 @@ def setup_data(tmp_path):
     (ev / "manuscript.txt").write_text("methods")
     (ev / "meta.json").write_text(json.dumps({"accession": "PXD1", "tier": "poor", "qtype": "LFQ", "templates": []}))
     (data / "truth").mkdir()
-    (data / "truth" / "PXD1.sdrf.tsv").write_text(TRUTH)
+    (data / "truth" / "PXD1.reference.tsv").write_text(TRUTH)
     (data / "manifest.tsv").write_text("accession\tqtype\ttier\nPXD1\tLFQ\tpoor\n")
     return data
 

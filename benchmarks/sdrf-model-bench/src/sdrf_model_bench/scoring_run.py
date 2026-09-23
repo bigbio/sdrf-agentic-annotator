@@ -62,7 +62,27 @@ def score_run(run_dir: Path, data_dir: Path, validate_fn, judge_fn=None) -> dict
     return record
 
 
-def score_tree(outputs: Path, data_dir: Path, validate_fn, judge_fn=None, rescore: bool = False) -> list[dict]:
+def rescore_deterministic(run_dir: Path, data_dir: Path) -> dict | None:
+    """Recompute the deterministic score from the saved SDRF and the reference, keeping the cached
+    validity and judge. Seconds per tree instead of hours: no validator, no judge calls. Used to
+    re-run a changed rubric over finished outputs; writes nothing."""
+    cached_path = run_dir / "score.json"
+    if not cached_path.exists():
+        return None
+    cached = json.loads(cached_path.read_text())
+    acc = parse_dirname(run_dir.name)[0]
+    truth = (Path(data_dir) / "truth" / f"{acc}.reference.tsv").read_text()
+    sdrf_path = run_dir / "sdrf.tsv"
+    pred = sdrf_path.read_text() if sdrf_path.exists() else ""
+    det = score_deterministic(truth, pred, cached.get("validity") or 0.0)
+    judge_score = cached.get("judge")
+    headline = det["deterministic"] if judge_score is None else (
+        (1 - JUDGE_WEIGHT) * det["deterministic"] + JUDGE_WEIGHT * judge_score)
+    return {**cached, **det, "headline": round(headline, 2)}
+
+
+def score_tree(outputs: Path, data_dir: Path, validate_fn, judge_fn=None, rescore: bool = False,
+               deterministic_only: bool = False) -> list[dict]:
     manifest = Path(data_dir) / "manifest.tsv"
     selected = {r["accession"] for r in csv.DictReader(open(manifest), delimiter="\t")} if manifest.exists() else None
     records = []
@@ -72,6 +92,11 @@ def score_tree(outputs: Path, data_dir: Path, validate_fn, judge_fn=None, rescor
         if not (run_dir / "usage.json").exists():
             continue  # in progress, or crashed and awaiting retry: neither a success nor a model failure
         cached = run_dir / "score.json"
+        if deterministic_only:
+            rec = rescore_deterministic(run_dir, data_dir)
+            if rec is not None:
+                records.append(rec)
+            continue
         if cached.exists() and not rescore:
             records.append(json.loads(cached.read_text()))
         else:

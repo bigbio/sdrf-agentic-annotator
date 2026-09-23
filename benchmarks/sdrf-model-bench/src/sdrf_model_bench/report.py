@@ -62,6 +62,23 @@ def _dataset_means(recs, key="headline"):
     return [statistics.fmean(v) for v in per_ds.values()]
 
 
+TRIAGE_CLASSES = ("match", "style", "accession_conflict", "run_wrong", "curated_richer",
+                  "curated_wrong", "curated_unscorable", "run_richer")
+
+
+def _triage_shares(recs) -> dict[str, float]:
+    total = Counter()
+    for r in recs:
+        total.update(r.get("triage") or {})
+    n = sum(total.values())
+    return {c: (total[c] / n if n else 0.0) for c in TRIAGE_CLASSES}
+
+
+def _rate(recs, key: str) -> float | None:
+    tot = sum((r.get("accessions") or {}).get("total", 0) for r in recs)
+    return (sum((r.get("accessions") or {}).get(key, 0) for r in recs) / tot) if tot else None
+
+
 def summarise(records: list[dict]) -> list[dict]:
     by_model = defaultdict(list)
     for r in records:
@@ -96,6 +113,12 @@ def summarise(records: list[dict]) -> list[dict]:
             "by_tier": {t: _mean(_dataset_means([r for r in recs if r.get("tier") == t])) for t in TIERS},
             "ms_delta": statistics.fmean(deltas) if deltas else None,
             "flags": dict(Counter(f for r in recs for f in r.get("flags", []))),
+            # triage (bigbio/sdrf-skills PR #24's classes, by rule): share of scored cells per class
+            "triage": _triage_shares(recs),
+            "accession_malformed_rate": _rate(recs, "malformed"),
+            "accession_verified_rate": _rate(recs, "verified"),
+            "template_self_declared": _mean(float(bool(r.get("template_self_declared"))) for r in recs),
+            "reference_defect_runs": sum(1 for r in recs if r.get("reference_defects")),
         })
     return sorted(rows, key=lambda r: -r["headline"])
 
@@ -432,6 +455,34 @@ def render_backups(records: list[dict], summary: list[dict], outdir: Path, theme
         ax.set_ylabel("LLM judge score", color=t["ink2"], fontsize=13)
         _titles(fig, t, "Does the LLM judge agree?", f"One dot per SDRF · Pearson r = {r_val:.2f} (n = {len(pairs)})")
         _save(fig, outdir / "backup_6_judge_agreement", t)
+
+    # 7. Where do the disagreements with the curated reference come from? (PR #24's triage classes)
+    rows = _rows_in_order(summary)
+    fig = _new_fig(t)
+    ax = fig.add_axes([0.28, 0.12, 0.58, 0.63])
+    _style(ax, t)
+    ys = list(range(len(rows)))[::-1]
+    shades = {"match": t["ink2"], "style": "#9ecae1", "accession_conflict": "#fdd0a2", "run_wrong": "#e6550d",
+              "curated_richer": "#fdae6b", "curated_wrong": "#a1d99b", "curated_unscorable": "#d9d9d9",
+              "run_richer": "#c7e9c0"}
+    for y, r in zip(ys, rows):
+        left = 0.0
+        for c in TRIAGE_CLASSES:
+            w = 100 * r["triage"].get(c, 0.0)
+            if w:
+                ax.barh(y, w, left=left, height=0.62, color=shades[c], edgecolor=t["surface"], linewidth=1)
+                left += w
+    ax.set_yticks(ys)
+    ax.set_yticklabels([config_label(r) for r in rows], fontsize=13, color=t["ink"])
+    ax.set_xlim(0, 100)
+    ax.set_xlabel("share of scored cells (%)", fontsize=12, color=t["ink2"])
+    _titles(fig, t, "What kind of disagreement is it?",
+            "Each scored cell classified against the curated reference: correct, style-only, wrong, or the reference's fault",
+            "style = right term, accession on one side only (not penalised). curated_wrong = reference cell malformed. "
+            "unscorable = ppm vs Da or malformed reference with a different label (excluded). run_richer = value where the "
+            "reference has none (excluded; cannot be verified offline).")
+    _save(fig, outdir / "backup_7_triage", t)
+
 
 
 def write_summary_tsv(summary: list[dict], path: Path) -> None:
