@@ -173,8 +173,12 @@ def _run_in_workspace(ws, model, ev_dir, accession, manuscript, templates, run_d
     t0 = time.monotonic()
     timed_out = False
     try:
+        # Skills resolve bundled paths through $CLAUDE_PLUGIN_ROOT; Claude Code does not export it into
+        # the Bash tool's environment, so PYTHONPATH="$CLAUDE_PLUGIN_ROOT" expanded to nothing and the
+        # plugin's own helpers were unimportable in every earlier run.
+        env = {**os.environ, "CLAUDE_PLUGIN_ROOT": str(local_plugin)}
         proc = subprocess.run(cmd, cwd=ws, capture_output=True, text=True, timeout=timeout,
-                              stdin=subprocess.DEVNULL)
+                              stdin=subprocess.DEVNULL, env=env)
         stdout, returncode = proc.stdout, proc.returncode
     except subprocess.TimeoutExpired as exc:
         # too slow is the model's failure, scored as such (not retried)
