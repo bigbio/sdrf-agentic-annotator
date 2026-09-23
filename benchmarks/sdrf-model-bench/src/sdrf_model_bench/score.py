@@ -161,8 +161,9 @@ def is_collapsed_plex_reference(t_header, t_rows) -> bool:
 
 
 def align_rows(t_header, t_rows, p_header, p_rows) -> list[tuple[list[str], list[str]]]:
-    labels = " ".join(first_value(t_header, r, "comment[label]") or "" for r in t_rows).lower()
-    use_label = ("tmt" in labels or "itraq" in labels) and not is_collapsed_plex_reference(t_header, t_rows)
+    # a multiplexed or SILAC reference identifies a row by (file, channel); a collapsed-plex one cannot
+    use_label = (any(is_channel(first_value(t_header, r, "comment[label]") or "") for r in t_rows)
+                 and not is_collapsed_plex_reference(t_header, t_rows))
     truth, pred = _row_keys(t_header, t_rows, use_label), _row_keys(p_header, p_rows, use_label)
     pairs = []
     for key, t_list in truth.items():

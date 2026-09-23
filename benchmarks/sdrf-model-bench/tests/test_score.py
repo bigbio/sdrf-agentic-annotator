@@ -180,3 +180,15 @@ def test_rescore_deterministic_keeps_validity_and_judge(tmp_path):
     assert rec["validity"] == 0.5 and rec["judge"] == 40.0 and rec["cost_usd"] == 2.0
     assert rec["deterministic"] == pytest.approx(90.0)  # perfect except validity 0.5 * 0.20
     assert rec["headline"] == pytest.approx(0.8 * 90.0 + 0.2 * 40.0)
+
+
+def test_silac_reference_aligns_on_file_and_channel():
+    hdr = ("source name\tcharacteristics[organism]\tassay name\tcomment[data file]\tcomment[label]\t"
+           "comment[instrument]\tcomment[fraction identifier]\tcomment[technical replicate]\n")
+    truth = hdr + ("h\thomo sapiens\trun1-H\trun1.raw\tSILAC heavy\tNT=Q Exactive;AC=MS:1001911\t1\t1\n"
+                   "l\thomo sapiens\trun1-L\trun1.raw\tSILAC light\tNT=Q Exactive;AC=MS:1001911\t1\t1\n")
+    pred = hdr + ("l\thomo sapiens\trun1-L\trun1.raw\tSILAC light\tNT=Q Exactive;AC=MS:1001911\t1\t1\n"
+                  "h\thomo sapiens\trun1-H\trun1.raw\tSILAC heavy\tNT=Q Exactive;AC=MS:1001911\t1\t1\n")
+    s = score_deterministic(truth, pred, validity=1.0)
+    assert s["n_aligned"] == 2
+    assert s["field_accuracy"]["comment[label]"] == 1.0  # order in the file must not matter
