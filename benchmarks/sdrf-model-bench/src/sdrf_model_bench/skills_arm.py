@@ -32,7 +32,7 @@ ALLOWED = [*TOOLS[:-1], "Bash(parse_sdrf validate-sdrf:*)"]  # Bash only for the
 # The v2 baseline denied them (and every other Bash call): 20% of a frontier model's tool calls
 # were permission denials. Opt in with SDRF_BENCH_ALLOW_PLUGIN_TOOLS=1; the pattern below is the
 # one Claude Code's permission matcher accepts for that invocation form (probed 2026-09-23).
-PLUGIN_TOOLS_ALLOWED = ["Bash(PYTHONPATH=*)"]
+PLUGIN_TOOLS_ALLOWED = ["Bash(PYTHONPATH=*)", "Bash(python3 -m tools:*)", "Bash(python -m tools:*)"]
 DENIED = ["WebFetch", "WebSearch", "Agent", "Task", "Read(~/**)", "Glob(~/**)", "Grep(~/**)"]
 
 PROMPT = """Create an SDRF-Proteomics file for the proteomics dataset {accession}.
@@ -176,7 +176,9 @@ def _run_in_workspace(ws, model, ev_dir, accession, manuscript, templates, run_d
         # Skills resolve bundled paths through $CLAUDE_PLUGIN_ROOT; Claude Code does not export it into
         # the Bash tool's environment, so PYTHONPATH="$CLAUDE_PLUGIN_ROOT" expanded to nothing and the
         # plugin's own helpers were unimportable in every earlier run.
-        env = {**os.environ, "CLAUDE_PLUGIN_ROOT": str(local_plugin)}
+        # PYTHONPATH too, so a plain `python3 -m tools ...` works and the agent needs no command prefix
+        # (a `cd ... &&` or `export ...;` in front defeats the Bash(PYTHONPATH=*) permission pattern).
+        env = {**os.environ, "CLAUDE_PLUGIN_ROOT": str(local_plugin), "PYTHONPATH": str(local_plugin)}
         proc = subprocess.run(cmd, cwd=ws, capture_output=True, text=True, timeout=timeout,
                               stdin=subprocess.DEVNULL, env=env)
         stdout, returncode = proc.stdout, proc.returncode
