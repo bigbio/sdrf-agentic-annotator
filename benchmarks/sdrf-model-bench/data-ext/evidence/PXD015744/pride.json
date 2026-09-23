@@ -1,0 +1,203 @@
+{
+ "accession": "PXD015744",
+ "additionalAttributes": [],
+ "botCount": 1338,
+ "countries": [
+  "Netherlands"
+ ],
+ "dataProcessingProtocol": "Protein identification MS/MS spectra were searched against the Swissprot FASTA file (release January 2018, 42258  entries, canonical and isoforms, no fragments) using MaxQuant 1.6.0.16. Enzyme specificity was set to trypsin and up to two missed cleavages were allowed. Cysteine carboxamidomethylation (Cys, +57.021464 Da) was treated as fixed modification and methionine oxidation (Met,+15.994915 Da) and N-terminal acetylation (N-terminal, +42.010565 Da) as variable modifications. Peptide precursor ions were searched with a maximum mass deviation of 4.5 ppm and fragment ions with a maximum mass deviation of 20 ppm. Peptide and protein identifications were filtered at an FDR of 1% using the decoy database strategy. The minimal peptide length was 7 amino-acids. Proteins that could not be differentiated based on MS/MS spectra alone were grouped to protein groups (default MaxQuant settings). Searches were performed with the label-free quantification option selected. Label free quantitation Proteins were quantified by spectral counting and by label-free quantitation (LFQ). In MaxQuant the quantitative data for the five fractions were combined per sample. Spectral counts were normalized on the sum of the counts per sample and differential protein analysis between groups was performed using the beta-binominal test.",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:3587",
+   "cvLabel": "DOID",
+   "name": "Pancreatic ductal carcinoma"
+  }
+ ],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "hubCount": 7390,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00394",
+   "cvLabel": "MOD",
+   "name": "acetylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001911",
+   "cvLabel": "MS",
+   "name": "Q Exactive"
+  }
+ ],
+ "keywords": [
+  "Co-expression",
+  "Pancreatic ductal adenocarcinoma",
+  "Fresh-frozen tissue",
+  "Label-free",
+  "Prognosis"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Amsterdam UMC, Vrije Universiteit Amsterdam, Medical Oncology, Cancer Center Amsterdam, OncoProteomics Laboratory, Amsterdam, Netherlands",
+   "country": "",
+   "email": "c.jimenez@amsterdamumc.nl",
+   "firstName": "Connie Ramona",
+   "id": "162340100",
+   "identifier": "162340100",
+   "lastName": "Jimenez",
+   "name": "Connie Ramona Jimenez",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 14,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "CL:0002079",
+   "cvLabel": "CL",
+   "name": "Pancreatic ductal cell"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0003081",
+   "cvLabel": "BTO",
+   "name": "Pancreatic ductal adenocarcinoma cell"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)"
+  }
+ ],
+ "projectDescription": "Despite extensive biological and clinical studies, including comprehensive genomics and transcriptomics analysis, pancreatic ductal adenocarcinoma (PDAC) remains a devastating disease, with poor survival and no effective therapies to date. Correlation networks are emerging as a powerful approach to infer tumor biology and to prioritize candidate genes as biomarkers or drug targets. In this study we applied a weighted co-expression analysis to the functionally relevant proteome of 20 surgically resected patients with PDAC. We obtained twelve modules with overlapping yet distinct biology, which implicated metabolism and ECM complexes in several modules. Notably, one module enriched for metabolic processes and epithelial-mesenchymal-transition (EMT) was significantly associated with overall survival (p=0.01) and was validated in public RNA data (p=0.02). The prognostic value of three proteins (SPTBN1, KHSRP and PYGL) belonging to this module was confirmed using immunohistochemistry in a cohort of 82 radically resected patients.",
+ "projectTags": [],
+ "publicationDate": "2020-09-01",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000425",
+   "cvLabel": "PRIDE",
+   "name": "MS1 intensity based label-free quantification method"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000436",
+   "cvLabel": "PRIDE",
+   "name": "Spectrum counting"
+  }
+ ],
+ "references": [
+  {
+   "doi": "10.1007/s13402-020-00548-y",
+   "pubmedID": 32860207,
+   "referenceLine": "Mantini G, Vall\u00e9s AM, Le Large TYS, Capula M, Funel N, Pham TV, Piersma SR, Kazemier G, Bijlsma MF, Giovannetti E, Jimenez CR. Co-expression analysis of pancreatic cancer proteome reveals biology and prognostic biomarkers. Cell Oncol (Dordr). 2020"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "CL:0002079",
+     "cvLabel": "CL",
+     "name": "pancreatic ductal cell"
+    },
+    {
+     "accession": "BTO:0003081",
+     "cvLabel": "BTO",
+     "name": "pancreatic ductal adenocarcinoma cell"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:3587",
+     "cvLabel": "DOID",
+     "name": "pancreatic ductal carcinoma"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Fresh-frozen tumor tissue sections were mixed with reducing sample buffer (SB) and heated at 99 degr. C for 5 min. Samples were loaded on on NUpage 12% gradient CBB gels and were separated at 200V. Subsequently, proteins were fixed in a solution of 50% ethanol and 3% phosphoric acid and stained with a 0.1% Coomassie brilliant blue G-250 solution (containing 34% methanol, 3% phosphoric acid and 15% ammonium sulfate). Proteins were in-gel reduced and alkylated with 10 mM DTT and 54 mMIodoacetamide (Sigma, Missouri, USA), respectively. Protein lanes were cut in five fractions, and each fraction was cut to 1 mm3 cubes. Proteins were digested with sequencing grade modified trypsin (6.25 ng/ml) (Promega, WI, USA) overnight and extracted from the gel with 1%  formic acid and 2x with 5% formic acid in 50% ACN. Peptide extracts were pooled and concentrated in a vacuum centrifuge, dissolved in 50\u00b5l 0.5% TFA + 4% ACN and filtered through 0.22 \u00b5m membrane filters (Millipore, Burlington, MA). Peptides were separated by an Ultimate 3000 nanoLC-MS/MS system (Dionex LC-Packings, Amsterdam, The Netherlands) equipped with a 40 cm \u00d7 75 \u03bcm ID fused silica column custom packed with 1.9 \u03bcm 120 \u00c5 ReproSil Pur C18 aqua (Dr Maisch GMBH, Ammerbuch-Entringen, Germany). After injection, peptides were trapped at 6 \u03bcl/min on a 10 mm \u00d7 100 \u03bcm ID trap column packed with 5 \u03bcm 120 \u00c5 ReproSil Pur C18 aqua in 0.1% formic acid. Peptides were separated at 300 nl/min in a 10\u201340% gradient (buffer A: 0.1% formic acid (Fischer Scientific), buffer B: 80% ACN, 0.1% formic acid) in 75 min (100 min inject-to-inject). Eluting peptides were ionized at a potential of +2 kVa into a Q Exactive mass spectrometer (Thermo Fisher, Bremen, Germany). Intact masses were measured at resolution 70.000 (at m/z 200) in the orbitrap using an AGC target value of 3E6 charges. The top 10 peptide signals (charge-states 2+ and higher) were submitted to MS/MS in the HCD (higher-energy collision) cell (1.6 amu isolation width, 25% normalized collision energy). MS/MS spectra were acquired at resolution 17.500 (at m/z 200) in the orbitrap using an AGC target value of 1E6 charges, a maxIT of 60 ms and an underfill ratio of 0.1%. Dynamic exclusion was applied with a repeat count of 1 and an exclusion time of 30 s.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001583",
+   "cvLabel": "MS",
+   "name": "MaxQuant"
+  }
+ ],
+ "submissionDate": "2019-10-08",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "OncoProteomics Laboratory, dept of Medical Oncology, VUmc Medical Center, Amsterdam, The Netherlands",
+   "country": "Netherlands",
+   "email": "s.piersma@vumc.nl",
+   "firstName": "Sander",
+   "id": "10490104",
+   "identifier": "10490104",
+   "lastName": "Piersma",
+   "name": "Sander Piersma",
+   "orcid": "0000-0001-7262-3395",
+   "title": "Dr"
+  }
+ ],
+ "title": "Co-expression analysis of label-free proteomics data reveals prognostic biomarkers in pancreatic ductal adenocarcinoma",
+ "totalFileDownloads": 8742
+}

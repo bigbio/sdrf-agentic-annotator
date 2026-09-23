@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from sdrf_model_bench.score import score_deterministic
-from sdrf_model_bench.validator import validity_score
+from sdrf_model_bench.validator import ValidationResult, distinct_errors, validity_score
 
 JUDGE_WEIGHT = 0.2
 CONTAMINATION_THRESHOLD = 80.0
@@ -26,6 +26,9 @@ def score_run(run_dir: Path, data_dir: Path, validate_fn, judge_fn=None) -> dict
     sdrf_path = run_dir / "sdrf.tsv"
     pred = sdrf_path.read_text() if sdrf_path.exists() else ""
     validation = validate_fn(sdrf_path, meta.get("templates") or []) if pred else None
+    shared = 0
+    if validation and validation.errors:
+        validation, shared = drop_reference_errors(validation, data_dir, acc, meta, validate_fn)
     det = score_deterministic(truth, pred, validity_score(validation) if validation else 0.0)
     judged, judge_failed = None, False
     if judge_fn and pred:
@@ -41,7 +44,7 @@ def score_run(run_dir: Path, data_dir: Path, validate_fn, judge_fn=None) -> dict
         flags.append("failed")
     if judge_failed:
         flags.append("judge_pending")
-    if not manuscript and meta.get("tier") == "poor" and det["deterministic"] >= CONTAMINATION_THRESHOLD:
+    if not manuscript and usage.get("provider") != "external" and meta.get("tier") == "poor" and det["deterministic"] >= CONTAMINATION_THRESHOLD:
         flags.append("contamination_suspect")
     record = {
         "model_id": usage.get("model_id", run_dir.parent.name), "arm": usage.get("arm", "raw"),
@@ -54,12 +57,35 @@ def score_run(run_dir: Path, data_dir: Path, validate_fn, judge_fn=None) -> dict
         "judge_usage": judged and judged["usage"],
         "headline": round(headline, 2),
         "n_errors": len(validation.errors) if validation else None,
+        "reference_shared_errors": shared,
+        "human_min": usage.get("human_min"),
         "usage": usage.get("usage", {}), "cost_usd": usage.get("cost_usd"), "wall_s": usage.get("wall_s"),
         "flags": flags,
     }
     if not judge_failed:
         (run_dir / "score.json").write_text(json.dumps(record, indent=1))
     return record
+
+
+def reference_error_classes(data_dir: Path, acc: str, templates, validate_fn) -> set[str]:
+    """The validator error classes the curated reference itself fails, cached next to the truth.
+
+    A run that follows the curated convention should not lose validity for it: the SILAC
+    references (e.g. PXD013923) repeat (source name, assay name) across the channels of a run,
+    and parse_sdrf rejects exactly that in every file that copies the convention."""
+    cache = Path(data_dir) / "truth" / f"{acc}.validation.json"
+    if cache.exists():
+        return set(json.loads(cache.read_text()))
+    classes = distinct_errors(validate_fn(Path(data_dir) / "truth" / f"{acc}.reference.tsv", templates).errors)
+    cache.write_text(json.dumps(classes, indent=1))
+    return set(classes)
+
+
+def drop_reference_errors(validation, data_dir: Path, acc: str, meta: dict, validate_fn):
+    ref = reference_error_classes(data_dir, acc, meta.get("templates") or [], validate_fn)
+    kept = [e for e in validation.errors if distinct_errors([e])[0] not in ref]
+    return ValidationResult(errors=kept, warnings=validation.warnings, raw=validation.raw), \
+        len(validation.errors) - len(kept)
 
 
 def rescore_deterministic(run_dir: Path, data_dir: Path) -> dict | None:

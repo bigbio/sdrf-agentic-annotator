@@ -69,7 +69,12 @@ def build_parser() -> argparse.ArgumentParser:
                    help="recompute the deterministic score from saved outputs, keeping cached validity and judge")
 
     o = sub.add_parser("report", help="summary table, slide and backup plots")
-    o.add_argument("--results", type=Path, default=Path("results/runs.jsonl"))
+    o.add_argument("--results", type=Path, nargs="+", default=[Path("results/runs.jsonl")],
+                   help="one or more runs.jsonl, e.g. ours plus a collaborator's scored SDRFs")
+    o.add_argument("--deterministic", action="store_true",
+                   help="rank on the deterministic score alone (drop the judge), e.g. when mixing judged and unjudged runs")
+    o.add_argument("--manuscript", choices=["both", "on", "off"], default="both",
+                   help="keep only runs with (on) or without (off) the paper")
     o.add_argument("--out", type=Path, default=Path("results"))
     o.add_argument("--models", type=Path, default=Path("models.yaml"))
     o.add_argument("--data", type=Path, default=Path("data"),
@@ -296,7 +301,11 @@ def cmd_report(args) -> int:
     from sdrf_model_bench.config import load_models
     from sdrf_model_bench.report import render_backups, render_slide, summarise
 
-    records = [json.loads(line) for line in args.results.read_text().splitlines() if line.strip()]
+    records = [json.loads(line) for path in args.results for line in path.read_text().splitlines() if line.strip()]
+    if args.manuscript != "both":
+        records = [r for r in records if bool(r["manuscript"]) == (args.manuscript == "on")]
+    if args.deterministic:  # one rubric for every record, when only some of them were judged
+        records = [{**r, "headline": r["deterministic"], "judge": None} for r in records]
     summary = summarise(records)
     seen = {r["model_id"] for r in records}
     # only collaborator slots (custom providers) are shown as awaiting results; other disabled
@@ -309,9 +318,12 @@ def cmd_report(args) -> int:
     render_slide(summary, args.out / "slide", pending=pending, baseline=baseline)
     render_slide(summary, args.out / "slide-dark", theme="dark", pending=pending, baseline=baseline)
     render_backups(records, summary, args.out)
+    from sdrf_model_bench.report import render_collaborators
+    render_collaborators(records, args.out)
+    render_collaborators(records, args.out, theme="dark")
     print(f"wrote slide + backups to {args.out}")
     for r in summary:
-        cost = f"${r['cost_usd']:.3f}" if r["cost_usd"] is not None else f"{r['minutes']:.1f} min"
+        cost = f"${r['cost_usd']:.3f}" if r["cost_usd"] is not None else f"{r['minutes'] or 0:.1f} min"
         print(f"  {r['model_id']:22s} {r['headline']:5.1f} ±{r['headline_sem']:4.1f}  {cost:>9s}  "
               f"{r['tokens'] / 1000:6.0f}k tok  flags={r['flags']}")
     return 0

@@ -1,0 +1,19 @@
+{
+ "accession": "PXD005354",
+ "has_deposited_sdrf": true,
+ "has_manuscript": true,
+ "license": "cc by",
+ "n_raw_files": 1560,
+ "n_raw_files_pride": 1560,
+ "n_rows": 1560,
+ "organism": "Homo sapiens",
+ "pmcid": "PMC5731344",
+ "pmid": 29101300,
+ "pride_quality": 1.0,
+ "qtype": "LFQ",
+ "source_benchmark": "dai",
+ "templates": [
+  "ms-proteomics"
+ ],
+ "tier": "rich"
+}

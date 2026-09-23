@@ -192,3 +192,27 @@ def test_silac_reference_aligns_on_file_and_channel():
     s = score_deterministic(truth, pred, validity=1.0)
     assert s["n_aligned"] == 2
     assert s["field_accuracy"]["comment[label]"] == 1.0  # order in the file must not matter
+
+
+def test_reference_shared_validator_errors_do_not_count(tmp_path):
+    import json
+
+    from sdrf_model_bench.scoring_run import score_run
+    from sdrf_model_bench.validator import ValidationResult
+    truth = "source name\tcomment[data file]\tcomment[label]\nS1\ta.raw\tSILAC light\nS1\ta.raw\tSILAC heavy\n"
+    (tmp_path / "evidence" / "PX1").mkdir(parents=True)
+    (tmp_path / "evidence" / "PX1" / "meta.json").write_text(json.dumps({"templates": ["ms-proteomics"]}))
+    (tmp_path / "truth").mkdir()
+    (tmp_path / "truth" / "PX1.reference.tsv").write_text(truth)
+    run = tmp_path / "out" / "m" / "PX1__ms-off__r1"
+    run.mkdir(parents=True)
+    (run / "sdrf.tsv").write_text(truth)
+    (run / "usage.json").write_text("{}")
+    shared = "Duplicate (source name, assay name) in row 2"
+
+    def validate(path, templates):
+        return ValidationResult(errors=[shared] + (["other problem"] if path.name == "sdrf.tsv" else []))
+
+    rec = score_run(run, tmp_path, validate)
+    assert rec["reference_shared_errors"] == 1
+    assert rec["validity"] == 0.9  # only the error the reference does not share counts

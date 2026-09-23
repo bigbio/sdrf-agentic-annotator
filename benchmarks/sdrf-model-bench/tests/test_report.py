@@ -60,3 +60,30 @@ def test_thinking_models_are_labelled():
     r = rec("g-think", "raw", "gemma4:12b", "P1", True, 30)
     r["think"] = True
     assert summarise([r])[0]["base"] == "gemma4:12b (thinking)"
+
+
+def _collab_records():
+    ours = [rec("claude-sonnet-5-skills", "skills", "claude-sonnet-5", a, False, s)
+            for a, s in (("P1", 70), ("P2", 80), ("P3", 60))]
+    dai = [{**rec("dai-skills", "external", "Dai (skills, own session)", a, False, 85, cost=None, wall=240,
+                  provider="external"), "human_min": 40} for a in ("P1", "P2")]
+    jonas = [rec("jonas-raw", "external", "Jonas (no skills, own session)", "P3", False, 90, cost=None, wall=None,
+                 provider="external", flags=["reference_same_author"])]
+    return ours + dai + jonas
+
+
+def test_collaborator_family_label_and_cost_text():
+    from sdrf_model_bench.report import _cost_text, config_label, family
+    rows = {r["model_id"]: r for r in summarise(_collab_records())}
+    assert family(rows["dai-skills"]) == "external"
+    assert config_label(rows["dai-skills"]) == "Dai (skills, own session)"
+    assert _cost_text(rows["dai-skills"]) == "4 min · human curator 40 min"
+    assert _cost_text(rows["jonas-raw"]) == "not reported"
+
+
+def test_render_collaborators(tmp_path):
+    from sdrf_model_bench.report import render_collaborators
+    render_collaborators(_collab_records(), tmp_path)
+    names = {p.name for p in tmp_path.iterdir()}
+    assert {"slide_dai.png", "backup_8_collaborators_per_dataset.png", "backup_9_collaborators_time.png"} <= names
+    assert "slide_jonas.png" not in names  # its only dataset is circular, so there is nothing fair to rank

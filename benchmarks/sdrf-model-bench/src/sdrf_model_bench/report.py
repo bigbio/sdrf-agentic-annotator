@@ -108,7 +108,8 @@ def summarise(records: list[dict]) -> list[dict]:
             "components": {c: _mean(r.get(c) for r in recs) for c, _ in COMPONENTS},
             "tokens": statistics.fmean(sum((r.get("usage") or {}).get(k, 0) for k in TOKEN_KEYS) for r in recs),
             "cost_usd": _mean(costs) if any(c is not None for c in costs) else None,
-            "minutes": (_mean(r.get("wall_s") for r in recs) or 0.0) / 60,
+            "minutes": (m / 60 if (m := _mean(r.get("wall_s") for r in recs)) is not None else None),
+            "human_minutes": _mean(r.get("human_min") for r in recs),
             "by_qtype": {q: _mean(_dataset_means([r for r in recs if r.get("qtype") == q])) for q in QTYPES},
             "by_tier": {t: _mean(_dataset_means([r for r in recs if r.get("tier") == t])) for t in TIERS},
             "ms_delta": statistics.fmean(deltas) if deltas else None,
@@ -142,16 +143,20 @@ FRIENDLY = {
 }
 # One colour per kind of configuration, in the palette's fixed categorical order (validated for CVD).
 FAMILIES = [("claude", "Claude, prompt only"), ("skills", "Claude + SDRF skills"),
-            ("local", "Local model (Ollama)"), ("other", "Other model")]
+            ("local", "Local model (Ollama)"), ("external", "Collaborator's own workflow")]
+# marker per base model in the per-dataset plots; collaborators are diamonds, the human curator a cross
+MARKERS = {"claude-opus-5": "o", "claude-sonnet-5": "s", "claude-haiku-4-5": "^"}
 
 
 def family(row: dict) -> str:
+    provider = row.get("provider") or ""
+    if provider == "external":
+        return "external"
     if row.get("arm") == "skills":
         return "skills"
-    provider = row.get("provider") or ""
     if provider in ("claude-cli", "anthropic"):
         return "claude"
-    return "local" if provider == "ollama" else "other"
+    return "local" if provider == "ollama" else "external"
 
 
 def config_label(row: dict) -> str:
@@ -160,6 +165,8 @@ def config_label(row: dict) -> str:
     model = base.removesuffix(" (thinking)")
     name = FRIENDLY.get(model, model)
     kind = family(row)
+    if kind == "external":
+        return model
     if kind == "skills":
         return f"{name} + SDRF skills"
     if kind == "claude":
@@ -174,9 +181,14 @@ def _colors(t) -> dict:
 
 
 def _cost_text(row) -> str:
+    parts = []
     if row["cost_usd"] is not None:
-        return f"${row['cost_usd']:.2f} · {row['minutes']:.0f} min"
-    return f"{row['minutes']:.0f} min on a laptop"
+        parts.append(f"${row['cost_usd']:.2f}")
+    if row["minutes"] is not None:
+        parts.append(f"{row['minutes']:.0f} min" + (" on a laptop" if family(row) == "local" else ""))
+    if row.get("human_minutes") is not None:
+        parts.append(f"human curator {row['human_minutes']:.0f} min")
+    return " · ".join(parts) or "not reported"
 
 
 def _warn_text(row) -> str:
@@ -241,7 +253,8 @@ def _present_qtypes(summary):
 # ---------------------------------------------------------------- main slide
 
 def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=(),
-                 baseline: float | None = None) -> None:
+                 baseline: float | None = None, title: str | None = None, subtitle: str | None = None,
+                 note: str = "") -> None:
     """One chart, one question: which configuration writes the best SDRF, and what does it cost?"""
     t = THEMES[theme]
     cols = _colors(t)
@@ -249,7 +262,8 @@ def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=
     labels = [config_label(r) for r in rows] + [f"{p} (awaiting results)" for p in pending]
     n = len(labels)
     fig = _new_fig(t)  # 16:9
-    ax = fig.add_axes([0.28, 0.14, 0.48, 0.61])
+    lift = 0.028 * (note.count("\n") + 1) if note else 0.0  # room for a longer footer
+    ax = fig.add_axes([0.28, 0.14 + lift, 0.48, 0.61 - lift])
     _style(ax, t)
     ys = list(range(n))[::-1]
     ax.set_xlim(0, 100)
@@ -279,17 +293,25 @@ def render_slide(summary: list[dict], path: Path, theme: str = "light", pending=
             color=t["ink"], weight="bold", clip_on=False)
 
     best = rows[0] if rows else None
-    title = f"{config_label(best)} writes the most accurate SDRFs" if best else "SDRF annotation quality"
+    if title is None:
+        title = f"{config_label(best)} writes the most accurate SDRFs" if best else "SDRF annotation quality"
     qt = ", ".join(_present_qtypes(summary))
     nd = _n_datasets(summary)
-    subtitle = f"Mean over {nd} dataset{'s' if nd != 1 else ''} ({qt}), each annotated with and without the paper"
+    both = any(r.get("ms_delta") is not None for r in summary)
+    if subtitle is None:
+        subtitle = (f"Mean over {nd} dataset{'s' if nd != 1 else ''} ({qt}), "
+                    + ("each annotated with and without the paper" if both else "annotated from the PRIDE record and file list"))
     judged = sum(r["judged"] for r in summary)
     runs = sum(r["runs"] for r in summary)
-    coverage = "every run" if judged >= runs else f"a balanced subset ({judged} of {runs} runs)"
+    if judged:
+        coverage = "every run" if judged >= runs else f"a balanced subset ({judged} of {runs} runs)"
+        scoring = ("Score = 80% deterministic match to the curated SDRF + 20% reference-guided LLM judge, "
+                   f"judged on {coverage}.")
+    else:
+        scoring = "Score = deterministic agreement with the curated SDRF (validity, completeness, accuracy, specificity)."
     _titles(fig, t, title, subtitle,
-            footer="Score = 80% deterministic match to the curated SDRF + 20% reference-guided LLM judge, "
-                   f"judged on {coverage}. Whiskers: ±1 SEM across datasets.\n"
-                   "Cost is the API-equivalent reported by Claude Code.")
+            footer=f"{scoring} Whiskers: ±1 SEM across datasets.\n"
+                   "Cost is the API-equivalent reported by Claude Code." + (f"\n{note}" if note else ""))
     _legend(fig, t, {family(r) for r in rows})
     _save(fig, path, t, svg=True)
 
@@ -489,6 +511,150 @@ def render_backups(records: list[dict], summary: list[dict], outdir: Path, theme
             "Classes after bigbio/sdrf-skills PR #24, decided by rule. Excluded classes do not enter accuracy.")
     _save(fig, outdir / "backup_7_triage", t)
 
+
+
+# ---------------------------------------------------------------- collaborators' benchmarks
+
+BENCHMARKS = {"dai": ("Chengxin Dai", "manual-vs-skills benchmark"),
+              "jonas": ("Jonas Scheid", "sdrf-skills PR #24")}
+CIRCULAR = "reference_same_author"  # the curated reference was contributed by the same annotator
+
+
+def _point_style(r: dict, cols: dict) -> dict:
+    fam = family(r)
+    hollow = fam == "external" and "no skills" in (r.get("model") or "")
+    c = cols[fam]
+    return {"marker": MARKERS.get(r.get("model") or "", "D"), "s": 170 if fam == "external" else 110,
+            "facecolors": "none" if hollow else c, "edgecolors": c, "linewidths": 2.2 if hollow else 1.2, "zorder": 3}
+
+
+def _per_config_dataset(records: list[dict], key: str) -> dict[tuple[str, str], tuple[float, dict]]:
+    acc = defaultdict(list)
+    for r in records:
+        if r.get(key) is not None:
+            acc[(r["model_id"], r["accession"])].append(r)
+    return {k: (statistics.fmean(x[key] for x in v), v[0]) for k, v in acc.items()}
+
+
+def _marker_legend(fig, t, cols, records, y=0.80, human=False):
+    from matplotlib.lines import Line2D
+    handles, labels = [], []
+    for k, lab in FAMILIES:
+        if any(family(r) == k for r in records):
+            handles.append(Rectangle((0, 0), 1, 1, color=cols[k]))
+            labels.append(lab)
+    for model, name in (("claude-opus-5", "Opus 5"), ("claude-sonnet-5", "Sonnet 5"), ("claude-haiku-4-5", "Haiku 4.5")):
+        if any(r.get("model") == model for r in records):
+            handles.append(Line2D([], [], marker=MARKERS[model], linestyle="", color=t["ink2"], markersize=10))
+            labels.append(name)
+    if any(family(r) == "external" for r in records):
+        handles += [Line2D([], [], marker="D", linestyle="", color=cols["external"], markersize=10),
+                    Line2D([], [], marker="D", linestyle="", markerfacecolor="none", markeredgewidth=2,
+                           color=cols["external"], markersize=10)]
+        labels += ["collaborator, with skills", "collaborator, no skills"]
+    if human:
+        handles.append(Line2D([], [], marker="X", linestyle="", color=t["ink"], markersize=12))
+        labels.append("human curator")
+    fig.legend(handles, labels, loc="lower left", bbox_to_anchor=(0.03, y), ncol=len(labels), frameon=False,
+               fontsize=11.5, labelcolor=t["ink"], handlelength=1.0, columnspacing=1.3)
+
+
+def render_collaborators(records: list[dict], outdir: Path, theme: str = "light") -> None:
+    """The collaborators' own SDRFs, scored with this rubric, against our configurations on their datasets:
+    one headline slide per benchmark, every SDRF per dataset, and minutes against the human curator."""
+    t = THEMES[theme]
+    cols = _colors(t)
+    outdir = Path(outdir)
+    sfx = "" if theme == "light" else "-dark"
+    groups = {name: sorted({r["accession"] for r in records if r["model_id"].startswith(f"{name}-")})
+              for name in BENCHMARKS}
+    groups = {k: v for k, v in groups.items() if v}
+    if not groups:
+        return
+
+    # 1. one headline slide per collaborator benchmark, on the datasets every configuration can be scored on
+    for name, accs in groups.items():
+        fair = [a for a in accs if not any(CIRCULAR in r.get("flags", []) for r in records if r["accession"] == a)]
+        sub = [r for r in records if r["accession"] in fair]
+        if not sub:
+            continue
+        summary = summarise(sub)
+        dropped = sorted(set(accs) - set(fair))
+        note = (f"Left out: {', '.join(dropped)}, whose curated reference was contributed by the same annotator "
+                "(scoring it would be circular); it is shown in the per-dataset figure.") if dropped else ""
+        who, what = BENCHMARKS[name]
+        n = len(fair)
+        render_slide(summary, outdir / f"slide_{name}{sfx}", theme=theme,
+                     title=f"On {who}'s {'dataset' if n == 1 else f'{n} datasets'}",
+                     subtitle=f"{', '.join(fair)} ({what}). Ours: offline, PRIDE record + file list, no paper",
+                     note=note + ("\n" if note else "") + f"{who}'s SDRFs come from their own sessions, with network "
+                                                          "access and the paper, scored here with the same rubric.")
+    if theme != "light":
+        return
+
+    # 2. every SDRF, per dataset
+    all_accs = [a for name in groups for a in groups[name]]
+    owner = {a: name for name, accs in groups.items() for a in accs}
+    points = _per_config_dataset(records, "deterministic")
+    configs = sorted({m for m, _ in points}, key=lambda m: (family(next(r for (mm, _), (_, r) in points.items() if mm == m)), m))
+    fig = _new_fig(t)
+    ax = fig.add_axes([0.20, 0.12, 0.74, 0.62])
+    _style(ax, t)
+    ys = {a: i for i, a in enumerate(all_accs[::-1])}
+    for j, m in enumerate(configs):
+        off = (j - (len(configs) - 1) / 2) * (0.6 / max(len(configs), 1))
+        for (mm, a), (v, r) in points.items():
+            if mm != m or a not in ys:
+                continue
+            ax.scatter(v, ys[a] + off, **_point_style(r, cols))
+    for a, y in ys.items():
+        if any(CIRCULAR in r.get("flags", []) for r in records if r["accession"] == a):
+            ax.text(1, y, "◆ reference contributed by the same annotator (circular)", va="center", ha="left",
+                    fontsize=11, color=t["ink2"], style="italic")
+    ax.set_xlim(0, 100)
+    ax.set_ylim(-0.6, len(all_accs) - 0.4)
+    ax.set_yticks(list(ys.values()), [f"{a}  ({owner[a].capitalize()})" for a in ys], fontsize=14, color=t["ink"])
+    ax.set_xlabel("score (0-100): agreement with the curated SDRF", color=t["ink2"], fontsize=13)
+    _titles(fig, t, "Every SDRF on the collaborators' datasets",
+            "One point per configuration and dataset, same rubric and references for everyone",
+            "Our runs: offline, PRIDE record + file list, no paper, one replicate. Collaborators: their own sessions "
+            "(network, paper). Deterministic score only.")
+    _marker_legend(fig, t, cols, [r for _, r in points.values()])
+    _save(fig, outdir / "backup_8_collaborators_per_dataset", t)
+
+    # 3. minutes: human curator vs the collaborator's skills session vs our runs (Dai's datasets carry the human time)
+    timed = [a for a in all_accs if any(r.get("human_min") for r in records if r["accession"] == a)]
+    if not timed:
+        return
+    mins = {k: (v / 60, r) for k, (v, r) in _per_config_dataset(records, "wall_s").items() if k[1] in timed}
+    fig = _new_fig(t)
+    ax = fig.add_axes([0.20, 0.12, 0.74, 0.62])
+    _style(ax, t)
+    ys = {a: i for i, a in enumerate(timed[::-1])}
+    for j, m in enumerate(configs):
+        off = (j - (len(configs) - 1) / 2) * (0.6 / max(len(configs), 1))
+        for (mm, a), (v, r) in mins.items():
+            if mm == m:
+                ax.scatter(v, ys[a] + off, **_point_style(r, cols))
+    for a in timed:
+        h = next(r["human_min"] for r in records if r["accession"] == a and r.get("human_min"))
+        ax.scatter(h, ys[a], marker="X", s=240, color=t["ink"], zorder=4)
+        ax.annotate(f"{h:.0f} min", (h, ys[a]), xytext=(12, 0), textcoords="offset points", va="center",
+                    fontsize=12, color=t["ink"], weight="bold")
+    ax.set_xscale("log")
+    ticks = [1, 2, 5, 10, 20, 50]
+    ax.set_xticks(ticks, [f"{v} min" for v in ticks])
+    ax.minorticks_off()
+    ax.set_xlim(0.8, 90)
+    ax.set_ylim(-0.6, len(timed) - 0.4)
+    ax.set_yticks(list(ys.values()), list(ys), fontsize=14, color=t["ink"])
+    ax.set_xlabel("minutes per SDRF (log scale)", color=t["ink2"], fontsize=13)
+    _titles(fig, t, "How long does one SDRF take?",
+            "Wall-clock minutes per dataset: the human curator, the collaborator's skills session, and our runs",
+            "Human and collaborator times from Chengxin Dai's manual-vs-skills benchmark. Ours: sdrf-bench wall time, "
+            "3 runs in parallel on one laptop.")
+    _marker_legend(fig, t, cols, [r for _, r in mins.values()], human=True)
+    _save(fig, outdir / "backup_9_collaborators_time", t)
 
 
 def write_summary_tsv(summary: list[dict], path: Path) -> None:

@@ -1,0 +1,416 @@
+{
+ "accession": "PXD058436",
+ "additionalAttributes": [],
+ "botCount": 6426,
+ "countries": [
+  "Germany"
+ ],
+ "dataProcessingProtocol": "FragPipe (v21.1), PEAKS Studio27 (v11.5, build 20231206), and MHCquant2 (v2.6.0) were used to conduct the benchmark analysis. The reference proteome from UniProtKB (Swiss-Prot, downloaded on 14.10.20) of Homo sapiens (TaxonID 9606) was in silico digested without enzymatic restriction. Database search was performed with a precursor mass tolerance of 20 ppm and a fragment mass tolerance of 0.02 Da. Methionine oxidation was specified as a variable modification and a maximum of 3 and 5 modifications were allowed for HLA class I and II, respectively. The charge, mass range and peptide length was set to 1-4, 800-2500 Da, and 8-14 for HLA class I and 1-5, 800-5000 Da, 12-30 for HLA class II. The seed in Percolator was fixed to 4711 to ensure reproducibility. A peptide-level FDR threshold of 1% among technical replicate sample groups was applied. For FragPipe the Non-specific HLA workflow was adjusted to the same search settings. Retention time and spectra prediction were turned on with the use of correlated features. Percolator was specified as rescoring engine with default settings. For PEAKS identical search settings were used in the Database Search workflow with deep learning-based features activated.",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000428",
+   "cvLabel": "PRIDE",
+   "name": "Bottom-up proteomics"
+  }
+ ],
+ "hubCount": 22359,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue",
+   "value": ""
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003230",
+   "cvLabel": "MS",
+   "name": "timsTOF Pro 2",
+   "value": ""
+  }
+ ],
+ "keywords": [
+  "Immunopeptidomics",
+  "Nf-core",
+  "Mhcquant",
+  "Pipeline",
+  "Dda"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Department of Peptide-based Immunotherapy, University and University Hospital Tuebingen, Germany",
+   "country": "",
+   "email": "juliane.walz@med.uni-tuebingen.de",
+   "firstName": "Juliane",
+   "id": "3071103",
+   "identifier": "3071103",
+   "lastName": "Sarah",
+   "name": "Juliane Sarah",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 309,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001732",
+   "cvLabel": "BTO",
+   "name": "Gastric antrum",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001281",
+   "cvLabel": "BTO",
+   "name": "Spleen",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000502",
+   "cvLabel": "BTO",
+   "name": "Gastric fundus",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000141",
+   "cvLabel": "BTO",
+   "name": "Bone marrow",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000562",
+   "cvLabel": "BTO",
+   "name": "Heart",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000135",
+   "cvLabel": "BTO",
+   "name": "Aorta",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000232",
+   "cvLabel": "BTO",
+   "name": "Cerebellum",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001253",
+   "cvLabel": "BTO",
+   "name": "Skin",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000988",
+   "cvLabel": "BTO",
+   "name": "Pancreas",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000759",
+   "cvLabel": "BTO",
+   "name": "Liver",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000047",
+   "cvLabel": "BTO",
+   "name": "Adrenal gland",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000763",
+   "cvLabel": "BTO",
+   "name": "Lung",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000671",
+   "cvLabel": "BTO",
+   "name": "Kidney",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000887",
+   "cvLabel": "BTO",
+   "name": "Muscle",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000142",
+   "cvLabel": "BTO",
+   "name": "Brain",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000651",
+   "cvLabel": "BTO",
+   "name": "Small intestine",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001379",
+   "cvLabel": "BTO",
+   "name": "Thyroid gland",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001363",
+   "cvLabel": "BTO",
+   "name": "Testis",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001385",
+   "cvLabel": "BTO",
+   "name": "Tongue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000123",
+   "cvLabel": "BTO",
+   "name": "Bladder",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000493",
+   "cvLabel": "BTO",
+   "name": "Gall bladder",
+   "value": ""
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)",
+   "value": ""
+  }
+ ],
+ "otherOmicsLinks": [
+  "px:PXD038691",
+  "px:PXD019643",
+  "px:PXD038782"
+ ],
+ "projectDescription": "The identification of human leukocyte antigen (HLA)-presented peptides as targets of anti-cancer T cell response is pivotal for the development of novel immunotherapies. Mass spectrometry (MS)-based immunopeptidomics enables the detection of these peptides, yet confident identifications and thus implementation in immunotherapy design are hampered by the high diversity and low abundance of naturally presented HLA peptides. Here, we introduce MHCquant2, a Nextflow-based open-source pipeline that leverages OpenMS tools and peptide property predictors (DeepLC, MS2PIP) for highly sensitive and scalable HLA peptide identification and quantification across various MS platforms. MHCquant2 increased peptide identifications up to 27% with significant expansion of low-abundant peptides, outperforming state-of-the-art pipelines. Using MHCquant2 we build a comprehensive benign tissue repository comprising re-analyzed data from available benign immunopeptidomes and a novel benignMHCquant2 dataset, adding more than 160,000 novel naturally presented HLA peptides. First applications of this benign repository and the MHCquant2 pipeline enabled (i) the refinement of tumor-associated antigens, (ii) as well as the detection of novel, high-frequent tumor-exclusive peptide antigens for multiple tumor entities, and (iii) the identification and quantification of mutation-derived low-abundant neoepitopes. MHCquant2 refines tumor antigen discovery in immunopeptidomics, paving the way for the implementation of off-the-shelf and personalized immunotherapy design.",
+ "projectTags": [],
+ "publicationDate": "2025-08-22",
+ "quantificationMethods": [],
+ "references": [
+  {
+   "doi": "10.1186/s13059-025-03763-8",
+   "pubmedID": 40983925,
+   "referenceLine": "Scheid J, Lemke S, Hoenisch-Gravel N, Dengler A, Sachsenberg T, Declerq A, Gabriels R, Bauer J, Wacker M, Bichmann L, Martens L, Dubbelaar ML, Nahnsen S, Walz JS. MHCquant2 refines immunopeptidomics tumor antigen discovery. Genome Biol. 2025 26(1):290"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0001281",
+     "cvLabel": "BTO",
+     "name": "spleen",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0001379",
+     "cvLabel": "BTO",
+     "name": "thyroid gland",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0001385",
+     "cvLabel": "BTO",
+     "name": "tongue",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000562",
+     "cvLabel": "BTO",
+     "name": "heart",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000651",
+     "cvLabel": "BTO",
+     "name": "small intestine",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000232",
+     "cvLabel": "BTO",
+     "name": "cerebellum",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000047",
+     "cvLabel": "BTO",
+     "name": "adrenal gland",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0001253",
+     "cvLabel": "BTO",
+     "name": "skin",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000502",
+     "cvLabel": "BTO",
+     "name": "gastric fundus",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000671",
+     "cvLabel": "BTO",
+     "name": "kidney",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000887",
+     "cvLabel": "BTO",
+     "name": "muscle",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0001732",
+     "cvLabel": "BTO",
+     "name": "gastric antrum",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000141",
+     "cvLabel": "BTO",
+     "name": "bone marrow",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000135",
+     "cvLabel": "BTO",
+     "name": "aorta",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000142",
+     "cvLabel": "BTO",
+     "name": "brain",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0001363",
+     "cvLabel": "BTO",
+     "name": "testis",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000759",
+     "cvLabel": "BTO",
+     "name": "liver",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000123",
+     "cvLabel": "BTO",
+     "name": "bladder",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000988",
+     "cvLabel": "BTO",
+     "name": "pancreas",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000763",
+     "cvLabel": "BTO",
+     "name": "lung",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000493",
+     "cvLabel": "BTO",
+     "name": "gall bladder",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)",
+     "value": ""
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "timsTOF mass spectrometric data acquisition  Peptide separation was performed as previously decribed in Hoenisch Gravel et al. 2023 (Nat Comms) on Bruker\u2019s nanoElute LC system using an acclaim TM PepMap (Thermo Fisher Scientific, Waltham, USA) and a 75 \u03bcm x 25 cm Aurora Series emitter column (IonOpticks, Fitzroy, Australia). 60% of the sample was injected in three technical replicates loading 5 \u03bcl. Peptides were separated along a gradient ranging from 0% to 95% Solvent B (AcN with 0.01% FA) over 60 min with consecutive ramps from 0% to 32% (30 min) and 32% to 40% (15 min), followed by two 5 min ramps to 60% and 95%, respectively. Eluting peptides were subsequently analyzed in the online coupled trapped ion mobility spectrometry and time-of-flight mass spectrometer timsTOF Pro (Bruker Daltonics, Billerica, USA) equipped with a CaptiveSpray ion source using a data-dependent acquisition mode (DDA). PASEF ramps were set to 6 with an accumulation and ramp time of 200 ms. Mass range was set to 100-200 m/z with ion mobility ranging from 0.6-1.6 Vs/cm2, charge states above +2 were included as well as +1 >600 m/z.  Synthetic peptide validation  Synthetic peptides were produced using the standard 9-fluorenylmethyl-oxycarbonyl/tert-butyl strategy in a Liberty Blue Automated Peptide Synthesizer (CEM, Kamp-Lintfort, Germany). Peptides were cleaved from the resin using a TFA/triisopropylsilane/water (95%/2.5%/2.5% by vol.) mixture for 1h, after which peptides were precipitated with diethyl ether and washed with diethyl ether thrice before resuspension in water ad lyophilization. Identity and purity were determined via C18-HPLC and LTQ Orbitrap XL MS (both Thermo Fisher Scientific).",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003429",
+   "cvLabel": "MS",
+   "name": "FragPipe"
+  }
+ ],
+ "submissionDate": "2024-11-30",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "Department of Peptide-based Immunotherapy, University and Universityhospital of T\u00fcbingen\nQuantitative Biology Center, University of T\u00fcbingen",
+   "country": "Germany",
+   "email": "jonas.scheid@uni-tuebingen.de",
+   "firstName": "Jonas",
+   "id": "2841945",
+   "identifier": "2841945",
+   "lastName": "Scheid",
+   "name": "Jonas Scheid",
+   "orcid": "0000-0002-5923-1343",
+   "title": "Mr"
+  }
+ ],
+ "title": "MHCquant2 refines immunopeptidomics tumor antigen discovery",
+ "totalFileDownloads": 29094
+}

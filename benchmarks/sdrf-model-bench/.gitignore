@@ -12,3 +12,4 @@ outputs-tune/
 # The frozen pack is the benchmark: a collaborator needs it to reproduce the runs, and the root
 # .gitignore excludes every data/ directory. Everything in it is CC-licensed and it is under 1 MB.
 !data/
+*.validation.json
