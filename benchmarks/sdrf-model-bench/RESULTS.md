@@ -3,7 +3,7 @@
 Three independent benchmarks, scored with **one rubric**. The rubric is the deterministic score of
 `sdrf-bench score`: validity 20, completeness 15, accuracy 50, specificity 15. It uses the triage
 classes of bigbio/sdrf-skills PR #24, and every run is compared against the same curated references.
-All figures come from `sdrf-bench report` and share one style.
+All figures come from `sdrf-bench report` and share one style. The conference set, with talking points, is in [results/figures/](results/figures/README.md).
 
 | Benchmark | Question | Datasets | Figures |
 |---|---|---|---|
