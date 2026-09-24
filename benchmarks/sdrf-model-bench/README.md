@@ -5,7 +5,7 @@ with and without the [sdrf-skills](https://github.com/bigbio/sdrf-skills) workfl
 costs. Every SDRF is scored against a curated reference from
 [sdrf-annotated-datasets](https://github.com/bigbio/sdrf-annotated-datasets).
 
-**Results and figures: [RESULTS.md](RESULTS.md).**
+**Results: [RESULTS.md](RESULTS.md). Conference figures with talking points: [results/figures/](results/figures/README.md).**
 
 ## Layout
 
@@ -18,6 +18,8 @@ costs. Every SDRF is scored against a curated reference from
 | `external/` | the collaborators' own SDRFs, scored with the same rubric (`import_external.py`) |
 | `results/main/` | figures and scored runs for the 15-dataset benchmark |
 | `results/collaborators/` | figures and scored runs on the collaborators' datasets |
+| `results/figures/` | the conference figure set (`sdrf-bench figures`) and its README |
+| `results/history/` | the pre-redesign sdrf-skills runs, for the before/after figure |
 | `models.yaml`, `pricing.yaml` | model roster and API-equivalent prices |
 | `run_fast.sh` | the runner used for the published results |
 

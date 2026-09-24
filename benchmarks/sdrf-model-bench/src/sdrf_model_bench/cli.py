@@ -82,6 +82,13 @@ def build_parser() -> argparse.ArgumentParser:
     o.add_argument("--data", type=Path, default=Path("data"),
                    help="frozen pack, used to draw the reads-no-evidence baseline")
 
+    g = sub.add_parser("figures", help="the conference figure set (results/figures)")
+    g.add_argument("--main", type=Path, default=Path("results/main/runs.jsonl"))
+    g.add_argument("--collab", type=Path, default=Path("results/collaborators/ours.jsonl"))
+    g.add_argument("--external", type=Path, default=Path("results/collaborators/external.jsonl"))
+    g.add_argument("--history", type=Path, default=Path("results/history/skills_v2.jsonl"))
+    g.add_argument("--out", type=Path, default=Path("results/figures"))
+
     m = sub.add_parser("prompt", help="print the exact raw-arm messages for one run")
     m.add_argument("--accession", default="")
     m.add_argument("--manuscript", choices=["on", "off"], default="on")
@@ -332,6 +339,13 @@ def cmd_report(args) -> int:
     return 0
 
 
+def cmd_figures(args) -> int:
+    from sdrf_model_bench.figures import render_all
+    for name in render_all(args.main, args.collab, args.external, args.history, args.out):
+        print(f"  {args.out / name}")
+    return 0
+
+
 def cmd_prompt(args) -> int:
     from sdrf_model_bench.evidence import load_evidence
     from sdrf_model_bench.prompts import build_messages
@@ -372,7 +386,7 @@ def cmd_pack(args) -> int:
 def main(argv=None) -> int:
     args = build_parser().parse_args(argv)
     return {"select": cmd_select, "replace": cmd_replace, "freeze": cmd_freeze, "run": cmd_run, "score": cmd_score,
-            "report": cmd_report, "prompt": cmd_prompt, "pack": cmd_pack}[args.command](args)
+            "report": cmd_report, "figures": cmd_figures, "prompt": cmd_prompt, "pack": cmd_pack}[args.command](args)
 
 
 if __name__ == "__main__":

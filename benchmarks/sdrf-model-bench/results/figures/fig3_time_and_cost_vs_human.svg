@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="959.76pt" height="540pt" viewBox="0 0 959.76 540" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:date>2026-09-24T08:56:35.224769</dc:date>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>Matplotlib v3.11.2, https://matplotlib.org/</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 540 
+L 959.76 540 
+L 959.76 0 
+L 0 0 
+z
+" style="fill: #ffffff"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 287.928 469.8 
+L 825.3936 469.8 
+L 825.3936 102.6 
+L 287.928 102.6 
+z
+" style="fill: #ffffff"/>
+   </g>
+   <g id="matplotlib.axis_1">
+    <g id="xtick_1">
+     <g id="line2d_1">
+      <path d="M 287.928 469.8 
+L 287.928 102.6 
+" clip-path="url(#p255e968def)" style="fill: none; stroke: #e3e6ea; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_2"/>
+     <g id="text_1">
+      <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #5b6470" x="287.928" y="485.676" transform="rotate(-0 287.928 485.676)">0</text>
+     </g>
+    </g>
+    <g id="xtick_2">
+     <g id="line2d_3">
+      <path d="M 391.286769 469.8 
+L 391.286769 102.6 
+" clip-path="url(#p255e968def)" style="fill: none; stroke: #e3e6ea; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_4"/>
+     <g id="text_2">
+      <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #5b6470" x="391.286769" y="485.676" transform="rotate(-0 391.286769 485.676)">10</text>
+     </g>
+    </g>
+    <g id="xtick_3">
+     <g id="line2d_5">
+      <path d="M 494.645538 469.8 
+L 494.645538 102.6 
+" clip-path="url(#p255e968def)" style="fill: none; stroke: #e3e6ea; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_6"/>
+     <g id="text_3">
+      <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #5b6470" x="494.645538" y="485.676" transform="rotate(-0 494.645538 485.676)">20</text>
+     </g>
+    </g>
+    <g id="xtick_4">
+     <g id="line2d_7">
+      <path d="M 598.004308 469.8 
+L 598.004308 102.6 
+" clip-path="url(#p255e968def)" style="fill: none; stroke: #e3e6ea; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_8"/>
+     <g id="text_4">
+      <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #5b6470" x="598.004308" y="485.676" transform="rotate(-0 598.004308 485.676)">30</text>
+     </g>
+    </g>
+    <g id="xtick_5">
+     <g id="line2d_9">
+      <path d="M 701.363077 469.8 
+L 701.363077 102.6 
+" clip-path="url(#p255e968def)" style="fill: none; stroke: #e3e6ea; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_10"/>
+     <g id="text_5">
+      <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #5b6470" x="701.363077" y="485.676" transform="rotate(-0 701.363077 485.676)">40</text>
+     </g>
+    </g>
+    <g id="xtick_6">
+     <g id="line2d_11">
+      <path d="M 804.721846 469.8 
+L 804.721846 102.6 
+" clip-path="url(#p255e968def)" style="fill: none; stroke: #e3e6ea; stroke-linecap: square"/>
+     </g>
+     <g id="line2d_12"/>
+     <g id="text_6">
+      <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #5b6470" x="804.721846" y="485.676" transform="rotate(-0 804.721846 485.676)">50</text>
+     </g>
+    </g>
+    <g id="text_7">
+     <text style="font-size: 12px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: middle; fill: #5b6470" x="556.6608" y="503.869" transform="rotate(-0 556.6608 503.869)">minutes per SDRF (mean over the 4 datasets)</text>
+    </g>
+   </g>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_13"/>
+     <g id="text_8">
+      <text style="font-size: 14px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: end; fill: #1b1f24" x="284.428" y="139.936822" transform="rotate(-0 284.428 139.936822)">Human curator</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_14"/>
+     <g id="text_9">
+      <text style="font-size: 14px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: end; fill: #1b1f24" x="284.428" y="183.630302" transform="rotate(-0 284.428 183.630302)">Dai, sdrf-skills session</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_15"/>
+     <g id="text_10">
+      <text style="font-size: 14px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: end; fill: #1b1f24" x="284.428" y="227.323781" transform="rotate(-0 284.428 227.323781)">Opus 5 + sdrf-skills</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_16"/>
+     <g id="text_11">
+      <text style="font-size: 14px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: end; fill: #1b1f24" x="284.428" y="271.01726" transform="rotate(-0 284.428 271.01726)">Opus 5 prompt only</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_17"/>
+     <g id="text_12">
+      <text style="font-size: 14px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: end; fill: #1b1f24" x="284.428" y="314.71074" transform="rotate(-0 284.428 314.71074)">Sonnet 5 + sdrf-skills</text>
+     </g>
+    </g>
+    <g id="ytick_6">
+     <g id="line2d_18"/>
+     <g id="text_13">
+      <text style="font-size: 14px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: end; fill: #1b1f24" x="284.428" y="358.404219" transform="rotate(-0 284.428 358.404219)">Sonnet 5 prompt only</text>
+     </g>
+    </g>
+    <g id="ytick_7">
+     <g id="line2d_19"/>
+     <g id="text_14">
+      <text style="font-size: 14px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: end; fill: #1b1f24" x="284.428" y="402.097698" transform="rotate(-0 284.428 402.097698)">Haiku 4.5 + sdrf-skills</text>
+     </g>
+    </g>
+    <g id="ytick_8">
+     <g id="line2d_20"/>
+     <g id="text_15">
+      <text style="font-size: 14px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: end; fill: #1b1f24" x="284.428" y="445.791178" transform="rotate(-0 284.428 445.791178)">Haiku 4.5 prompt only</text>
+     </g>
+    </g>
+   </g>
+   <g id="patch_3">
+    <path d="M 287.928 147.254736 
+L 665.187508 147.254736 
+L 665.187508 119.290909 
+L 287.928 119.290909 
+z
+" clip-path="url(#p255e968def)" style="fill: #1b1f24; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 287.928 190.948215 
+L 343.723648 190.948215 
+L 343.723648 162.984388 
+L 287.928 162.984388 
+z
+" clip-path="url(#p255e968def)" style="fill: #f2a541; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 287.928 234.641694 
+L 377.528147 234.641694 
+L 377.528147 206.677868 
+L 287.928 206.677868 
+z
+" clip-path="url(#p255e968def)" style="fill: #e4572e; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 287.928 278.335174 
+L 511.374273 278.335174 
+L 511.374273 250.371347 
+L 287.928 250.371347 
+z
+" clip-path="url(#p255e968def)" style="fill: #8a99ab; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 287.928 322.028653 
+L 398.90164 322.028653 
+L 398.90164 294.064826 
+L 287.928 294.064826 
+z
+" clip-path="url(#p255e968def)" style="fill: #e4572e; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_8">
+    <path d="M 287.928 365.722132 
+L 473.191913 365.722132 
+L 473.191913 337.758306 
+L 287.928 337.758306 
+z
+" clip-path="url(#p255e968def)" style="fill: #8a99ab; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_9">
+    <path d="M 287.928 409.415612 
+L 324.573534 409.415612 
+L 324.573534 381.451785 
+L 287.928 381.451785 
+z
+" clip-path="url(#p255e968def)" style="fill: #e4572e; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_10">
+    <path d="M 287.928 453.109091 
+L 412.84287 453.109091 
+L 412.84287 425.145264 
+L 287.928 425.145264 
+z
+" clip-path="url(#p255e968def)" style="fill: #8a99ab; stroke: #ffffff; stroke-width: 2; stroke-linejoin: miter"/>
+   </g>
+   <g id="patch_11">
+    <path d="M 287.928 469.8 
+L 825.3936 469.8 
+" style="fill: none; stroke: #e3e6ea; stroke-width: 0.8; stroke-linejoin: miter; stroke-linecap: square"/>
+   </g>
+   <g id="text_16">
+    <text style="font-weight: 700; font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1b1f24" x="671.389034" y="138.199822" transform="rotate(-0 671.389034 138.199822)">36 min</text>
+   </g>
+   <g id="text_17">
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1b1f24" x="349.925174" y="181.769802" transform="rotate(-0 349.925174 181.769802)">5 min   7× faster</text>
+   </g>
+   <g id="text_18">
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1b1f24" x="383.729673" y="225.463281" transform="rotate(-0 383.729673 225.463281)">9 min · $3.38   4× faster</text>
+   </g>
+   <g id="text_19">
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1b1f24" x="517.575799" y="269.15676" transform="rotate(-0 517.575799 269.15676)">22 min · $6.64   2× faster</text>
+   </g>
+   <g id="text_20">
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1b1f24" x="405.103167" y="312.85024" transform="rotate(-0 405.103167 312.85024)">11 min · $1.95   3× faster</text>
+   </g>
+   <g id="text_21">
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1b1f24" x="479.393439" y="356.543719" transform="rotate(-0 479.393439 356.543719)">18 min · $2.81   2× faster</text>
+   </g>
+   <g id="text_22">
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1b1f24" x="330.77506" y="400.237198" transform="rotate(-0 330.77506 400.237198)">4 min · $0.31   10× faster</text>
+   </g>
+   <g id="text_23">
+    <text style="font-size: 13px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1b1f24" x="419.044396" y="443.930678" transform="rotate(-0 419.044396 443.930678)">12 min · $0.83   3× faster</text>
+   </g>
+  </g>
+  <g id="text_24">
+   <text style="font-weight: 700; font-size: 27px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #1b1f24" x="43.1892" y="40.5" transform="rotate(-0 43.1892 40.5)">From 36 minutes of curation to a few minutes and a few dollars</text>
+  </g>
+  <g id="text_25">
+   <text style="font-size: 15px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #5b6470" x="43.1892" y="69.12" transform="rotate(-0 43.1892 69.12)">Minutes per SDRF on Chengxin Dai's 4 datasets (12 to 1,560 rows), with the API cost of each AI run</text>
+  </g>
+  <g id="text_26">
+   <text style="font-size: 10.5px; font-family: 'Helvetica Neue', 'Helvetica', 'Arial', 'DejaVu Sans'; text-anchor: start; fill: #5b6470" x="43.1892" y="521.1" transform="rotate(-0 43.1892 521.1)">Human and Dai's session times from Dai's manual-vs-skills benchmark (same 4 datasets). Our runs: offline, no paper, 3 in parallel on one laptop; cost = Claude Code total_cost_usd.</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p255e968def">
+   <rect x="287.928" y="102.6" width="537.4656" height="367.2"/>
+  </clipPath>
+ </defs>
+</svg>
