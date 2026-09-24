@@ -14,6 +14,12 @@ The core is **model-agnostic and headless-testable**: every stage takes injected
 (`generate(messages) -> text`, `validate(text) -> {errors, warnings}`, evidence providers), so the
 logic is unit-tested with fakes and the real backends wire in at the edge.
 
+## Model benchmark
+
+[`benchmarks/sdrf-model-bench/`](benchmarks/sdrf-model-bench/) measures how well Claude models write
+SDRFs with and without the sdrf-skills workflow, scored against curated references; results and
+figures are in its [RESULTS.md](benchmarks/sdrf-model-bench/RESULTS.md).
+
 ## Layout (`src/sdrf_agentic_annotator/`)
 
 | area | modules |

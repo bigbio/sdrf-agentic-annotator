@@ -7,15 +7,16 @@ All figures come from `sdrf-bench report` and share one style.
 
 | Benchmark | Question | Datasets | Figures |
 |---|---|---|---|
-| **sdrf-model-bench v4** (ours) | Does the redesigned sdrf-skills (`contract` + `build`) beat the prompt alone, and at what cost? | 15 (TMT, LFQ, DIA), frozen in `data-v2/` | `results-v4-off/` |
-| **Chengxin Dai**: manual vs skills | How does a skills session compare with a human curator, in quality and time? | 4 (`data-ext/`) | `results-ext-all/slide_dai*`, `backup_9_*` |
-| **Jonas Scheid**: sdrf-skills PR #24 | With vs without skills, same model, same session type | 2 (`data-ext/`) | `results-ext-all/slide_jonas*`, `backup_8_*` |
+| **sdrf-model-bench v4** (ours) | Does the redesigned sdrf-skills (`contract` + `build`) beat the prompt alone, and at what cost? | 15 (TMT, LFQ, DIA), frozen in `data/` | `results/main/` |
+| **Chengxin Dai**: manual vs skills | How does a skills session compare with a human curator, in quality and time? | 4 (`data-ext/`) | `results/collaborators/slide_dai*`, `backup_9_*` |
+| **Jonas Scheid**: sdrf-skills PR #24 | With vs without skills, same model, same session type | 2 (`data-ext/`) | `results/collaborators/slide_jonas*`, `backup_8_*` |
 
 ## 1. sdrf-model-bench v4: the redesigned skills
 
 15 datasets, annotated offline from the frozen PRIDE record and the file list, without the paper.
-One replicate per dataset. Raw arms are the v2 runs, with prompts unchanged. The v2 skills arm is
-the skills as shipped before the redesign.
+One replicate per dataset. The "skills v2" column is the same benchmark run with the skills as
+shipped before the redesign (bigbio/sdrf-skills #91–#98); those runs are not included here, only
+their means. The prompt-only runs are unchanged between the two.
 
 | model | prompt only | skills v2 | **skills v4** | cost/SDRF v2 → v4 | minutes v2 → v4 | validity v2 → v4 |
 |---|---|---|---|---|---|---|
@@ -31,14 +32,14 @@ the skills as shipped before the redesign.
   single replicate. The cells that dropped are the next thing to look at.
 - **All three configurations beat the no-evidence baseline**: a file filled with priors scores 64.
 
-Figures: `results-v4-off/slide.png` (headline), `backup_4_components.png` (where the points come
+Figures: `results/main/slide.png` (headline), `backup_4_components.png` (where the points come
 from), `backup_5_cost_vs_quality.png`, and `backup_7_triage.png` (kinds of disagreement).
 
 Reproduce:
 
 ```bash
-uv run sdrf-bench report --results results-v4/runs.jsonl --manuscript off --deterministic \
-    --out results-v4-off --data data-v2
+uv run sdrf-bench report --results results/main/runs.jsonl --manuscript off --deterministic \
+    --out results/main --data data
 ```
 
 ## 2. The collaborators' benchmarks, rescored
@@ -65,7 +66,7 @@ MS:1002481, a different term. That is a reference defect, not a worse file.
 
 ### Our six configurations on their datasets
 
-Offline, no paper, one replicate. Figures in `results-ext-all/`.
+Offline, no paper, one replicate. Figures in `results/collaborators/`.
 
 **Dai's four datasets** (`slide_dai.png`):
 
@@ -103,9 +104,9 @@ Reproduce:
 
 ```bash
 uv run python import_external.py
-uv run sdrf-bench score --data data-ext --outputs outputs-external --out results-external/runs.jsonl --no-judge
-uv run sdrf-bench report --results results-ext/runs.jsonl results-external/runs.jsonl --deterministic \
-    --collaborators-only --out results-ext-all --data data-ext
+uv run sdrf-bench score --data data-ext --outputs outputs-external --out results/collaborators/external.jsonl --no-judge
+uv run sdrf-bench report --results results/collaborators/ours.jsonl results/collaborators/external.jsonl \
+    --deterministic --collaborators-only --out results/collaborators --data data-ext
 ```
 
 **Not comparable, by design:** the collaborators ran their own sessions with network access and
@@ -113,7 +114,7 @@ the paper. Ours are offline, from the PRIDE record and file list only. For examp
 iProX-hosted and its record carries no protocol text, so without the paper a model cannot tell
 that it is TMT.
 
-## Rubric changes in this round
+## Scoring notes
 
 - **Reference-fault-neutral validity.** A validator error class that the curated reference fails
   too is not counted against a run. The classes are cached per dataset as

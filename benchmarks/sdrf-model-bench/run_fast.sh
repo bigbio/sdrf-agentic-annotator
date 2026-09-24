@@ -4,7 +4,7 @@
 set -u
 cd "$(dirname "$0")"
 export SDRF_BENCH_ALLOW_PLUGIN_TOOLS=1
-DATA=${DATA:-data-v2}; OUTPUTS=${OUTPUTS:-outputs-v4}; RESULTS=${RESULTS:-results-v4}
+DATA=${DATA:-data}; OUTPUTS=${OUTPUTS:-outputs}; RESULTS=${RESULTS:-results/main}
 ORDER=${ORDER:-sonnet-5-skills,haiku-4.5-skills,opus-5-skills}
 stamp() { echo "=== $(date '+%F %T') $*"; }
 for m in ${ORDER//,/ }; do

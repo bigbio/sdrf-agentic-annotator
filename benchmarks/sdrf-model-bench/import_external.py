@@ -8,7 +8,7 @@ the same rubric, validator and references as our own runs.
                    skills and one without, on PXD037221 (E. coli TMT) and PXD058436 (MHCquant2)
 
     uv run python import_external.py && uv run sdrf-bench score --data data-ext \
-        --outputs outputs-external --out results-external/runs.jsonl --no-judge
+        --outputs outputs-external --out results/collaborators/external.jsonl --no-judge
 """
 
 from __future__ import annotations

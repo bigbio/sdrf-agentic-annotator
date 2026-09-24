@@ -1,13 +1,16 @@
-accession	qtype	tier	pride_quality	organism	n_rows	has_deposited_sdrf	pmcid	license
-PXD041514	DIA	poor	0.75	homo sapiens	2	False	PMC10518100	cc by
-PXD064698	DIA	poor	0.625	homo sapiens	12	False	PMC13155135	cc by
-PXD065157	DIA	rich	1.0	homo sapiens	12	False	PMC13259592	cc by-nc
-PXD055348	DIA	rich	1.0	homo sapiens	6	False	PMC11471813	cc by
-PXD024285	LFQ	poor	0.625	bacillus subtilis subsp. subtilis 6051-hgw	45	False	PMC9909930	cc by
-PXD009443	LFQ	poor	0.625	saccharomyces cerevisiae	12	False	PMC6023615	cc by
-PXD001662	LFQ	rich	0.875	corynebacterium glutamicum k051	10	False	PMC4767432	cc by
-PXD040200	LFQ	rich	0.875	homo sapiens	2	False	PMC10163259	cc by
-PXD009157	TMT	poor	0.75	plasmodium falciparum	66	False	PMC6402698	cc by
-PXD062219	TMT	poor	0.75	cereibacter sphaeroides	54	True	PMC12860648	cc by
-PXD028309	TMT	rich	1.0	homo sapiens	28	False	PMC9134101	cc by
-PXD014871	TMT	rich	1.0	homo sapiens	11	False	PMC6879431	cc by
+accession	qtype	tier	pride_quality	organism	n_rows	has_manuscript	has_deposited_sdrf	n_raw_files	slot	baseline	pmcid	license
+PXD000878	LFQ	rich	0.875	mus musculus	70	false	False	70	free/frac-filename	63.6		
+PXD002804	LFQ	poor	0.625	Escherichia coli	55	false	False	55	free/frac-filename	63.8		
+PXD003039	LFQ	rich	1.0	mus musculus	84	true	False	84	ms/cell-line	64.7	PMC5438363	cc by
+PXD006008	LFQ	poor	0.625	Escherichia coli	48	true	False	48	free/frac-filename	62.6	PMC5591237	cc by
+PXD014871	TMT	rich	1.0	Homo sapiens	11	true	False	4	ms/TMT	67.7	PMC6879431	cc by
+PXD015240	LFQ	rich	0.875	Bos taurus	36	true	False	36	ms/prior-fails	55.0	PMC6885703	cc by
+PXD016662	DIA	rich	0.875	Rattus norvegicus	36	true	False	36	ms/DIA	64.4	PMC7124470	cc by
+PXD022949	LFQ	rich	1.0	Homo sapiens	24	true	False	24	ms/demographics	62.9	PMC8724932	cc by
+PXD026581	TMT	rich	1.0	Homo sapiens	36	false	False	36	free/TMT	63.8		
+PXD036580	TMT	rich	0.875	Escherichia coli	20	false	False	20	free/TMT	65.3		
+PXD041421	DIA	poor	0.75	Homo sapiens	48	true	False	48	ms/demographics	60.1	PMC10693559	cc by
+PXD058044	DIA	poor	0.75	Mus musculus	10	false	True	10	free/DIA	64.1		
+PXD060259	DIA	rich	1.0	Mus musculus	30	true	True	30	ms/DIA	65.0	PMC13031966	cc by
+PXD062322	TMT	rich	1.0	mus musculus	40	false	True	10	free/TMT	64.0		
+PXD065279	DIA	rich	1.0	Homo sapiens	15	false	False	15	free/DIA	74.5		
