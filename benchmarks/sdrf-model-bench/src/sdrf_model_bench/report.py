@@ -362,14 +362,15 @@ def render_backups(records: list[dict], summary: list[dict], outdir: Path, theme
     for r in records:
         by_model[r["model_id"]].append(r)
 
-    # 1. Does the paper help?
-    _paired_chart(summary, t, outdir / "backup_1_manuscript",
-                  "Does giving the model the paper help?",
-                  "Same datasets, annotated from PRIDE metadata alone and again with the paper's Methods section",
-                  lambda r: _by_manuscript(by_model[r["model_id"]], False),
-                  lambda r: _by_manuscript(by_model[r["model_id"]], True),
-                  "without the paper", "with the paper",
-                  "Change = with minus without, averaged per dataset.")
+    # 1. Does the paper help? (only when both conditions were run)
+    if any(r["manuscript"] for r in records) and any(not r["manuscript"] for r in records):
+        _paired_chart(summary, t, outdir / "backup_1_manuscript",
+                      "Does giving the model the paper help?",
+                      "Same datasets, annotated from PRIDE metadata alone and again with the paper's Methods section",
+                      lambda r: _by_manuscript(by_model[r["model_id"]], False),
+                      lambda r: _by_manuscript(by_model[r["model_id"]], True),
+                      "without the paper", "with the paper",
+                      "Change = with minus without, averaged per dataset.")
 
     # 3. Does better PRIDE metadata help?
     _paired_chart(summary, t, outdir / "backup_3_pride_metadata",

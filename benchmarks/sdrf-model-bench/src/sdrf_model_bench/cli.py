@@ -82,7 +82,7 @@ def build_parser() -> argparse.ArgumentParser:
     o.add_argument("--data", type=Path, default=Path("data"),
                    help="frozen pack, used to draw the reads-no-evidence baseline")
 
-    m = sub.add_parser("prompt", help="print the exact raw-arm messages for one run (for SUBMISSION.md)")
+    m = sub.add_parser("prompt", help="print the exact raw-arm messages for one run")
     m.add_argument("--accession", default="")
     m.add_argument("--manuscript", choices=["on", "off"], default="on")
     m.add_argument("--data", type=Path, default=Path("data"))
