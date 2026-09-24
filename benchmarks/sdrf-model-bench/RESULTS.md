@@ -51,13 +51,17 @@ an outputs tree, and `sdrf-bench score` does the rest.
 | Dai, skills session (network + paper) | 82.7 | 81.1 | 88.2 | 93.3 | | |
 | human curator time (Dai) | 45 min | 46 min | 35 min | 20 min | | |
 | Dai's skills session time | 10.5 min | 3.7 min | 3.1 min | 4.3 min | | |
-| Jonas, with skills | | | | | 84.8 | 98.5\* |
+| Jonas, with skills | | | | | 82.5† | 98.5\* |
 | Jonas, without skills | | | | | 84.5 | 92.1\* |
 
 \* The curated PXD058436 reference in sdrf-annotated-datasets was contributed by Jonas
 (2026-07-10), and his with-skills file is nearly the same text. Scoring his SDRFs against it is
 circular, so the runs are flagged `reference_same_author`, shown in the per-dataset figure, and left
 out of the headline slide.
+
+† Scored after the corrections below; it was 84.8 as delivered. The drop comes from the corrected
+HCD accession (MS:1000422, which OLS gives `HCD` as a synonym): the curated reference still carries
+MS:1002481, a different term. That is a reference defect, not a worse file.
 
 ### Our six configurations on their datasets
 
@@ -125,15 +129,20 @@ that it is TMT.
 - **`report --collaborators-only`** renders only the per-collaborator figures. A pooled slide
   would average configurations over different sets of datasets.
 
-## Independent review of the collaborators' SDRFs
+## Independent review and correction of the collaborators' SDRFs
 
-The session's review gate ran a fresh adversarial reviewer on each of the eight files, with none of
-the scores or references. Five passed. Three failed, and the findings go back to their authors:
+The session's review gate ran a fresh adversarial reviewer on each of the eight files. The
+reviewers were not given the scores or references. Five passed as delivered. Three failed, and
+were corrected in `external/` (the originals are in git history). Each edit came from primary
+evidence and was re-reviewed by a new reviewer until it passed; all eight now carry a passing,
+hash-bound review receipt.
 
-- **Dai PXD013923:** the 54 `*_P0x` files are labelled phospho-enriched, but they are the
-  non-enriched whole-proteome aliquots; no channel is annotated as the DMSO control.
-- **Dai PXD019515:** HeLa rows lack disease and sex (Cellosaurus CVCL_0030).
-- **Jonas PXD037221 with skills:** the N-terminal TMT modification is missing from the search
-  settings.
+| file | corrections (evidence) | score as delivered → corrected |
+|---|---|---|
+| Dai PXD013923 (SILAC) | treatment per channel: light = DMSO, heavy = inhibitor, medium = super-SILAC internal standard (the authors' deposited SDRF plus the paper; the deposited file breaks the pattern on 5 files of one run, ERK3 P02–P06, and the run's own P01 follows it); enrichment `not applicable` on the 54 non-enriched `*_P0x` proteome files (paper Methods); biological replicate 1–3 from the MaxQuant experiment names (deposited `summary.txt`); fragment tolerance 20 ppm (deposited `parameters.txt`, FTMS); cell type `epithelial cell`; `cell-lines` template with Cellosaurus CVCL_0132 / A-375, female, 54Y; HCD → MS:1000422 | 81.1 → 81.1 (sample-level fields are not scored for SILAC references) |
+| Dai PXD019515 | HeLa rows: disease `endocervical adenocarcinoma` (MONDO:0000554), sex female, Cellosaurus CVCL_0030, `cell-lines` template, isolation `capillary-based micromanipulation` (paper Methods); HCD → MS:1000422 | 93.3 → 93.3 |
+| Jonas PXD037221 with skills | added the N-terminal TMT6plex search modification (paper: "TMT plex … specified as N-terminal modifications"); HCD → MS:1000422; `characteristics[strain or breed]` header; `factor value[genotype]`; removed an out-of-template temperature column and a placeholder `comment[tool metadata]` column | 84.8 → 82.5† |
 
-The files are scored as delivered, and the benchmark does not edit them.
+Two things for the spec: there is no bacteria template, so `strain or breed` and `genotype` columns
+for E. coli have no in-scope home; and the `cell-lines` template forbids `not applicable` for the
+Cellosaurus accession, which a mixed file (cell line plus primary neurons, as in PXD019515) needs.
