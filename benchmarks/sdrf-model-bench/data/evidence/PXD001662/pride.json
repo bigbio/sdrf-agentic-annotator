@@ -1,0 +1,172 @@
+{
+ "accession": "PXD001662",
+ "additionalAttributes": [],
+ "botCount": 782,
+ "countries": [
+  "Japan"
+ ],
+ "dataProcessingProtocol": "Samples were analyzed by reverse-phase nano HPLC-MS/MS using the EASY-nLC 1000 HPLC system (Thermo Fisher Scientific) connected to a Q Exactive mass spectrometer (Thermo Fisher Scientific). Mass spectrometric data were processed using the Proteome Discoverer (ver. 1.4, Thermo Fisher Scientific). Data were searched against C. glutamicum ATCC13032 sequences (NC_003450, 2959 entries) in the database using with the MASCOT search engine (ver. 2.4.1). The search parameters in MASCOT included trypsin digestion with six missed cleavages allowed. Variable modifications included lysine acetylation, lysine succinylation, and methionine oxidation, and cysteine carbamidomethylation was set as a fixed modification.",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000433",
+   "cvLabel": "PRIDE",
+   "name": "Affinity purification coupled with mass spectrometry proteomics"
+  }
+ ],
+ "hubCount": 1233,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00394",
+   "cvLabel": "MOD",
+   "name": "acetylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:01819",
+   "cvLabel": "MOD",
+   "name": "N6-succinyl-L-lysine"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001911",
+   "cvLabel": "MS",
+   "name": "Q Exactive"
+  }
+ ],
+ "keywords": [
+  "Acetylome",
+  "Succinylome",
+  "Glutamate production",
+  "Corynebacterium glutamicum",
+  "Lc-ms/ms"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Biotechnology Research Center, the University of Tokyo, Japan",
+   "country": "",
+   "email": "uskos@mail.ecc.u-tokyo.ac.jp",
+   "firstName": "Saori",
+   "id": "15710100",
+   "identifier": "15710100",
+   "lastName": "Kosono",
+   "name": "Saori Kosono",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "EBI terms of use",
+ "organicCount": 18,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0004304",
+   "cvLabel": "BTO",
+   "name": "Cell lysate"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:1204414",
+   "cvLabel": "NEWT",
+   "name": "Corynebacterium glutamicum (strain atcc 13032 / k051)"
+  }
+ ],
+ "projectDescription": "Profiles of two major acyl-modifications, lysine acetylation and succinylation, under L-glutamate-producting and non-producing conditions in Corynebacterium glutamicum, which is industrially utilized for amino acid fermentation, was analyzed. During glutamate overproduction induced by Tween 40, global lysine acetylation was decreased, while lysine succinylation was increased. A label-free semi-quantitative proteomic analysis identified 591 acetylated proteins with 1,509 unique acetylation sites and 297 succinylated proteins with 790 unique succinylation sites. Lysine acetylation and succinylation targeted most enzymes in the central carbon metabolic pathways that are directly related to glutamate production, including the 2-oxoglutarate dehydrogenase complex (ODHC), a key enzyme for glutamate overproduction.",
+ "projectTags": [
+  "Biological"
+ ],
+ "publicationDate": "2015-12-21",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000436",
+   "cvLabel": "PRIDE",
+   "name": "Spectrum counting"
+  }
+ ],
+ "references": [
+  {
+   "doi": "10.1002/mbo3.320",
+   "pubmedID": 26663479,
+   "referenceLine": "Mizuno Y, Nagano-Shoji M, Kubo S, Kawamura Y, Yoshida A, Kawasaki H, Nishiyama M, Yoshida M, Kosono S. Altered acetylation and succinylation profiles in Corynebacterium glutamicum in response to conditions inducing glutamate overproduction. Microbiologyopen. 2015 Dec 11"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0004304",
+     "cvLabel": "BTO",
+     "name": "cell lysate"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:1204414",
+     "cvLabel": "NEWT",
+     "name": "Corynebacterium glutamicum (strain ATCC 13032 / K051)"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Lysate containing 2 mg protein was reduced, alkylated, digested with trypsin, and acetylated or succinylated peptides were enriched by anti-acetyllysine or succinyllysine antibodies. For acetylome analysis, acetyllysine peptide standard (1 fmole; m/z 1225.7; FKAcAEVYVLSK corresponding to the residues 307 to 316 of B. subtilis TufA) was added to the proteolytic peptides before immunoprecipitation. To analyse proteome in each glutamate-producing and non-producing condition, lysate containing 25 \u03bcg of protein was reduced, alkylated, digested with trypsin, and subjected to HPLC-MS/MS analysis.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001207",
+   "cvLabel": "MS",
+   "name": "Mascot"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000650",
+   "cvLabel": "MS",
+   "name": "Proteome Discoverer"
+  }
+ ],
+ "submissionDate": "2015-01-09",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "UTokyo",
+   "country": "Japan",
+   "email": "uskos@mail.ecc.u-tokyo.ac.jp",
+   "firstName": "Saori",
+   "id": "15590100",
+   "identifier": "15590100",
+   "lastName": "Kosono",
+   "name": "Saori Kosono",
+   "orcid": "0000-0001-7108-5142",
+   "title": "Dr"
+  }
+ ],
+ "title": "Acetylome and succinylome of Corynebacterium glutamicum",
+ "totalFileDownloads": 2033
+}

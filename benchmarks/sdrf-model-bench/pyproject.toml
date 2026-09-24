@@ -1,0 +1,23 @@
+[project]
+name = "sdrf-model-bench"
+version = "1.0.0"
+description = "Benchmark LLMs on producing SDRF-Proteomics files"
+requires-python = ">=3.11"
+dependencies = ["requests>=2.31", "pyyaml>=6", "anthropic>=0.60", "matplotlib>=3.8"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+sdrf-bench = "sdrf_model_bench.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

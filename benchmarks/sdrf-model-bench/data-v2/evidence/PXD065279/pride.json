@@ -1,0 +1,265 @@
+{
+ "accession": "PXD065279",
+ "additionalAttributes": [],
+ "botCount": 466,
+ "countries": [
+  "Netherlands"
+ ],
+ "dataProcessingProtocol": "An immunopeptidome spectral library from A375 cells was generated using DDA data in FragPipe v21 using the 'nonspecific-HLA-C57' protocol. DIA immunopeptidomes A375 cell lines were analyzed with this generated spectral library and annoated with the reviewed UniProt human proteome database in DIA-NN 2.0 with mass accuracy set to 10 and MS1 accuracy set to 4. To determine the appropriate scan window, representative raw files from the experiment were first analyzed as \u2018Unrelated runs\u2019 and the DIA-NN suggested scan window radius was used for a subsequent full analysis. Match between runs was enabled for all experiments, with the exception of the comparison between MHC-1TIP and immunoprecipitation. Proteomics data was also analyzed with DIA-NN as described above, without the immunopeptidome spectral library. A predicted human proteome spectral library was first generated using the UniProt database in DIA-NN, which was then subsequently used to search raw files.",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:219",
+   "cvLabel": "DOID",
+   "name": "Colon cancer"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "DOID:1909",
+   "cvLabel": "DOID",
+   "name": "Melanoma"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "DOID:4450",
+   "cvLabel": "DOID",
+   "name": "Renal cell carcinoma"
+  }
+ ],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000450",
+   "cvLabel": "PRIDE",
+   "name": "Data-independent acquisition"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000428",
+   "cvLabel": "PRIDE",
+   "name": "Bottom-up proteomics"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000627",
+   "cvLabel": "PRIDE",
+   "name": "Data-dependent acquisition"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000649",
+   "cvLabel": "PRIDE",
+   "name": "Immunopeptidomics"
+  }
+ ],
+ "hubCount": 1656,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003378",
+   "cvLabel": "MS",
+   "name": "Orbitrap Astral"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003028",
+   "cvLabel": "MS",
+   "name": "Orbitrap Exploris 480"
+  }
+ ],
+ "keywords": [
+  "Tumours",
+  "Organoids",
+  "Proteomics",
+  "Heterogeneity",
+  "Melanoma",
+  "Immunopeptidomics"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Division of Molecular Genetics, the Netherlands Cancer Institute, the Netherlands",
+   "country": "",
+   "email": "r.lindeboom@nki.nl",
+   "firstName": "Rik Gerrit Hendrik",
+   "id": "3173107",
+   "identifier": "3173107",
+   "lastName": "Lindeboom",
+   "name": "Rik Gerrit Hendrik Lindeboom",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 31,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "CL:0000066",
+   "cvLabel": "CL",
+   "name": "Epithelial cell"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000269",
+   "cvLabel": "BTO",
+   "name": "Colon"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000214",
+   "cvLabel": "BTO",
+   "name": "Cell culture"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000671",
+   "cvLabel": "BTO",
+   "name": "Kidney"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "CL:0000148",
+   "cvLabel": "CL",
+   "name": "Melanocyte"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)"
+  }
+ ],
+ "projectDescription": "We developed MHC1-TIP: an optimized mild acid elution-based immunopeptidomics workflow that leverages data independent acquisition and the Astral mass analyzer to enable scalable, single-tube and cost-effective MHC-I ligandome profiling. This dataset includes immunopeptidomics and proteomics data from the A375 melanoma cell line, colorectal cancer patient-derived organoids, and renal cell carcinoma tumour fragments. We show the effects of TGF-beta treatment on the proteome and immunopeptidome of A375 cells and interferon-gamma treatment on patient-derived organoids. We also explore immunopeptidome and proteome heterogeneity in patient-derived tumour fragments.  MB_30: A375 immunopeptidomes in DDA (wildtype and B2M knockout); MB_38: Proteomes with and without mild acid treatment with A375 cells; MB_39: Proteomes and immunopeptidomes from TGFb treated A375 cells; MB_41: MHC1-TIP and MHC-I immunoprecipitation data from different A375 cell input numbers; MB_43: immunopeptidomes of A375 cells treated with different doses of interferon-gamma; MB_45: immunopeptidomes of A375 cells with MHC1-TIP and immunoprecipitation after mild acid elution to identify intracellular peptides; MB_46: Proteomics and immunopeptidomics data from 15 ex-vivo cultured patient-derived tumour fragments; MB_49: Proteomics and immunopeptidomics data from 3 patient-derived organoid lines.",
+ "projectTags": [],
+ "publicationDate": "2025-12-18",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "EFO:0030054",
+   "cvLabel": "PRIDE",
+   "name": "label-free quantification"
+  }
+ ],
+ "references": [],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000214",
+     "cvLabel": "BTO",
+     "name": "cell culture"
+    },
+    {
+     "accession": "BTO:0000671",
+     "cvLabel": "BTO",
+     "name": "kidney"
+    },
+    {
+     "accession": "CL:0000148",
+     "cvLabel": "CL",
+     "name": "melanocyte"
+    },
+    {
+     "accession": "CL:0000066",
+     "cvLabel": "CL",
+     "name": "epithelial cell"
+    },
+    {
+     "accession": "BTO:0000269",
+     "cvLabel": "BTO",
+     "name": "colon"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:219",
+     "cvLabel": "DOID",
+     "name": "colon cancer"
+    },
+    {
+     "accession": "DOID:1909",
+     "cvLabel": "DOID",
+     "name": "melanoma"
+    },
+    {
+     "accession": "DOID:4450",
+     "cvLabel": "DOID",
+     "name": "renal cell carcinoma"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "MHC1-TIP: peptide elution was performed either in-suspension or directly on-plate. In suspension, cells were washed with PBS, detached using trypsin-EDTA, resuspended in media, and washed with DPBS. All subsequent steps were conducted at 4\u202f\u00b0C using LoBind tubes and LC-grade water to minimize peptide loss. Cells were washed with 150\u202fmM NaCl and resuspended in 200\u202f\u03bcL mild acid elution buffer (131\u202fmM citric acid, 66\u202fmM Na\u2082HPO\u2084, 150\u202fmM NaCl, 25\u202fmM iodoacetamide, pH 3.3). After 3\u202fmin incubation, samples were centrifuged and the supernatant transferred to 10\u202fkDa ultrafilters prewashed with mild acid buffer. Organoids were treated with IFN\u03b3 (200\u202fng/mL) for 24 hours. They were harvested by cold PBS pipetting, incubated on ice to dissolve the matrix, washed with PBS and NaCl, and then processed with the MHC-I-TIP microcentrifuge workflow as described. For tumour fragments, each fragment was washed with PBS and NaCl, then incubated in mild acid buffer on ice. Acid eluate was transferred to 10\u202fkDa ultrafilters for microcentrifuge processing. Peptide filtering and desalting were performed using two approaches. In the microcentrifuge setup, samples were centrifuged until <25\u202f\u03bcL remained, washed, and desalted on C18 StageTips. In the single-tube setup, ultrafilters were placed atop StageTips and the sample was centrifuged until fully processed through the filter and C18 resin, followed by a final wash and storage at 4\u202f\u00b0C. For on-plate elution, adherent cells in 6-well plates were washed with PBS and NaCl, followed by a 3\u202fmin incubation with mild acid buffer. The acid was transferred directly to ultrafilters for downstream processing as above.   Proteomics: Samples for proteomic profiling (cell lines, organoids, tumor fragments) were either processed immediately post-elution or snap frozen. The SPEED method was used for protein extraction and digestion. Samples were lysed in TFA (1:4 v/v) for 2 minutes (cell lines/organoids) or 20 minutes (tumor fragments) until fully dissolved. TrisBase was added (10x TFA volume) to neutralize, and protein concentration was estimated via absorbance at 280\u202fnm. Lysates were reduced with TCEP (10\u202fmM) and alkylated with CAA (40\u202fmM), then heated at 95\u202f\u00b0C for 5 minutes. Digestion was carried out with trypsin overnight at 37\u202f\u00b0C at a protein:enzyme ratio of 50:1. After digestion, samples were acidified and desalted using C18 StageTips.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003429",
+   "cvLabel": "MS",
+   "name": "FragPipe"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003253",
+   "cvLabel": "MS",
+   "name": "DIA-NN"
+  }
+ ],
+ "submissionDate": "2025-06-20",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "Netherlands Cancer Institute",
+   "country": "Netherlands",
+   "email": "r.lindeboom@nki.nl",
+   "firstName": "Rik",
+   "id": "3689997",
+   "identifier": "3689997",
+   "lastName": "Lindeboom",
+   "name": "Rik Lindeboom",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "title": "MHC1-TIP: scalable multimodal immunopeptidome profiling of low-input samples",
+ "totalFileDownloads": 2153
+}

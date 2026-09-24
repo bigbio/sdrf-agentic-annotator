@@ -1,0 +1,248 @@
+{
+ "accession": "PXD022949",
+ "additionalAttributes": [],
+ "countries": [
+  "United States"
+ ],
+ "dataProcessingProtocol": "Patient and cell line specific protein sequence databases were first generated. The aligned whole exome sequencing BAM files from patient blood (germline) or tumor tissue/cell lines were used to retrieve the variants call format (VCF) files using HaplotypeCaller (Ren et al., 2019), and the intermediate VCF files were further annotated by SnpEff (Cingolani et al., 2012)which filtered out only nonsynonymous on exome regions including SNVs and Indels. Similarly, BBduk was used to remove adapter sequences and low-quality reads from paired-end FASTQ files, which were then used as input for STAR-Fusion (Haas et al., 2019). The final VCF files were in silico translated to sample specific protein sequence libraries (FASTA files) using QUILTS (Ruggles et al., 2016), which were merged with refseq hg38 converted human proteome database.  The database search of MS raw files was carried out by PEAKS studio (Tran et al., 2019) (Bioinformatics Solutions) using the patient/cell line specific databases described above. In the PEAKS searching engine, no enzyme digestion was selected because HLA peptides are natural peptides without artificial digestion. Importantly, the unique PEAKS built-in functions, pan-PTMs including 650 different variable modifications and de novo searching were used. The precursor mass tolerance was set to 15 ppm and fragment ion tolerance was set to 0.5 Da. For the mutant neoepitope screening, the false discovery rate (FDR), estimated by decoy-fusion database, was chosen at 0.05. For the wt peptides screening (e.g., CG antigen, LncRNA and PTMs), FDR was set to 0.01. For the de novo search, we applied very stringent criteria, a) the average local confidence (ALC) score (substituted for FDR estimation) of each peptides must be >50%; b) the lowest %rank, predicted by NetMHCpan4.0, of each peptides against their corresponding HLA  molecules in the same sample must be <2.0. The detected raw peptide intensity was log2 transformed for further statistical analysis.",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:7206",
+   "cvLabel": "DOID",
+   "name": "Melanomatosis",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "DOID:3910",
+   "cvLabel": "DOID",
+   "name": "Lung adenocarcinoma",
+   "value": ""
+  }
+ ],
+ "doi": "10.6019/PXD022949",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000433",
+   "cvLabel": "PRIDE",
+   "name": "Affinity purification coupled with mass spectrometry proteomics"
+  }
+ ],
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00696",
+   "cvLabel": "MOD",
+   "name": "phosphorylated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00398",
+   "cvLabel": "MOD",
+   "name": "carbamoylated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00674",
+   "cvLabel": "MOD",
+   "name": "amidated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00400",
+   "cvLabel": "MOD",
+   "name": "deamidated residue",
+   "value": ""
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1002523",
+   "cvLabel": "MS",
+   "name": "Q Exactive HF",
+   "value": ""
+  }
+ ],
+ "keywords": [
+  "Hla immunopeptidome",
+  "Immunotherapy",
+  "Neoantigen",
+  "Melanoma",
+  "Lung cancer"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Thoracic and GI Malignancies Branch, Center for Cancer Research, NCI, NIH, Bethesda, MD 20892, USA 7Present address: Bristol Myers Squibb, Lawrenceville, NJ 08901, USA and Thoracic and GI Malignancies Branch, Center for Cancer Research, NCI, NIH, Bethesda, MD 20892, USA.",
+   "country": "",
+   "email": "udayan.guha@nih.gov",
+   "firstName": "Udayan",
+   "id": "2185960",
+   "identifier": "2185960",
+   "lastName": "Guha",
+   "name": "Udayan Guha",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "CL:0002308",
+   "cvLabel": "CL",
+   "name": "Epithelial cell of skin gland",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000763",
+   "cvLabel": "BTO",
+   "name": "Lung",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "CL:0000082",
+   "cvLabel": "CL",
+   "name": "Epithelial cell of lung",
+   "value": ""
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)",
+   "value": ""
+  }
+ ],
+ "otherOmicsLinks": [
+  "pride.project:PXD019774"
+ ],
+ "projectDescription": "Immune checkpoint inhibitor and adoptive lymphocyte transfer-based therapies have shown great therapeutic potential for cancers with high tumor mutation burden (TMB). Here, we employed mass spectrometry (MS)-based proteogenomic large-scale profiling to identify potential immunogenic human leukocyte antigen (HLA) Class \u01c0-presented peptides in both melanoma, a \u201chot tumor\u201d with high TMB, and EGFR mutant lung adenocarcinoma, a \u201ccold tumor\u201d with low TMB. We used cell line and patient-specific databases constructed using variants identified from whole-exome sequencing, as well as a de novo search algorithm from the PEAKS search algorithm to interrogate the mass spectrometry data of the Class I immunopeptidome. We identified 12 mutant neoantigens. Several classes of tumor-associated antigen-derived peptides were also identified. We constructed a cancer germline (CG) antigen database with 285 antigens and identified 42 Class I-presented CG antigens. We identified more than 1000 post-translationally modified (PTM) peptides representing 58 different PTMs. Our results suggest that PTMs play a critical role impacting HLA-binding affinity dramatically.  Finally, leveraging de novo search and an annotated lncRNA database, we developed a novel non-canonical peptide discovery pipeline to identify 44 lncRNA-derived peptides that are presented by Class I. We validated MS/MS spectra of select peptides using synthetic peptides and performed HLA Class I binding assays to demonstrate binding of select neo-peptides and lncRNA-derived peptides to Class I proteins. In summary, we provide direct evidence of HLA Class I presentation of a large number of mutant and tumor-associated peptides for potential use as vaccine or adoptive cell therapy in melanoma and EGFR mutant lung cancer.",
+ "projectTags": [],
+ "publicationDate": "2021-08-23",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000437",
+   "cvLabel": "PRIDE",
+   "name": "Protein Abundance Index - PAI"
+  }
+ ],
+ "references": [
+  {
+   "doi": "10.1016/j.mcpro.2021.100136",
+   "pubmedID": 34391887,
+   "referenceLine": "Qi YA, Maity TK, Cultraro CM, Misra V, Zhang X, Ade C, Gao S, Milewski D, Nguyen KD, Ebrahimabadi MH, Hanada KI, Khan J, Sahinalp C, Yang JC, Guha U. Proteogenomic analysis unveils the HLA Class I-presented immunopeptidome in melanoma and EGFR-mutant lung adenocarcinoma. Mol Cell Proteomics. 2021:100136"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "CL:0000082",
+     "cvLabel": "CL",
+     "name": "epithelial cell of lung",
+     "value": ""
+    },
+    {
+     "accession": "CL:0002308",
+     "cvLabel": "CL",
+     "name": "epithelial cell of skin gland",
+     "value": ""
+    },
+    {
+     "accession": "BTO:0000763",
+     "cvLabel": "BTO",
+     "name": "lung",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:7206",
+     "cvLabel": "DOID",
+     "name": "melanomatosis",
+     "value": ""
+    },
+    {
+     "accession": "DOID:3910",
+     "cvLabel": "DOID",
+     "name": "lung adenocarcinoma",
+     "value": ""
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "For melanoma and lung adenocarcinoma cell line HLA peptide enrichment, 2.0 \u00d7 108 cells were harvested in 4ml ice-cold lysis buffer (20mM Tris-HCl pH=8.5, 100mM NaCl, 1 mM EDTA. 1% triton X-100 supplemented with Halt 1:100 protease Inhibitor cocktail Cat. No 78430, Thermo Scientific). After 30min on ice, lysates were subjected to needle sonication for 30s. Approximately 30mg snap-frozen lung tumor tissue was homogenized in 4ml ice-cold lysis buffer for 30s at 4\u00b0C using the Qiagen TissueLyser II. Cell/tissue lysates were centrifuged for 2 hours at 4\u00b0C at 20,000g, and the supernatant used in subsequent experiments. HLA-peptides complexes were isolated by interacting with 0.5mg HLA Class \u01c0 pan antibody clone W6/32 (BioXcell, West Lebanon, NH) pre-coupled to 200\u03bcl slurry of protein A/G PLUS agarose resin (Santa Cruz Biotechnology) overnight at 4\u00b0C with constant rotation. Agarose beads were then washed three times with ice-cold lysis buffer (without triton and protease inhibitors), followed by two washes in ice-cold 20mM Tris-HCl (pH=8.5), then one wash in ice-cold HPLC grade water. Complexes were eluted four times with 0.15% trifluoroacetic acid (TFA) in water at room temperature and combined. To purify immunopeptides, HLA-peptide complexes were loaded on preconditioned 50mg C18 desalting columns (Sigma Millipore), then followed three 0.1% TFA in water washes. HLA peptides were then eluted with 40% acetonitrile (ACN) in 0.1% TFA. Purified peptides were lyophilized at -80\u00b0C for 2hours, then, reconstituted in 0.1%TFA, 2%ACN loading buffer for MS analysis.For the whole-cell proteome of H1975, Roughly 0.2mg of the cell lysate of H1975 were reduced and alkylated, and further digested by MS grade trypsin/lysC at 37\u00b0C for 16 hours. The tryptic peptides were fractionated by an off-line high-pH reverse phase liquid chromatography (LC) into 12 fractions, each of which was subjected to a 120 min gradient separation on a nanoLC and analyzed by an Orbitrap Q-Exactive HF using discovery mode.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001946",
+   "cvLabel": "MS",
+   "name": "PEAKS Studio"
+  }
+ ],
+ "submissionDate": "2020-12-07",
+ "submissionType": "COMPLETE",
+ "submitters": [
+  {
+   "affiliation": "Center for Alzheimer\u2019s Disease and Related Dementias (CARD)/NIH",
+   "country": "United States",
+   "email": "andy.qi@nih.gov",
+   "firstName": "Yue Andy",
+   "id": "123900179",
+   "identifier": "123900179",
+   "lastName": "Qi",
+   "name": "Yue Andy Qi",
+   "orcid": "0000-0003-1914-8710",
+   "title": "Dr"
+  }
+ ],
+ "title": "Proteogenomic analysis unveils the HLA Class I presented immunopeptidome in melanoma and EGFR mutant lung adenocarcinoma",
+ "totalFileDownloads": 29029
+}

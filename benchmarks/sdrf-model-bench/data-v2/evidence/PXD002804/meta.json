@@ -1,0 +1,16 @@
+{
+ "accession": "PXD002804",
+ "baseline": 63.8,
+ "has_deposited_sdrf": false,
+ "has_manuscript": false,
+ "license": null,
+ "n_raw_files": 55,
+ "n_raw_files_pride": 75,
+ "n_rows": 55,
+ "organism": "Escherichia coli",
+ "pmcid": null,
+ "pmid": null,
+ "pride_quality": 0.625,
+ "qtype": "LFQ",
+ "slot": "free/frac-filename"
+}

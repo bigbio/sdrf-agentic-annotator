@@ -1,0 +1,16 @@
+{
+ "accession": "PXD036580",
+ "baseline": 65.3,
+ "has_deposited_sdrf": false,
+ "has_manuscript": false,
+ "license": null,
+ "n_raw_files": 20,
+ "n_raw_files_pride": 20,
+ "n_rows": 20,
+ "organism": "Escherichia coli",
+ "pmcid": null,
+ "pmid": null,
+ "pride_quality": 0.875,
+ "qtype": "TMT",
+ "slot": "free/TMT"
+}

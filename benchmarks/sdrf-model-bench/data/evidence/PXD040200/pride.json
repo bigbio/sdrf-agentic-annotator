@@ -1,0 +1,171 @@
+{
+ "accession": "PXD040200",
+ "additionalAttributes": [],
+ "botCount": 196,
+ "countries": [
+  "China"
+ ],
+ "dataProcessingProtocol": "Statistical analyses were performed using IBM SPSS v22 (SPSS, Armonk, NY, USA) and GraphPad Prism version 7. Descriptive statistics except for drug susceptibility tests are reported as means \u00b1 standard deviations (SDs). Drug susceptibility tests are displayed as means \u00b1 standard error of mean (SEM). Between-group differences were assessed using chi-squared or Student\u2019s t tests. The Kaplan-Meier method and log-rank test were used for survival analyses. Results were considered significant at *P < 0.05, **P < 0.01, ***P < 0.001.",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:1612",
+   "cvLabel": "DOID",
+   "name": "Breast cancer"
+  }
+ ],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000433",
+   "cvLabel": "PRIDE",
+   "name": "Affinity purification coupled with mass spectrometry proteomics"
+  }
+ ],
+ "hubCount": 254,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000398",
+   "cvLabel": "PRIDE",
+   "name": "No PTMs are included in the dataset"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1002523",
+   "cvLabel": "MS",
+   "name": "Q Exactive HF"
+  }
+ ],
+ "keywords": [
+  "Cancer stem cell",
+  "Tnbc",
+  "Hippo signaling pathway",
+  "Aldh+ stemness",
+  "Protein-protein inhibitor."
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Cancer Stem Cell and Translation Medicine Lab, Innovative Cancer Drug Research and Development Engineering Center of Liaoning Province, Department of Oncology, Shengjing Hospital of China Medical University, Shenyang, 110004, China",
+   "country": "",
+   "email": "liucg@sj-hospital.org",
+   "firstName": "Caigang",
+   "id": "2517148",
+   "identifier": "2517148",
+   "lastName": "Liu",
+   "name": "Caigang Liu",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 6,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "CL:0000066",
+   "cvLabel": "CL",
+   "name": "Epithelial cell"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000214",
+   "cvLabel": "BTO",
+   "name": "Cell culture"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)"
+  }
+ ],
+ "projectDescription": "Failure to achieve complete elimination of triple negative breast cancer (TNBC) stem cells after adjuvant therapy is associated with poor outcomes. Aldehyde dehydrogenase 1 (ALDH1) is a marker of breast cancer stem cells (BCSCs), and its enzymatic activity regulates tumor stemness. Identifying upstream targets to control ALDH+ cells may facilitate TNBC tumor suppression. Here, we show that KK-LC-1 determines the stemness of TNBC ALDH+ cells via binding with FAT1 and subsequently promoting its ubiquitination and degradation. This compromised the Hippo pathway and led to nuclear translocation of YAP1 and ALDH1A1 transcription. These findings identified the KK-LC-1-FAT1-Hippo-ALDH1A1 pathway in TNBC ALDH+ cells as a therapeutic target. To reverse the malignancy due to KK-LC-1 expression, we employed a novel computational approach and discovered Z839878730 (Z8) as an small-molecule inhibitor which may disrupt KK-LC-1 and FAT1 binding. We demonstrate that Z8 suppressed TNBC tumor growth via a mechanism that reactivated the Hippo pathway and decreased TNBC ALDH+ cell stemness and viability.",
+ "projectTags": [],
+ "publicationDate": "2023-04-12",
+ "quantificationMethods": [],
+ "references": [
+  {
+   "doi": "10.1038/s41467-023-38097-1",
+   "pubmedID": 37147285,
+   "referenceLine": "Bu J, Zhang Y, Wu S, Li H, Sun L, Liu Y, Zhu X, Qiao X, Ma Q, Liu C, Niu N, Xue J, Chen G, Yang Y, Liu C. KK-LC-1 as a therapeutic target to eliminate ALDH<sup>+</sup> stem cells in triple negative breast cancer. Nat Commun. 2023 14(1):2602"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000214",
+     "cvLabel": "BTO",
+     "name": "cell culture"
+    },
+    {
+     "accession": "CL:0000066",
+     "cvLabel": "CL",
+     "name": "epithelial cell"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:1612",
+     "cvLabel": "DOID",
+     "name": "breast cancer"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "To detect potential proteins which may interact with KK-LC-1, we first performed the immunoprecipitation assay in MDA-MB-231 cells with anti-KK-LC-1 antibody and anti-IgG antibody according to manufactures\u2019 instructions. When the electrophoresis process was over, the gels were cut down according to the lanes containing different samples (anti-KK-LC-1 and anti-IgG) and all molecular weights of the gels were included. Then the gels were analyzed using mass spectrometry with the help of Beijing Protein Innovation Co., Ltd, the proteins which may also immunoprecipitated with anti-IgG antibody was removed during the analysis and a report of potential proteins which may interact with KK-LC-1 was generated.",
+ "softwares": [],
+ "submissionDate": "2023-02-16",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "School of Bioengineering, Dalian University of Technology",
+   "country": "China",
+   "email": "nancylee0416@126.com",
+   "firstName": "Haonan",
+   "id": "2673956",
+   "identifier": "2673956",
+   "lastName": "Li",
+   "name": "Haonan Li",
+   "orcid": "",
+   "title": "Miss"
+  }
+ ],
+ "title": "KK-LC-1 as a feasible therapeutic target to eliminate ALDH+ stem cells in triple negative breast cancer",
+ "totalFileDownloads": 456
+}

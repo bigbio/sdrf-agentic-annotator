@@ -1,0 +1,16 @@
+{
+ "accession": "PXD041421",
+ "baseline": 60.1,
+ "has_deposited_sdrf": false,
+ "has_manuscript": true,
+ "license": "cc by",
+ "n_raw_files": 48,
+ "n_raw_files_pride": 96,
+ "n_rows": 48,
+ "organism": "Homo sapiens",
+ "pmcid": "PMC10693559",
+ "pmid": 38042886,
+ "pride_quality": 0.75,
+ "qtype": "DIA",
+ "slot": "ms/demographics"
+}

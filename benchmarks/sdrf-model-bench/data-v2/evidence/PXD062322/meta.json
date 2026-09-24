@@ -1,0 +1,16 @@
+{
+ "accession": "PXD062322",
+ "baseline": 64.0,
+ "has_deposited_sdrf": true,
+ "has_manuscript": false,
+ "license": null,
+ "n_raw_files": 10,
+ "n_raw_files_pride": 14,
+ "n_rows": 40,
+ "organism": "mus musculus",
+ "pmcid": null,
+ "pmid": null,
+ "pride_quality": 1.0,
+ "qtype": "TMT",
+ "slot": "free/TMT"
+}

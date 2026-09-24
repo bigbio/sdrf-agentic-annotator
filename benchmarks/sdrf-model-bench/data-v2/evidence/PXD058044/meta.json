@@ -1,0 +1,16 @@
+{
+ "accession": "PXD058044",
+ "baseline": 64.1,
+ "has_deposited_sdrf": true,
+ "has_manuscript": false,
+ "license": null,
+ "n_raw_files": 10,
+ "n_raw_files_pride": 10,
+ "n_rows": 10,
+ "organism": "Mus musculus",
+ "pmcid": null,
+ "pmid": null,
+ "pride_quality": 0.75,
+ "qtype": "DIA",
+ "slot": "free/DIA"
+}

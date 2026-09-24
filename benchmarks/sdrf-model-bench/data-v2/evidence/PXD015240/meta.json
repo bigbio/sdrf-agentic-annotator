@@ -1,0 +1,16 @@
+{
+ "accession": "PXD015240",
+ "baseline": 55.0,
+ "has_deposited_sdrf": false,
+ "has_manuscript": true,
+ "license": "cc by",
+ "n_raw_files": 36,
+ "n_raw_files_pride": 36,
+ "n_rows": 36,
+ "organism": "Bos taurus",
+ "pmcid": "PMC6885703",
+ "pmid": 31578220,
+ "pride_quality": 0.875,
+ "qtype": "LFQ",
+ "slot": "ms/prior-fails"
+}

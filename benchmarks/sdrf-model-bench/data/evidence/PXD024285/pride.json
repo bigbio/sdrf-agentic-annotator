@@ -1,0 +1,183 @@
+{
+ "accession": "PXD024285",
+ "additionalAttributes": [],
+ "countries": [
+  "United States"
+ ],
+ "dataProcessingProtocol": "For protein identification, protein sequence databases were created using the reference protein sequences for each species separately (Uniprot Proteome UP000000625 for E. coli and UP000001570 for B. subtilis). The cRAP protein sequence database (http://www.thegpm.org/crap/) containing protein sequences of common laboratory contaminants was appended to each database. The databases were submitted with this PRIDE project. MS/MS spectra were searched against the databases using the Sequest HT node in Proteome Discoverer version 2.2 (Thermo Fisher Scientific) and peptide spectral matches were filtered using the Percolator node as described by Petersen et al. (Nature Microbiology 2016, 2:16195). Protein-SIP analyses were carried out with Calis-p 2.0 (https://sourceforge.net/projects/calis-p/).",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00394",
+   "cvLabel": "MOD",
+   "name": "acetylated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue",
+   "value": ""
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1002634",
+   "cvLabel": "MS",
+   "name": "Q Exactive Plus",
+   "value": ""
+  }
+ ],
+ "keywords": [
+  "13c",
+  "Carbon 13",
+  "Stable isotope probing",
+  "Stable isotope",
+  "Protein-sip",
+  "1d-lc",
+  "Metaproteomics",
+  "Lc-ms/ms"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "North Carolina State University",
+   "country": "",
+   "email": "manuel_kleiner@ncsu.edu",
+   "firstName": "Manuel",
+   "id": "2217921",
+   "identifier": "2217921",
+   "lastName": "Kleiner",
+   "name": "Manuel Kleiner",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organismParts": [],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:562",
+   "cvLabel": "NEWT",
+   "name": "Escherichia coli",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:1147161",
+   "cvLabel": "NEWT",
+   "name": "Bacillus subtilis subsp. subtilis 6051-hgw",
+   "value": ""
+  }
+ ],
+ "otherOmicsLinks": [
+  "px:PXD024291",
+  "pride.project:PXD024291",
+  "px:PXD024174",
+  "px:PXD024288",
+  "pride.project:PXD023693",
+  "pride.project:PXD024287",
+  "px:PXD024287",
+  "pride.project:PXD024288",
+  "px:PXD023693",
+  "pride.project:PXD024174"
+ ],
+ "projectDescription": "This dataset is part of a study aimed at developing algorithms for the quantification of stable isotope content in microorganisms after labeling them with stable isotope-labeled substrates. In this dataset Escherichia coli and Bacillus subtilis cultures were labeled with different percentages of single-carbon 13C glucose (13C2).  Cultures of B. subtilis and E. coli were grown in Bacillus minimal medium or M9 minimal medium (E. coli) in which a percentage of the glucose was replaced with 13C2 glucose for >10 generations to achieve close to complete labeling of cells. The following percentages of 13C2 glucose were added 0, 0.01, 0.025, 0.1, 0.25, 1, 5 and 10%. Triplicate cultures were grown for each percentage. Please note that the unlabeled glucose that was used of course had a natural content of 13C of around 1.1%, thus the 0% added label samples have an actual 13C content of 1.1% and all added label is on top of this value. We included a tab delimited table with this submission providing details on all raw files.",
+ "projectTags": [],
+ "publicationDate": "2022-12-30",
+ "quantificationMethods": [],
+ "references": [
+  {
+   "doi": "10.1186/S40168-022-01454-1",
+   "pubmedID": 0,
+   "referenceLine": "Kleiner M, Kouris A, Violette M, D'Angelo G, Liu Y, Korenek A, Toli\u0107 N, Sachsenberg T, McCalder J, Lipton MS, Strous M. Ultra-sensitive isotope probing to quantify activity and substrate assimilation in microbiomes.  Microbiome. 2023 11(1):24"
+  },
+  {
+   "doi": "10.1186/s40168-022-01454-1",
+   "pubmedID": 36755313,
+   "referenceLine": "Kleiner M, Kouris A, Violette M, D'Angelo G, Liu Y, Korenek A, Toli\u0107 N, Sachsenberg T, McCalder J, Lipton MS, Strous M. Ultra-sensitive isotope probing to quantify activity and substrate assimilation in microbiomes.  Microbiome. 2023 11(1):24"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:562",
+     "cvLabel": "NEWT",
+     "name": "Escherichia coli",
+     "value": ""
+    },
+    {
+     "accession": "NEWT:1147161",
+     "cvLabel": "NEWT",
+     "name": "Bacillus subtilis subsp. subtilis 6051-HGW",
+     "value": ""
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Cell pellets were lysed in SDT-lysis buffer (4% (w/v) SDS, 100 mM Tris-HCl pH 7.6, 0.1 M DTT). SDT lysis buffer was added in a 1:10 sample/buffer ratio to the sample pellets and subsequently incubated at 95\u00b0 C for 10 minutes followed by pelleting of debris for 5 min at 21,000 x g. We prepared tryptic digests following the filter-aided sample preparation (FASP) protocol described by Wisniewski et al. (2009, Nat. Meth. 6(5)). In brief, 90 \u00b5l of the cleared lysate were mixed with 600 \u00b5l of UA solution (8 M urea in 0.1 M Tris/HCl pH 8.5) in a 10 kDa MWCO 500 \u00b5l centrifugal filter unit (VWR International) and centrifuged at 14,000 x g for 40 min. 200 \u00b5l of UA solution were added again and centrifugal filter spun at 14,000 x g for 40 min. 100 \u00b5l of IAA solution (0.05 M iodoacetamide in UA solution) were added to the filter and incubated at 22\u00b0 C for 20 min. The IAA solution was removed by centrifugation and the filter was washed three times by adding 100 \u00b5l of UA solution and then centrifuging. The buffer on the filter was then changed to ABC (50 mM Ammonium Bicarbonate), by washing the filter three times with 100 \u00b5l of ABC. 1 \u00b5g of MS grade trypsin (Thermo Scientific Pierce, Rockford, IL, USA) in 40 \u00b5l of ABC were added to the filter and filters incubated overnight in a wet chamber at 37\u00b0 C. The next day, peptides were eluted by centrifugation at 14,000 x g for 20 min, followed by addition of 50 \u00b5l of 0.5 M NaCl and again centrifugation. Approximate peptide concentrations were determined using Qubit\u00ae Protein Assay Kit (Thermo Fisher Scientific) following the manufacturer\u2019s instructions. Samples were analyzed by 1D-LC-MS/MS. Two wash runs and one blank run were done between sample replicates to reduce carry over. Sample R1 0% C213C was re-run at the end of the sequence as a carry-over control.  For the 1D-LC-MS/MS runs, 400-800 ng of peptide were loaded onto a 5 mm, 300 \u00b5m ID C18 Acclaim\u00ae PepMap100 pre-column (Thermo Fisher Scientific) using an UltiMateTM 3000 RSLCnano Liquid Chromatograph (Thermo Fisher Scientific). After loading, the pre-column was switched in line with a 50 cm x 75 \u00b5m analytical EASY-Spray column packed with PepMap RSLC C18, 2\u00b5m material (Thermo Fisher Scientific), which was heated to 45\u00b0 C. The analytical column was connected via an Easy-Spray source to a Q Exactive Plus hybrid quadrupole-Orbitrap mass spectrometer (Thermo Fisher Scientific). Peptides were separated on the analytical column using a 140-minute gradient and mass spectra acquired in the Orbitrap as described by Petersen et al. (2016, Nat. Microb. 2(16195)).",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001208",
+   "cvLabel": "MS",
+   "name": "Sequest"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000650",
+   "cvLabel": "MS",
+   "name": "Proteome Discoverer"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001490",
+   "cvLabel": "MS",
+   "name": "Percolator"
+  }
+ ],
+ "submissionDate": "2021-02-22",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "North Carolina State University",
+   "country": "United States",
+   "email": "manuel_kleiner@ncsu.edu",
+   "firstName": "Manuel",
+   "id": "35920102",
+   "identifier": "35920102",
+   "lastName": "Kleiner",
+   "name": "Manuel Kleiner",
+   "orcid": "0000-0001-6904-0287",
+   "title": "Dr"
+  }
+ ],
+ "title": "Labeling of Bacillus subtilis and Escherichia coli to saturation with different percentages of 13C2 labeled glucose for benchmarking of protein-based stable isotope probing proteomics (Protein-SIP)",
+ "totalFileDownloads": 9017
+}

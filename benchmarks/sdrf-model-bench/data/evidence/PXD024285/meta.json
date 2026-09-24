@@ -1,0 +1,17 @@
+{
+ "accession": "PXD024285",
+ "has_deposited_sdrf": false,
+ "license": "cc by",
+ "n_raw_files": 45,
+ "n_raw_files_pride": 50,
+ "n_rows": 45,
+ "organism": "bacillus subtilis subsp. subtilis 6051-hgw",
+ "pmcid": "PMC9909930",
+ "pmid": 36755313,
+ "pride_quality": 0.625,
+ "qtype": "LFQ",
+ "templates": [
+  "ms-proteomics"
+ ],
+ "tier": "poor"
+}

@@ -1,0 +1,7 @@
+accession	qtype	tier	pride_quality	organism	n_rows	has_manuscript	has_deposited_sdrf	n_raw_files	slot	baseline	pmcid	license
+PXD005354	LFQ	rich	1.000	Homo sapiens	1560	true	True	1560	dai	63.2	PMC5731344	cc by
+PXD013923	SILAC	rich	1.000	Homo sapiens	372	true	True	124	dai	76.1	PMC6659682	cc by
+PXD015744	LFQ	rich	1.000	Homo sapiens	100	true	False	100	dai	74.0	PMC7716908	cc by
+PXD019515	LFQ	rich	0.750	Homo sapiens	12	false	False	12	dai	80.6		
+PXD037221	TMT	poor	0.375	Escherichia coli	90	true	False	10	jonas	75.0	PMC9769978	cc by
+PXD058436	LFQ	rich	0.750	Homo sapiens	633	true	True	633	jonas	66.8	PMC12455830	cc by

@@ -1,0 +1,21 @@
+{
+ "accession": "PXD058436",
+ "has_deposited_sdrf": true,
+ "has_manuscript": true,
+ "license": "cc by",
+ "n_raw_files": 633,
+ "n_raw_files_pride": 639,
+ "n_rows": 633,
+ "organism": "Homo sapiens",
+ "pmcid": "PMC12455830",
+ "pmid": 40983925,
+ "pride_quality": 0.75,
+ "qtype": "LFQ",
+ "source_benchmark": "jonas",
+ "templates": [
+  "human",
+  "immunopeptidomics",
+  "ms-proteomics"
+ ],
+ "tier": "rich"
+}

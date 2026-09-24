@@ -1,0 +1,146 @@
+import json
+import os
+
+import pytest
+
+from sdrf_model_bench.skills_arm import (
+    LeakError, build_command, build_sanitized_plugin, mentioned_accessions, parse_stream, prepare_workspace,
+)
+
+
+def fake_plugin(root, leak=False):
+    (root / "skills" / "sdrf-annotate").mkdir(parents=True)
+    (root / "skills" / "sdrf-annotate" / "SKILL.md").write_text("annotate " + ("PXD000001" if leak else ""))
+    (root / "spec" / "sdrf-proteomics").mkdir(parents=True)
+    (root / "spec" / "sdrf-proteomics" / "TERMS.tsv").write_text("t")
+    (root / "annotations").mkdir()
+    (root / "annotations" / "PXD000001.sdrf.tsv").write_text("truth!")
+    (root / ".claude-plugin").mkdir()
+    (root / ".claude-plugin" / "plugin.json").write_text(json.dumps({"name": "sdrf-skills", "hooks": "./h.json"}))
+    return root
+
+
+def test_sanitized_plugin_drops_data_and_hooks(tmp_path):
+    src = fake_plugin(tmp_path / "src")
+    dest = build_sanitized_plugin(src, tmp_path / "clean", forbidden=["PXD000001"])
+    assert (dest / "skills" / "sdrf-annotate" / "SKILL.md").exists()
+    assert not (dest / "annotations").exists()
+    assert "hooks" not in json.loads((dest / ".claude-plugin" / "plugin.json").read_text())
+
+
+def test_leak_audit_raises(tmp_path):
+    src = fake_plugin(tmp_path / "src", leak=True)
+    with pytest.raises(LeakError, match="PXD000001"):
+        build_sanitized_plugin(src, tmp_path / "clean", forbidden=["PXD000001"])
+
+
+def test_mentioned_accessions(tmp_path):
+    src = fake_plugin(tmp_path / "src", leak=True)
+    assert mentioned_accessions(src / "skills") == {"PXD000001"}
+
+
+def test_workspace_respects_manuscript_flag(tmp_path):
+    ev = tmp_path / "ev"
+    ev.mkdir()
+    for n in ("pride.json", "files.json", "manuscript.txt", "meta.json"):
+        (ev / n).write_text("{}")
+    assert sorted(prepare_workspace(tmp_path / "w1", ev, manuscript=False)) == ["files.json", "pride.json"]
+    assert "manuscript.txt" in prepare_workspace(tmp_path / "w2", ev, manuscript=True)
+
+
+def test_command_is_locked_down(tmp_path):
+    cmd = build_command("claude", "claude-opus-5", tmp_path / "p", "do it")
+    joined = " ".join(cmd)
+    for flag in ("--restricted", "--strict-mcp-config", "--plugin-dir", "--no-session-persistence"):
+        assert flag in cmd
+    assert "WebFetch" in joined and "Read(~/**)" in joined and "Bash(parse_sdrf validate-sdrf:*)" in joined
+
+
+def test_parse_stream_usage_and_leaks(tmp_path):
+    ws = str(tmp_path)
+    lines = [
+        json.dumps({"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "Read", "input": {"file_path": f"{ws}/evidence/pride.json"}},
+            {"type": "tool_use", "name": "Glob", "input": {"pattern": "**/*.tsv", "path": "/Users/x/data"}}]}}),
+        "not json",
+        json.dumps({"type": "result", "is_error": False, "num_turns": 7, "total_cost_usd": 0.42,
+                    "usage": {"input_tokens": 100, "output_tokens": 50, "cache_read_input_tokens": 900,
+                              "cache_creation_input_tokens": 10}}),
+    ]
+    out = parse_stream(lines, ws)
+    assert out["cost_usd"] == 0.42 and out["num_turns"] == 7
+    assert out["usage"]["cache_read_input_tokens"] == 900
+    assert out["leak_suspect"] and len(out["tool_calls"]) == 2
+
+
+def test_scratch_workspace_is_outside_home():
+    from pathlib import Path
+
+    from sdrf_model_bench.skills_arm import scratch_workspace
+
+    ws = scratch_workspace()
+    try:
+        assert not str(ws.resolve()).startswith(str(Path.home().resolve()))
+    finally:
+        ws.rmdir()
+
+
+def test_run_skills_with_fake_cli(tmp_path):
+    import sys
+
+    from sdrf_model_bench.skills_arm import run_skills
+
+    fake = tmp_path / "claude"
+    fake.write_text(
+        f"#!{sys.executable}\n"
+        "import json, os, pathlib\n"
+        "assert pathlib.Path('evidence/pride.json').exists()\n"
+        "assert not pathlib.Path('evidence/manuscript.txt').exists()\n"
+        "pathlib.Path('output.sdrf.tsv').write_text('source name\\tcomment[data file]\\ns\\ta.raw\\n')\n"
+        "print(json.dumps({'type': 'result', 'is_error': False, 'num_turns': 3, 'total_cost_usd': 0.1,"
+        " 'usage': {'input_tokens': 5, 'output_tokens': 6}, 'cwd': os.getcwd()}))\n")
+    fake.chmod(0o755)
+    ev = tmp_path / "ev"
+    ev.mkdir()
+    for n in ("pride.json", "files.json", "manuscript.txt"):
+        (ev / n).write_text("{}")
+    plugin = tmp_path / "plugin"
+    (plugin / "skills").mkdir(parents=True)
+    run_dir = tmp_path / "run"
+    out = run_skills("claude-haiku-4-5", ev, "PXD1", False, [], run_dir, plugin, claude_bin=str(fake))
+    assert out["sdrf"].startswith("source name") and out["cost_usd"] == 0.1 and not out["is_error"]
+    assert (run_dir / "transcript.jsonl").exists()
+    cwd = json.loads((run_dir / "transcript.jsonl").read_text())["cwd"]
+    assert not os.path.exists(cwd)  # scratch workspace removed
+
+
+def _fake_cli(tmp_path, body: str):
+    import sys
+
+    fake = tmp_path / "claude"
+    fake.write_text(f"#!{sys.executable}\nimport json, pathlib, time\n{body}\n")
+    fake.chmod(0o755)
+    ev = tmp_path / "ev"
+    ev.mkdir(exist_ok=True)
+    for n in ("pride.json", "files.json"):
+        (ev / n).write_text("{}")
+    (tmp_path / "plugin" / "skills").mkdir(parents=True, exist_ok=True)
+    return fake, ev
+
+
+def test_rate_limit_raises_so_the_run_is_retried(tmp_path):
+    from sdrf_model_bench.skills_arm import run_skills
+
+    fake, ev = _fake_cli(tmp_path, "print(json.dumps({'type': 'result', 'is_error': True, "
+                                   "'api_error_status': 429, 'result': 'usage limit reached'}))")
+    with pytest.raises(RuntimeError, match="429"):
+        run_skills("m", ev, "PXD1", False, [], tmp_path / "run", tmp_path / "plugin", claude_bin=str(fake))
+
+
+def test_timeout_is_a_scored_failure(tmp_path):
+    from sdrf_model_bench.skills_arm import run_skills
+
+    fake, ev = _fake_cli(tmp_path, "time.sleep(5)")
+    out = run_skills("m", ev, "PXD1", False, [], tmp_path / "run", tmp_path / "plugin",
+                     claude_bin=str(fake), timeout=1)
+    assert out["timed_out"] and out["sdrf"] is None

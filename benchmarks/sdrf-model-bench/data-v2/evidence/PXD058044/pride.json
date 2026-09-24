@@ -1,0 +1,164 @@
+{
+ "accession": "PXD058044",
+ "additionalAttributes": [],
+ "botCount": 23,
+ "countries": [
+  "Denmark"
+ ],
+ "dataProcessingProtocol": "MS RAW files were analyzed library-free with Spectronaut v.19 using directDIA with factory settings for the Phospho PTM workflow. Trypsin/P was selected as digestion enzyme allowing for 2 missed cleavages with minimal and maximal peptide length of 7 and 52 amino acids. Cysteine carbamylation was set as fixed modification, STY-phosphorylation, methionine oxidation and protein N-terminal acetylation as variable modifications. Data was searched against a Mus musculus database downloaded from UniProt (June 2023, 55275 entries). Peptide and protein identifications were accepted at 1% q value. Phopshopeptide site probability cut-off was at 0.75, with quantification at MS2 level.",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000450",
+   "cvLabel": "PRIDE",
+   "name": "Data-independent acquisition"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000428",
+   "cvLabel": "PRIDE",
+   "name": "Bottom-up proteomics"
+  }
+ ],
+ "hubCount": 79,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00696",
+   "cvLabel": "MOD",
+   "name": "phosphorylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00394",
+   "cvLabel": "MOD",
+   "name": "acetylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003028",
+   "cvLabel": "MS",
+   "name": "Orbitrap Exploris 480"
+  }
+ ],
+ "keywords": [
+  "Mice",
+  "Kidney",
+  "Newborn"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Department of Biomedicine, Aarhus University, Aarhus, Denmark",
+   "country": "",
+   "email": "rinschen@biomed.au.dk",
+   "firstName": "Markus M Rinschen,",
+   "id": "3055104",
+   "identifier": "3055104",
+   "lastName": "MD",
+   "name": "Markus M Rinschen, MD",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 3,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000671",
+   "cvLabel": "BTO",
+   "name": "Kidney"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:10090",
+   "cvLabel": "NEWT",
+   "name": "Mus musculus (mouse)"
+  }
+ ],
+ "otherOmicsLinks": [
+  "geo:GSE145053"
+ ],
+ "projectDescription": "In genetic disease, an accurate expression landscape of disease genes and faithful animal models will enable precise genetic diagnoses and therapeutic discoveries, respectively. We previously discovered that variants in NOS1AP, encoding nitric oxide synthase 1 (NOS1) adaptor protein, cause monogenic nephrotic syndrome (NS). Here, we determined that an intergenic splice product of NOS1AP/Nos1ap and neighboring C1orf226/Gm7694, which precludes NOS1 binding, is the predominant isoform in mammalian kidney transcriptional and proteomic data. Gm7694-/- mice, whose allele exclusively disrupts the intergenic product, developed NS phenotypes. In two human NS subjects, we identified causative NOS1AP splice variants, including one predicted to abrogate intergenic splicing but initially misclassified as benign based on the canonical transcript. Finally, by modifying genetic background, we generated a faithful mouse model of NOS1AP-associated NS, which responded to anti-proteinuric treatment. This study highlights the importance of intergenic splicing and a potential treatment avenue in a mendelian disorder.",
+ "projectTags": [],
+ "publicationDate": "2025-12-08",
+ "quantificationMethods": [],
+ "references": [
+  {
+   "doi": "10.1038/s41467-025-65663-6",
+   "pubmedID": 41309577,
+   "referenceLine": "Buerger F, Salmanullah D, Liang L, Gauntner V, Krueger K, Qi J, Normand J, Sharma V, Ranga A, Rubin A, Ball D, Hong S, Lemberg K, Saida K, Merz LM, Sever S, Issac B, Ma Q, Sun L, Billing AM, Demir F, Rinschen MM, Reusch B, Beck BB, Guerrero-Castillo S, Nephrotic Syndrome Study Network (NEPTUNE), Gomez AC, McNulty MT, Sampson MG, Al-Hamed MH, Saleh MM, Shalaby MA, Kari JA, Fawcett JP, Hildebrandt F, Majmundar AJ. Recessive variants in the intergenic NOS1AP-C1orf226 locus cause monogenic kidney disease responsive to anti-proteinuric treatment. Nat Commun. 2025 16(1):10654"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000671",
+     "cvLabel": "BTO",
+     "name": "kidney"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:10090",
+     "cvLabel": "NEWT",
+     "name": "Mus musculus (Mouse)"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Phosphopreptides were enriched with Ti-IMAC beads (MagReSyn Ti-IMAC HP, ReSyn Biosciences). Tryptic digests were analyzed on an UltiMate3000 RSLC system (Thermo Fisher Scientific) coupled to an Exploris 480 mass spectrometer including the FAIMS pro interface (Thermo Fisher Scientific). A two-column set-up was implemented with a trap column (Acclaim\u2122 PepMap\u2122 100 C18, 3 \u00b5m particle size, 2 cm x 75 \u00b5m, ThermoFisher Scientific) at a flowrate of 5 \u00b5l/min and an analytical column (Aurora Ultimate 25 cm x 75 \u00b5m, IonOpticks) at a flowrate of 400 nl/min using a 120 min gradient with mobile phase A as 0.1% formic acid in LC-MS-grade water and mobile phase B as 0.1% formic acid in LC-MS-grade acetonitrile. The peptide gradient was run for 5 min at 2% B, reaching 8% B at 10 min, followed by a linear gradient to 25% B over 80 min, followed by a linear gradient to 35% B over 10 min, at 101 min switched to 90% B and finished with a column equilibration step from 110 -120 min at 2% B. All MS measurements were performed in data-independent acquisition (DIA) in positive polarity with FAIMS CV voltages of -45 and -60. MS1 spectra were recorded in profile mode at 120 K resolution within a scan range of 380-1500 m/z, with normalized AGC target of 300%, RF lens of 40% and auto maximum injection time. MS2 spectra were recorded at 30K for 400-1000 Da with non-overlapping isolation windows of 15 Da and normalized HCD collision energy of 28%.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001327",
+   "cvLabel": "MS",
+   "name": "Spectronaut"
+  }
+ ],
+ "submissionDate": "2024-11-19",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "Aarhus University",
+   "country": "Denmark",
+   "email": "anja.billing@biomed.au.dk",
+   "firstName": "Anja",
+   "id": "2573976",
+   "identifier": "2573976",
+   "lastName": "Billing",
+   "name": "Anja Billing",
+   "orcid": "0000-0002-5770-5496",
+   "title": "Dr"
+  }
+ ],
+ "title": "Recessive variants in the intergenic NOS1AP-C1orf226 locus cause monogenic kidney disease responsive to anti-proteinuric treatment",
+ "totalFileDownloads": 105
+}

@@ -1,0 +1,16 @@
+{
+ "accession": "PXD065279",
+ "baseline": 74.5,
+ "has_deposited_sdrf": false,
+ "has_manuscript": false,
+ "license": null,
+ "n_raw_files": 15,
+ "n_raw_files_pride": 142,
+ "n_rows": 15,
+ "organism": "Homo sapiens",
+ "pmcid": null,
+ "pmid": null,
+ "pride_quality": 1.0,
+ "qtype": "DIA",
+ "slot": "free/DIA"
+}

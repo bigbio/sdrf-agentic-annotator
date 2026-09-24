@@ -1,0 +1,28 @@
+{
+ "accession": "PXD037221",
+ "hostedBy": "iProX (ProteomeCentral record; no PRIDE protocols available)",
+ "identifiedPTMStrings": [
+  "(13)C labeled residue"
+ ],
+ "instruments": [
+  {
+   "accession": "MS:1002877",
+   "name": "Q Exactive HF-X"
+  }
+ ],
+ "keywords": [
+  "glyA,yrdC,novobiocin,resistance"
+ ],
+ "organisms": [
+  {
+   "name": "Escherichia coli"
+  }
+ ],
+ "projectDescription": "Quantitative proteomic analysis reveals the expression of various proteins in Escherichia coli K-12 W3110 / W3110\u25b3glyA/N-15",
+ "references": [
+  {
+   "pubmedID": "36377953"
+  }
+ ],
+ "title": "Quantitative proteomic analysis reveals the expression of various proteins in Escherichia coli"
+}

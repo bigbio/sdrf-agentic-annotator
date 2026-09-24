@@ -1,0 +1,17 @@
+{
+ "accession": "PXD019515",
+ "has_deposited_sdrf": false,
+ "has_manuscript": false,
+ "license": null,
+ "n_raw_files": 12,
+ "n_raw_files_pride": 12,
+ "n_rows": 12,
+ "organism": "Homo sapiens",
+ "pmcid": null,
+ "pmid": null,
+ "pride_quality": 0.75,
+ "qtype": "LFQ",
+ "source_benchmark": "dai",
+ "templates": [],
+ "tier": "rich"
+}

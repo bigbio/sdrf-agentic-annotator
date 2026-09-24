@@ -1,0 +1,165 @@
+{
+ "accession": "PXD006008",
+ "additionalAttributes": [],
+ "countries": [
+  "France"
+ ],
+ "dataProcessingProtocol": "Mascot 2.4 software was used for protein identification and co/post-translational modification characterization using the E. coli K12 strain reference proteome subset extracted from UniProtKB (Version 112). Trypsin/P rules were used with parent and fragment mass tolerance defined as 5 ppm and 0.6 respectively. Carbamidomethylcysteine and d3-acetyl on Lys were considered as fix modifications whereas Met-oxidation, N-terminal formylation and acetylation (d0 and d3) were considered as variable modifications. To extract specifically N-terminal peptides, Mascot searches were exported in XML format and submitted to an in-house script written in python.",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00449",
+   "cvLabel": "MOD",
+   "name": "acetate labeling reagent (N-term) (heavy form",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:01458",
+   "cvLabel": "MOD",
+   "name": "alpha-amino acetylated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00409",
+   "cvLabel": "MOD",
+   "name": "N-formylated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:01233",
+   "cvLabel": "MOD",
+   "name": "3x(2)H labeled N6-acetyl-L-lysine",
+   "value": ""
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001742",
+   "cvLabel": "MS",
+   "name": "LTQ Orbitrap Velos",
+   "value": ""
+  }
+ ],
+ "keywords": [
+  "Phage",
+  "N-terminal methionine excision",
+  "Virus",
+  "Metalloenzyme",
+  "Peptide deformylase"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Institute of Integrative Biology of the Cell (I2BC), CEA, CNRS, Universit\u00e9 Paris-Sud, B\u00e2timent 23A, 1 avenue de la Terrasse, F-91198 Gif-sur-Yvette cedex, France.",
+   "country": "",
+   "email": "willy.bienvenut@i2bc.paris-saclay.fr",
+   "firstName": "Willy Vincent",
+   "id": "65760100",
+   "identifier": "65760100",
+   "lastName": "Bienvenut",
+   "name": "Willy Vincent Bienvenut",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "EBI terms of use",
+ "organismParts": [],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:562",
+   "cvLabel": "NEWT",
+   "name": "Escherichia coli",
+   "value": ""
+  }
+ ],
+ "otherOmicsLinks": [
+  "px:PXD001983",
+  "pride.project:PXD001983"
+ ],
+ "projectDescription": "Prokaryotic proteins must be deformylated before the removal of their first methionine. Peptide deformylase (PDF) is indispensable and guarantees this cotranslational mechanism. Recent genome sequencing and annotation studies highlighted over 2x104 putative peptide deformylase sequences. Furthermore, unpredicted modified bacterial PDF genes have been retrieved from many phages. Sequence comparisons with other known PDFs reveal that viral PDFs are devoid of the key ribosome-interacting C-terminal region. Little is known regarding these viral PDFs, including the capacity of the corresponding encoded proteins to ensure deformylase activity in vitro or in vivo. This investigation determines the activity of the recombinant Vp16 PDF in E. coli PDF defective cell to remove the N-formyl group at the protein N-terminus.",
+ "projectTags": [
+  "Biological"
+ ],
+ "publicationDate": "2017-09-25",
+ "quantificationMethods": [],
+ "references": [
+  {
+   "doi": "10.1038/s41598-017-11329-3",
+   "pubmedID": 28887476,
+   "referenceLine": "Grzela R, Nusbaum J, Fieulaine S, Lavecchia F, Bienvenut WV, Dian C, Meinnel T, Giglione C. The C-terminal residue of phage Vp16 PDF, the smallest peptide deformylase, acts as an offset element locking the active conformation. Sci Rep. 2017 7(1):11041"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:562",
+     "cvLabel": "NEWT",
+     "name": "Escherichia coli",
+     "value": ""
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Proteins extracted from E. coli lysates are used to perform N-terminus enrichment using SCX chromatography after d3-Acetylation of free N-termini and later analyzed using an LTQ-Orbitrap Velos mass spectrometer. Such approach usually combines a few acquisition files, i.e. 10 files related to each individual SCX fraction (1h analysis) and 6 files related to combined fractions.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001207",
+   "cvLabel": "MS",
+   "name": "Mascot"
+  }
+ ],
+ "submissionDate": "2017-03-03",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "CNRS",
+   "country": "France",
+   "email": "willy.bienvenut@universite-paris-saclay.fr",
+   "firstName": "Willy",
+   "id": "730145",
+   "identifier": "730145",
+   "lastName": "Bienvenut",
+   "name": "Willy Bienvenut",
+   "orcid": "0000-0003-4192-3920",
+   "title": "Dr"
+  }
+ ],
+ "title": "Large scale investigation of the phage Vp16 PDF activity",
+ "totalFileDownloads": 8195
+}

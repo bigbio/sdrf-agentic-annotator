@@ -1,0 +1,165 @@
+{
+ "accession": "PXD019515",
+ "additionalAttributes": [],
+ "botCount": 857,
+ "countries": [
+  "United States"
+ ],
+ "dataProcessingProtocol": "Raw files were processed using Proteome Discoverer Software (version 2.4, San Jose, CA) for feature detection, database searching, and protein/peptide quantification. MS/MS spectra were searched against the UniProtKB/Swiss-Prot human database (downloaded on June 6th, 2019, containing 20,353 reviewed sequences). N-terminal protein acetylation and methionine oxidation were selected as variable modifications. Carbamidomethylation of cysteine residues was set as a fixed modification. The mass tolerances of precursors and fragments were <5 and 20 ppm, respectively. The minimum peptide length was six amino acids and the maximum peptide length was 144 amino acids. The allowed missed cleavages for each peptide was 2. A second stage search was activated to identify semi-tryptic peptides. Proteins were filtered with a maximum FDR of 0.01. Both unique and razor peptides were selected for protein quantification. Other unmentioned parameters were the Proteome Discoverer default settings. Potential contaminants from culture media were filtered out using the Bos Taurus Uniprot database. MaxQuant searches performed for comparison used the same search criteria as described previously.[1]  Normalized abundance values for High Confidence (1% protein-level FDR) Master Proteins determined in Proteome Discoverer Software (v2.4) (ThermoFisher Scientific) were loaded into Perseus (v1.6.5.0),[4] log2-transformed and filtered to retain proteins detected in either all three MN samples or all three IN samples. Remaining missing values (~2% of all values) were imputed for the total matrix based on random selection from a normal distribution downshifted by 3 standard deviations (width=0.3 standard deviations). Fold difference in abundance for individual proteins was determined by subtracting the average log2-transformed protein abundance in the IN group (n=3) from the averaged log2-transformed protein abundance in the MN group (n=3). Significance of differential abundance was determined by performing a two-tailed t-test and imposing a significance cutoff threshold of p.adj.<0.05 and \u22652-fold differential abundance on a log2 scale.  Proteins exhibiting significant differences in single MNs vs INs were imported into the web-based STRING (v11)[5] tool for assembly of functional networks allowing a minimum interaction score cutoff of 0.4 and with the text-mining option for active interaction sources disabled. Interaction networks built in STRING were imported into Cytoscape (v3.7.2)[6] to allow mapping of protein abundance data onto individual nodes. P-values for gene ontology (GO) and pathway enrichments were calculated using a Hypergeometric test (statistical background = whole genome) followed by Benjamini-Hochberg correction for multiple hypothesis testing using the STRING enrichment analysis widget.[7]",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "hubCount": 1915,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00394",
+   "cvLabel": "MOD",
+   "name": "acetylated residue"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00397",
+   "cvLabel": "MOD",
+   "name": "iodoacetamide derivatized residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003029",
+   "cvLabel": "MS",
+   "name": "Orbitrap Eclipse"
+  }
+ ],
+ "keywords": [
+  "Faims",
+  "Single cell proteomics"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Brigham Young University",
+   "country": "",
+   "email": "ryan.kelly@byu.edu",
+   "firstName": "Ryan",
+   "id": "198610100",
+   "identifier": "198610100",
+   "lastName": "Kelly",
+   "name": "Ryan Kelly",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 72,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000142",
+   "cvLabel": "BTO",
+   "name": "Brain"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000567",
+   "cvLabel": "BTO",
+   "name": "Hela cell"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)"
+  }
+ ],
+ "projectDescription": "We report on the combination of nanodroplet sample preparation, ultra-low-flow nanoLC, high-field asymmetric ion mobility spectrometry (FAIMS), and the latest-generation Orbitrap Eclipse Tribrid mass spectrometer for greatly improved single-cell proteome coverage.",
+ "projectTags": [],
+ "publicationDate": "2020-11-24",
+ "quantificationMethods": [],
+ "references": [],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000142",
+     "cvLabel": "BTO",
+     "name": "brain"
+    },
+    {
+     "accession": "BTO:0000567",
+     "cvLabel": "BTO",
+     "name": "HeLa cell"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "HeLa cells (ATCC, Manassas, VA) were cultured and isolated as described previously.[1]  Fresh frozen human spinal tissue  (ProteoGenex, Los Angeles, CA) were cryosectioned to a thickness of 12 \u00b5m and deposited onto PEN-coated microscope slides (Zeiss, Oberkochen, Germany) and fixed with 70% ethanol for 15 min. The tissue sections were stained with hematoxylin and eosin and imaged at 40\u00d7 resolution using a Zeiss PALM MicroBeam system. Individual motor neurons and interneurons were manually selected from the ventral horn region and intermediate zone, respectively, of the spinal tissue and excised by laser capture microdissection (LCM) using the PALM MicroBeam system. The excised single neurons were collected into the nanowells of the nanoPOTS chip[2] (Figure S2) and then prepared for analysis as described below.  Samples were processed using the nanoPOTS workflow as described previously.[1, 3] Briefly, nanoliter pipetting is accomplished using an in-house-built robotic liquid handling system and a microfabricated glass chip patterned with hydrophilic nanowells arrays. The single cells were collected onto nanowells, and then reagents for cell lysis, protein extraction, reduction, alkylation and digestion were added and incubated sequentially in a one-pot workflow as described previously[3] to generate peptides for analysis.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000650",
+   "cvLabel": "MS",
+   "name": "Proteome Discoverer"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001583",
+   "cvLabel": "MS",
+   "name": "MaxQuant"
+  }
+ ],
+ "submissionDate": "2020-06-02",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "Brigham Young University",
+   "country": "United States",
+   "email": "ryan.kelly@byu.edu",
+   "firstName": "Ryan",
+   "id": "1747102",
+   "identifier": "1747102",
+   "lastName": "Kelly",
+   "name": "Ryan Kelly",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "title": "FAIMS single cellUltrasensitive single-cell proteomics workflow identifies >1000 protein groups per mammalian cell",
+ "totalFileDownloads": 2844
+}

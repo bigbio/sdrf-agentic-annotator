@@ -1,0 +1,206 @@
+{
+ "accession": "PXD000878",
+ "additionalAttributes": [],
+ "countries": [
+  "Austria"
+ ],
+ "dataProcessingProtocol": "Raw files were processed with Proteome Discoverer (version 1.4.0.282, Thermo Fisher Scientific, Bremen, Germany). Database search was performed using Mascot (version 2.2, Matrix Science, UK) against a concatenated target-decoy database based on the mouse UniProt database (version 2012_11). MaxQuant SequenceReverser (version 1.0.13.13) was used to generate the decoy database and append contaminants. Oxidation of methionine, phosphorylation of serine, threonine and tyrosine were set as dynamic as well as methylthio-cysteine and iTRAQ as fixed modification. Trypsin was specified as proteolytic enzyme and up to two missed cleavages were allowed. A mass tolerance of 7 ppm was set for precursor ion tolerance. The fragment ion tolerance for HCD and CID spectra was set to 0.03 and 0.5 Da respectively. Reporter ion intensities were extracted in Proteome Discoverer from the Centroid with the smallest Delta Mass within an integration tolerance of 5 mmu. PhosphoRS (version 3.0) was employed to determine the localization of phosphorylated residues. Only peptide spectrum matches (PSMs) with search engine rank one and a minimum peptide length of eight amino acids were exported.",
+ "diseases": [],
+ "doi": "10.6019/PXD000878",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00425",
+   "cvLabel": "MOD",
+   "name": "monohydroxylated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00696",
+   "cvLabel": "MOD",
+   "name": "phosphorylated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:01153",
+   "cvLabel": "MOD",
+   "name": "methylthiolated residue",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MOD:01499",
+   "cvLabel": "MOD",
+   "name": "iTRAQ4plex-116 reporter+balance reagent acylated residue",
+   "value": ""
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001742",
+   "cvLabel": "MS",
+   "name": "LTQ Orbitrap Velos",
+   "value": ""
+  }
+ ],
+ "keywords": [
+  "Musk",
+  "Time course",
+  "Phosphoproteomics",
+  "Itraq",
+  "Muscle"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "IMP - Research Institute of Molecular Pathology, IMBA - Institute of Molecular Biotechnology",
+   "country": "",
+   "email": "karl.mechtler@imp.ac.at",
+   "firstName": "Karl",
+   "id": "5190100",
+   "identifier": "5190100",
+   "lastName": "Mechtler",
+   "name": "Karl Mechtler",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "EBI terms of use",
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "CL:0002372",
+   "cvLabel": "CL",
+   "name": "Myotube",
+   "value": ""
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000214",
+   "cvLabel": "BTO",
+   "name": "Cell culture",
+   "value": ""
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:10090",
+   "cvLabel": "NEWT",
+   "name": "Mus musculus (mouse)",
+   "value": ""
+  }
+ ],
+ "otherOmicsLinks": [
+  "pride.project:PXD000558"
+ ],
+ "projectDescription": "The development of the neuromuscular synapse depends on signaling processes which involve protein phosphorylation as a crucial regulatory event. The receptor tyrosine kinase MuSK is the key signaling molecule at the neuromuscular synapse whose activity is required for the formation of a mature and functional neuromuscular synapse. However, the signaling cascade downstream of MuSK and the regulation of the different components is still poorly understood. Here we present data from a quantitative phosphoproteomics approach to study MuSK-dependent processes. Muscle cells were stimulated with the heparansulfate proteoglycan agrin, which activates MuSK and downstream signaling events. To get an insight into the signaling dynamics we used three different time points (unstimulated, 15 min, 60 min and 4 hrs).",
+ "projectTags": [
+  "Biological",
+  "Biomedical"
+ ],
+ "publicationDate": "2014-06-05",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000313",
+   "cvLabel": "PRIDE",
+   "name": "iTRAQ"
+  }
+ ],
+ "references": [
+  {
+   "pubmedID": 24899341,
+   "referenceLine": "Duernberger G, Camurdanoglu BZ, Tomschik M, Schutzbier M, Roitinger E, Hudecz O, Mechtler K, Herbst R. Global analysis of muscle-specific kinase signaling by quantitative phosphoproteomics. Mol Cell Proteomics. 2014 Jun 4. pii: mcp.M113.036087"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000214",
+     "cvLabel": "BTO",
+     "name": "cell culture",
+     "value": ""
+    },
+    {
+     "accession": "CL:0002372",
+     "cvLabel": "CL",
+     "name": "myotube",
+     "value": ""
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:10090",
+     "cvLabel": "NEWT",
+     "name": "Mus musculus (Mouse)",
+     "value": ""
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "C2 myotubes were starved for 2 h in DMEM followed by stimulation with agrin for 15, 60 or 240 min. Cells were lysed in RIPA buffer (1% triton X-100, 0.1% SDS, 0.5% sodium deoxycholate, 20mM HEPES pH 7.4, 150 mM NaCl, 2.5 mM EDTA) supplemented with protease (1 \u03bcg/ml leupeptin, 1 \u03bcg/ml pepstatin, 1 \u03bcg/ml aprotinin and 0.2 mM PMSF) and phosphatase inhibitors (1 mM sodium orthovanadate, 50 mM natrium fluoride, 5mM sodium molybdate, 5mM sodium pyrophosphate and 1 mM beta-glycerophosphate).",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001207",
+   "cvLabel": "MS",
+   "name": "Mascot"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1000650",
+   "cvLabel": "MS",
+   "name": "Proteome Discoverer"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001583",
+   "cvLabel": "MS",
+   "name": "MaxQuant"
+  }
+ ],
+ "submissionDate": "2014-05-29",
+ "submissionType": "COMPLETE",
+ "submitters": [
+  {
+   "affiliation": "GMI/IMP/IMBA",
+   "country": "Austria",
+   "email": "gerhard.duernberger@imp.ac.at",
+   "firstName": "Gerhard",
+   "id": "1040125",
+   "identifier": "1040125",
+   "lastName": "D\u00fcrnberger",
+   "name": "Gerhard D\u00fcrnberger",
+   "orcid": "0000-0001-5059-5362",
+   "title": "Dr"
+  }
+ ],
+ "title": "Phosphoproteomics of MuSK Signaling",
+ "totalFileDownloads": 5272
+}

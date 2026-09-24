@@ -1,0 +1,322 @@
+{
+ "accession": "PXD016662",
+ "additionalAttributes": [],
+ "botCount": 9962,
+ "countries": [
+  "Denmark"
+ ],
+ "dataProcessingProtocol": "Raw MS files from DIA experiments were analyzed using Spectronaut, version 13 with PTM localization. Spectral libraries were searched in MaxQuant and generated using Spectronaut. Raw MS files from DDA experiments were analyzed using MaxQuant.",
+ "diseases": [],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "hubCount": 28913,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00696",
+   "cvLabel": "MOD",
+   "name": "phosphorylated residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1003028",
+   "cvLabel": "MS",
+   "name": "Orbitrap Exploris 480"
+  }
+ ],
+ "keywords": [
+  "Faims",
+  "Dia",
+  "Tmt",
+  "Bottom-up shotgun proteomics",
+  "Phosphoproteomics",
+  "Orbitrap",
+  "Dda"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Proteomics Program, Faculty of Health and Medical Sciences, Novo Nordisk Foundation Center for Protein Research, University of Copenhagen, Blegdamsvej 3B, 2200 Copenhagen, Denmark",
+   "country": "",
+   "email": "jesper.olsen@cpr.ku.dk",
+   "firstName": "Jesper Velgaard",
+   "id": "171550100",
+   "identifier": "171550100",
+   "lastName": "Olsen",
+   "name": "Jesper Velgaard Olsen",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 4570,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000657",
+   "cvLabel": "BTO",
+   "name": "Jejunum"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "CL:0000066",
+   "cvLabel": "CL",
+   "name": "Epithelial cell"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001367",
+   "cvLabel": "BTO",
+   "name": "Thigh muscle"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001281",
+   "cvLabel": "BTO",
+   "name": "Spleen"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000365",
+   "cvLabel": "BTO",
+   "name": "Duodenum"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000562",
+   "cvLabel": "BTO",
+   "name": "Heart"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000567",
+   "cvLabel": "BTO",
+   "name": "Hela cell"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000988",
+   "cvLabel": "BTO",
+   "name": "Pancreas"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000759",
+   "cvLabel": "BTO",
+   "name": "Liver"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000763",
+   "cvLabel": "BTO",
+   "name": "Lung"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000671",
+   "cvLabel": "BTO",
+   "name": "Kidney"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000142",
+   "cvLabel": "BTO",
+   "name": "Brain"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0001363",
+   "cvLabel": "BTO",
+   "name": "Testis"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000620",
+   "cvLabel": "BTO",
+   "name": "Ileum"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:10116",
+   "cvLabel": "NEWT",
+   "name": "Rattus norvegicus (rat)"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)"
+  }
+ ],
+ "projectDescription": "State-of-the-art proteomics-grade mass spectrometers can measure peptide precursors and their fragments with ppm mass accuracy at sequencing speeds of tens of peptides per second with attomolar sensitivity. Here we describe a compact and robust quadrupole-orbitrap mass spectrometer equipped with a front-end High Field Asymmetric Waveform Ion Mobility Spectrometry (FAIMS) Interface. The performance of the Orbitrap Exploris 480 mass spectrometer is evaluated in data-dependent acquisition (DDA) and data-independent acquisition (DIA) modes in combination with FAIMS. We demonstrate that different compensation voltages (CVs) for FAIMS are optimal for DDA and DIA, respectively. Combining DIA with FAIMS using single CVs, the instrument surpasses 2500 peptides identified per minute. This enables quantification of >5000 proteins with short online LC gradients delivered by the Evosep One LC system allowing acquisition of 60 samples per day. The raw sensitivity of the instrument is evaluated by analyzing 5 ng of a HeLa digest from which >1000 proteins were reproducibly identified with 5 minute LC gradients using DIA-FAIMS. To demonstrate the versatility of the instrument we recorded an organ-wide map of proteome expression across 12 rat tissues quantified by tandem mass tags and label-free quantification using DIA with FAIMS to a depth of >10,000 proteins.",
+ "projectTags": [
+  "Epic-xs"
+ ],
+ "publicationDate": "2020-02-17",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000314",
+   "cvLabel": "PRIDE",
+   "name": "TMT"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000465",
+   "cvLabel": "PRIDE",
+   "name": "Spectral Library file URI"
+  }
+ ],
+ "references": [
+  {
+   "doi": "10.1074/mcp.tir119.001906",
+   "pubmedID": 32051234,
+   "referenceLine": "Bekker-Jensen DB, Mart\u00ednez-Val A, Steigerwald S, R\u00fcther P, Fort KL, Arrey TN, Harder A, Makarov A, Olsen JV. A Compact Quadrupole-Orbitrap Mass Spectrometer with FAIMS Interface Improves Proteome Coverage in Short LC Gradients. Mol Cell Proteomics. 2020 19(4):716-729"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0001281",
+     "cvLabel": "BTO",
+     "name": "spleen"
+    },
+    {
+     "accession": "BTO:0000562",
+     "cvLabel": "BTO",
+     "name": "heart"
+    },
+    {
+     "accession": "BTO:0000365",
+     "cvLabel": "BTO",
+     "name": "duodenum"
+    },
+    {
+     "accession": "BTO:0000671",
+     "cvLabel": "BTO",
+     "name": "kidney"
+    },
+    {
+     "accession": "BTO:0001363",
+     "cvLabel": "BTO",
+     "name": "testis"
+    },
+    {
+     "accession": "BTO:0000142",
+     "cvLabel": "BTO",
+     "name": "brain"
+    },
+    {
+     "accession": "BTO:0000567",
+     "cvLabel": "BTO",
+     "name": "HeLa cell"
+    },
+    {
+     "accession": "BTO:0000759",
+     "cvLabel": "BTO",
+     "name": "liver"
+    },
+    {
+     "accession": "BTO:0000657",
+     "cvLabel": "BTO",
+     "name": "jejunum"
+    },
+    {
+     "accession": "BTO:0000988",
+     "cvLabel": "BTO",
+     "name": "pancreas"
+    },
+    {
+     "accession": "BTO:0000620",
+     "cvLabel": "BTO",
+     "name": "ileum"
+    },
+    {
+     "accession": "CL:0000066",
+     "cvLabel": "CL",
+     "name": "epithelial cell"
+    },
+    {
+     "accession": "BTO:0000763",
+     "cvLabel": "BTO",
+     "name": "lung"
+    },
+    {
+     "accession": "BTO:0001367",
+     "cvLabel": "BTO",
+     "name": "thigh muscle"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)"
+    },
+    {
+     "accession": "NEWT:10116",
+     "cvLabel": "NEWT",
+     "name": "Rattus norvegicus (Rat)"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Cells adn rat tissues were lysed in boiling 5% SDS. Digestion was performed using the PAC protocol with magnetic beads in the KingFisher platform. After desalting on Seppak, peptides were loaded into Evotips and analyzed on the Exploris 480 MS.  Enrichment of phosphopeptides was performed using magnetic Ti-IMAC bead in the KingFisher platform. The samples were analyzed in DDA and DIA mode with a 2s cycle time method with 15000 resolution, with and without FAIMS. CV voltage for DDA-FAIMS was -75, and for DIA-FAIMS was -45.",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001327",
+   "cvLabel": "MS",
+   "name": "Spectronaut"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001583",
+   "cvLabel": "MS",
+   "name": "MaxQuant"
+  }
+ ],
+ "submissionDate": "2019-12-09",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "University of Copenhagen",
+   "country": "Denmark",
+   "email": "dorte.bekker-jensen@cpr.ku.dk",
+   "firstName": "Dorte",
+   "id": "149580149",
+   "identifier": "149580149",
+   "lastName": "Bekker-Jensen",
+   "name": "Dorte Bekker-Jensen",
+   "orcid": "",
+   "title": "Mrs"
+  }
+ ],
+ "title": "A Compact Quadrupole-Orbitrap Mass Spectrometer with FAIMS Interface Improves Proteome Coverage in Short LC Gradients",
+ "totalFileDownloads": 43445
+}
