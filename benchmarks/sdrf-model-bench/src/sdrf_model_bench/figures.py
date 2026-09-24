@@ -12,6 +12,7 @@ own sessions = amber, human curator = ink. Scores are the deterministic score (0
 
 from __future__ import annotations
 
+import csv
 import json
 import math
 import statistics
@@ -178,7 +179,7 @@ def fig_cost_quality(main, out):
         cp, cs = _mean(r["cost_usd"] for r in p), _mean(r["cost_usd"] for r in s)
         qp, qs = _by_dataset(p), _by_dataset(s)
         ax.annotate("", xy=(cs, qs), xytext=(cp, qp),
-                    arrowprops=dict(arrowstyle="-|>", color=INK2, lw=1.8, mutation_scale=18, shrinkA=14, shrinkB=16))
+                    arrowprops={"arrowstyle": "-|>", "color": INK2, "lw": 1.8, "mutation_scale": 18, "shrinkA": 14, "shrinkB": 16})
         ax.scatter([cp], [qp], s=420, color=PROMPT, zorder=3, edgecolors=SURFACE, linewidths=2)
         ax.scatter([cs], [qs], s=520, color=SKILLS, zorder=4, edgecolors=SURFACE, linewidths=2)
         sk_off, pr_off = {"opus-5": ((16, 14), (0, 24)), "sonnet-5": ((10, -30), (0, -28)),
@@ -449,9 +450,9 @@ def fig_designs(main, collab, out):
 def fig_size(main, collab, out, data_dirs):
     rows = {}
     for d in data_dirs:
-        import csv
-        for r in csv.DictReader(open(Path(d) / "manifest.tsv"), delimiter="\t"):
-            rows[r["accession"]] = int(r["n_rows"])
+        with open(Path(d) / "manifest.tsv", newline="") as fh:
+            for r in csv.DictReader(fh, delimiter="\t"):
+                rows[r["accession"]] = int(r["n_rows"])
     fig = _fig("sdrf-skills cost stays flat as the SDRF grows",
                "Cost per SDRF against its size: prompt-only models write every row; sdrf-skills writes two small "
                "tables and build expands them",
