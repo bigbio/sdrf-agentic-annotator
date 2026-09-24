@@ -59,14 +59,49 @@ an outputs tree, and `sdrf-bench score` does the rest.
 circular, so the runs are flagged `reference_same_author`, shown in the per-dataset figure, and left
 out of the headline slide.
 
-Our six configurations on these six datasets (offline, no paper, one replicate) are in
-`results-ext/`. Once the run finishes, they are combined with the collaborators' scores:
+### Our six configurations on their datasets
+
+Offline, no paper, one replicate. Figures in `results-ext-all/`.
+
+**Dai's four datasets** (`slide_dai.png`):
+
+| SDRF | score | cost/SDRF | minutes |
+|---|---|---|---|
+| Dai, skills session (network + paper) | **86** | n/a | 5 (human curator: 36) |
+| Opus 5 + skills | **86** | $3.38 | 9 |
+| Sonnet 5 + skills | 81 | $1.95 | 11 |
+| Opus 5, prompt only | 78 | $6.64 | 22 |
+| Sonnet 5, prompt only | 77 | $2.81 | 18 |
+| Haiku 4.5 + skills | 76 | $0.31 | 4 |
+| Haiku 4.5, prompt only | 61 | $0.83 | 12 (1 run over context) |
+
+- **Offline Opus + skills matches Dai's own session.** It had no paper and no network; Dai had
+  both. Each model scores higher with skills than with the prompt alone: +8 (Opus), +4 (Sonnet),
+  +15 (Haiku).
+- **The skills are also cheaper and faster than the prompt alone on large files.** The prompt-only
+  arm has to write every row itself: PXD005354 has 1,560 rows. The skills arm writes two small
+  tables and `build` expands them. That is half the cost for Opus, and 22 minutes down to 9.
+- **Every configuration beats the human curator's time** (`backup_9_collaborators_time.png`):
+  3–22 minutes against 20–46.
+
+**Jonas's PXD037221** (`slide_jonas.png`): Jonas's two SDRFs score 85, and every offline
+configuration scores 20. The dataset is hosted on iProX, and its record carries no protocol text.
+Without the paper nothing reveals that the design is TMT 10-plex, so no row aligns with the
+reference and only validity scores. This shows what the offline setup cannot recover; it says
+nothing about the skills. PXD058436 is circular (above), so it appears only in the per-dataset
+figure.
+
+**Missing run:** Opus 5 prompt-only on PXD058436. Its run hung during a continuation call and was
+stopped after about 45 minutes with no output, so it is not scored. That dataset is excluded from
+the slides anyway.
+
+Reproduce:
 
 ```bash
 uv run python import_external.py
 uv run sdrf-bench score --data data-ext --outputs outputs-external --out results-external/runs.jsonl --no-judge
 uv run sdrf-bench report --results results-ext/runs.jsonl results-external/runs.jsonl --deterministic \
-    --out results-ext-all --data data-ext
+    --collaborators-only --out results-ext-all --data data-ext
 ```
 
 **Not comparable, by design:** the collaborators ran their own sessions with network access and
@@ -85,3 +120,20 @@ that it is TMT.
   unjudged runs are mixed: the v2 raw arms were judged, v4 and the collaborators were not, and
   mixing the two would move a configuration by up to 6 points.
 - **`report --manuscript on|off`** keeps one condition only.
+- **Context overflow is a result, not a crash.** "Prompt is too long" from the CLI is recorded
+  as a finished run flagged `context_limited`, scored on what the model wrote, and not retried.
+- **`report --collaborators-only`** renders only the per-collaborator figures. A pooled slide
+  would average configurations over different sets of datasets.
+
+## Independent review of the collaborators' SDRFs
+
+The session's review gate ran a fresh adversarial reviewer on each of the eight files, with none of
+the scores or references. Five passed. Three failed, and the findings go back to their authors:
+
+- **Dai PXD013923:** the 54 `*_P0x` files are labelled phospho-enriched, but they are the
+  non-enriched whole-proteome aliquots; no channel is annotated as the DMSO control.
+- **Dai PXD019515:** HeLa rows lack disease and sex (Cellosaurus CVCL_0030).
+- **Jonas PXD037221 with skills:** the N-terminal TMT modification is missing from the search
+  settings.
+
+The files are scored as delivered, and the benchmark does not edit them.

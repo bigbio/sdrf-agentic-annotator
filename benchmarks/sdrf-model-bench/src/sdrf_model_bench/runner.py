@@ -92,6 +92,9 @@ def output_budget(data_dir: Path, accession: str) -> int:
     return max(4096, 2 * expected_output_tokens(data_dir, accession))
 
 
+CONTEXT_OVERFLOW = "Prompt is too long"  # claude CLI, status 400
+
+
 def _write(run_dir: Path, sdrf: str | None, record: dict) -> dict:
     run_dir.mkdir(parents=True, exist_ok=True)
     if sdrf:
@@ -139,6 +142,16 @@ def execute_run(key: RunKey, spec: ModelSpec, cfg: RunConfig) -> dict:
                 record["flags"].append("timeout")
             sdrf = res["sdrf"]
     except Exception as exc:
+        if CONTEXT_OVERFLOW in str(exc):
+            # Deterministic, not transient: the conversation outgrew the model's window. Retrying gives the
+            # same result, so this is a finished (context-limited) run, scored on what it wrote so far.
+            partial = run_dir / "sdrf.tsv"
+            record = {**base, "flags": sorted({*base["flags"], "context_limited"}), "error": repr(exc),
+                      "usage": {}, "cost_usd": None, "wall_s": None}
+            (run_dir / "error.json").unlink(missing_ok=True)
+            if not partial.exists():
+                record["flags"].append("failed")
+            return _write(run_dir, None, record)
         # Crashes (API overload, network, OOM) are not scored and not cached: the next `run` retries them.
         record = {**base, "flags": ["error"], "error": repr(exc), "traceback": traceback.format_exc()}
         run_dir.mkdir(parents=True, exist_ok=True)

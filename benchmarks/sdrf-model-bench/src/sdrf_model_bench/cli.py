@@ -73,6 +73,8 @@ def build_parser() -> argparse.ArgumentParser:
                    help="one or more runs.jsonl, e.g. ours plus a collaborator's scored SDRFs")
     o.add_argument("--deterministic", action="store_true",
                    help="rank on the deterministic score alone (drop the judge), e.g. when mixing judged and unjudged runs")
+    o.add_argument("--collaborators-only", action="store_true",
+                   help="only the per-collaborator slides and figures (when configurations cover different datasets)")
     o.add_argument("--manuscript", choices=["both", "on", "off"], default="both",
                    help="keep only runs with (on) or without (off) the paper")
     o.add_argument("--out", type=Path, default=Path("results"))
@@ -315,9 +317,10 @@ def cmd_report(args) -> int:
     args.out.mkdir(parents=True, exist_ok=True)
     from sdrf_model_bench.score import baseline_for_data
     baseline = baseline_for_data(args.data)
-    render_slide(summary, args.out / "slide", pending=pending, baseline=baseline)
-    render_slide(summary, args.out / "slide-dark", theme="dark", pending=pending, baseline=baseline)
-    render_backups(records, summary, args.out)
+    if not args.collaborators_only:  # a pooled slide averages configurations over different dataset sets
+        render_slide(summary, args.out / "slide", pending=pending, baseline=baseline)
+        render_slide(summary, args.out / "slide-dark", theme="dark", pending=pending, baseline=baseline)
+        render_backups(records, summary, args.out)
     from sdrf_model_bench.report import render_collaborators
     render_collaborators(records, args.out)
     render_collaborators(records, args.out, theme="dark")

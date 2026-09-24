@@ -555,8 +555,9 @@ def _marker_legend(fig, t, cols, records, y=0.80, human=False):
     if human:
         handles.append(Line2D([], [], marker="X", linestyle="", color=t["ink"], markersize=12))
         labels.append("human curator")
-    fig.legend(handles, labels, loc="lower left", bbox_to_anchor=(0.03, y), ncol=len(labels), frameon=False,
-               fontsize=11.5, labelcolor=t["ink"], handlelength=1.0, columnspacing=1.3)
+    ncol = len(labels) if len(labels) <= 8 else math.ceil(len(labels) / 2)  # two rows rather than off the edge
+    fig.legend(handles, labels, loc="lower left", bbox_to_anchor=(0.03, y if ncol == len(labels) else y - 0.03),
+               ncol=ncol, frameon=False, fontsize=11.5, labelcolor=t["ink"], handlelength=1.0, columnspacing=1.3)
 
 
 def render_collaborators(records: list[dict], outdir: Path, theme: str = "light") -> None:
@@ -580,7 +581,13 @@ def render_collaborators(records: list[dict], outdir: Path, theme: str = "light"
             continue
         summary = summarise(sub)
         dropped = sorted(set(accs) - set(fair))
-        note = (f"Left out: {', '.join(dropped)}, whose curated reference was contributed by the same annotator "
+        ours = {r["headline"] for r in summary if family(r) != "external"}
+        if len(ours) == 1 and len(summary) > 2:  # every offline configuration landed on the same score
+            note_same = (f"Every offline configuration scores {ours.pop():.0f}: without the paper the record does not "
+                         "reveal the design (e.g. TMT), so no row aligns and only validity scores.")
+        else:
+            note_same = ""
+        note = note_same + ("\n" if note_same and dropped else "") + (f"Left out: {', '.join(dropped)}, whose curated reference was contributed by the same annotator "
                 "(scoring it would be circular); it is shown in the per-dataset figure.") if dropped else ""
         who, what = BENCHMARKS[name]
         n = len(fair)
