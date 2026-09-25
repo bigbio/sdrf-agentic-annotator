@@ -120,7 +120,7 @@ def _outside(path: str, workspace: str) -> bool:
 
 def parse_stream(lines, workspace: str) -> dict:
     out = {"usage": {}, "cost_usd": None, "num_turns": 0, "is_error": True, "tool_calls": [], "leak_suspect": False,
-           "api_error_status": None, "result": "", "saw_result": False}
+           "api_error_status": None, "result": "", "saw_result": False, "interrupted": False}
     for line in lines:
         try:
             ev = json.loads(line)
@@ -144,6 +144,9 @@ def parse_stream(lines, workspace: str) -> dict:
             out["api_error_status"] = ev.get("api_error_status")
             out["result"] = ev.get("result") or ""
             out["saw_result"] = True
+            # usage limit, network loss or a CLI crash: the run was interrupted, not finished
+            out["interrupted"] = (ev.get("terminal_reason") == "api_error" or ev.get("api_error_status") is not None
+                                  or out["result"].startswith("API Error"))
     return out
 
 
@@ -195,9 +198,9 @@ def _run_in_workspace(ws, model, ev_dir, accession, manuscript, templates, run_d
     (run_dir / "transcript.jsonl").write_text(stdout)
     parsed = parse_stream(stdout.splitlines(), str(ws))
     out_file = ws / "output.sdrf.tsv"
-    if not timed_out and not out_file.exists() and (
-            not parsed["saw_result"] or parsed["api_error_status"] is not None):
-        # rate limit, auth failure or a crashed CLI: retry the run rather than score a failure
+    if not timed_out and (not parsed["saw_result"] or parsed["interrupted"]):
+        # rate limit, network loss, auth failure or a crashed CLI: retry the run rather than score it,
+        # even when it left a partial SDRF behind (it was cut off before its checks and review)
         raise RuntimeError(f"claude run did not complete (status {parsed['api_error_status']}, "
                            f"exit {returncode}): {parsed['result'][:300]}")
     return {

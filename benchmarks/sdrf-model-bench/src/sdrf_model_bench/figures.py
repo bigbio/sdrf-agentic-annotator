@@ -38,6 +38,7 @@ DESIGN = {
     "PXD014871": "TMT", "PXD026581": "TMT", "PXD036580": "TMT", "PXD062322": "TMT", "PXD037221": "TMT",
     "PXD013923": "SILAC", "PXD019515": "Single-cell", "PXD058436": "Immuno-\npeptidomics",
 }
+CIRCULAR = "reference_same_author"  # the curated reference was contributed by the same annotator
 DESIGN_ORDER = ["LFQ", "DIA", "TMT", "SILAC", "Single-cell", "Immuno-\npeptidomics"]
 
 
@@ -484,12 +485,164 @@ def fig_size(main, collab, out, data_dirs):
     _save(fig, out, "fig8_cost_vs_size")
 
 
+# ----------------------------------------------------------------------------- 9. does the paper help
+
+def fig_paper(main_all, out):
+    """Each configuration without and with the paper, on the datasets that have one (both conditions run)."""
+    on = {r["accession"] for r in main_all if r.get("manuscript")}
+    configs = [(m, arm, f"{label} {'+ skills' if arm == 'skills' else 'prompt only'}", SKILLS if arm == "skills" else PROMPT)
+               for m, label in MODELS for arm in ("skills", "raw")]
+    fig = _fig("The paper adds only 1-2 points",
+               f"Mean score on the {len(on)} datasets with an open-access paper: the PRIDE record and file names "
+               "already carry most of what an SDRF needs",
+               "Same datasets and references in both conditions; the paper is the Methods section and sample legends "
+               "of the CC-licensed publication. One run per dataset and condition.\nOne Haiku + skills run was "
+               "repeated: the sandbox refused a multi-line command and the model stopped without an SDRF.")
+    ax = _ax(fig, [0.25, 0.18, 0.58, 0.58])
+    ys = list(range(len(configs)))[::-1]
+    for y, (m, arm, label, col) in zip(ys, configs):
+        recs = _pick(main_all, m, arm, on)
+        a = _by_dataset([r for r in recs if not r.get("manuscript")])
+        b = _by_dataset([r for r in recs if r.get("manuscript")])
+        if a is None or b is None:
+            continue
+        ax.plot([a, b], [y, y], color=GRID, linewidth=6, solid_capstyle="round", zorder=1)
+        ax.scatter([a], [y], s=260, facecolors=SURFACE, edgecolors=col, linewidths=2.8, zorder=3)
+        ax.scatter([b], [y], s=300, color=col, zorder=4, edgecolors=SURFACE, linewidths=2)
+        ax.text(min(a, b) - 1.0, y, f"{min(a, b):.0f}", ha="right", va="center", fontsize=13, color=INK2)
+        ax.text(max(a, b) + 1.0, y, f"{max(a, b):.0f}", ha="left", va="center", fontsize=13, color=INK,
+                weight="bold")
+        d = round(b - a)
+        ax.text(1.03, y, f"{d:+d}" if d else "0", transform=ax.get_yaxis_transform(), ha="left", va="center",
+                fontsize=17, weight="bold", color=col if d > 0 else INK2)
+    ax.set_yticks(ys, [c[2] for c in configs], fontsize=14)
+    ax.set_xlim(55, 95)
+    ax.set_ylim(-0.6, len(configs) - 0.4)
+    ax.set_xlabel("score (0-100)", fontsize=12)
+    handles = [Line2D([], [], marker="o", linestyle="", markerfacecolor=SURFACE, markeredgecolor=INK2,
+                      markeredgewidth=2.5, markersize=13),
+               Line2D([], [], marker="o", linestyle="", color=INK2, markersize=13),
+               Patch(color=PROMPT), Patch(color=SKILLS)]
+    fig.legend(handles, ["no paper", "with the paper", "prompt only", "sdrf-skills"], loc="lower left",
+               bbox_to_anchor=(0.04, 0.80), ncol=4, frameon=False, fontsize=13, labelcolor=INK, columnspacing=1.8)
+    _save(fig, out, "fig9_paper_effect")
+
+
+# ----------------------------------------------------------------------------- 10. on equal terms
+
+def fig_equal_terms(collab_all, external, out):
+    """Our skills runs with the paper against the collaborators' own sessions (which had it), per dataset."""
+    ext = {(r["model_id"], r["accession"]): r for r in external}
+    accs = sorted({r["accession"] for r in collab_all if r.get("manuscript")}
+                  & {a for (_, a) in ext if (("dai-skills", a) in ext or ("jonas-skills", a) in ext)})
+    accs = [a for a in accs if CIRCULAR not in (ext.get(("jonas-skills", a)) or {}).get("flags", [])]
+    if not accs:
+        return
+    fig = _fig("With the paper, our offline runs match the collaborators' own sessions",
+               "Our sdrf-skills runs without and with the paper, against the collaborator's own session "
+               "(paper + network)",
+               "Dai's datasets that have an open-access paper and Jonas's PXD037221 (his PXD058436 is excluded: he "
+               "contributed its curated reference). Our runs are offline; one run per dataset and condition.")
+    ax = _ax(fig, [0.19, 0.14, 0.60, 0.62])
+    rows, labels = [], []
+    for a in accs:
+        who = "Dai" if ("dai-skills", a) in ext else "Jonas"
+        for m, label in MODELS:
+            recs = _pick(collab_all, m, "skills", {a})
+            off = _mean(r["deterministic"] for r in recs if not r.get("manuscript"))
+            on = _mean(r["deterministic"] for r in recs if r.get("manuscript"))
+            rows.append((off, on, None))
+            labels.append(f"{a}  {label}")
+        c = ext[(f"{who.lower()}-skills", a)]["deterministic"]
+        rows.append((None, None, c))
+        labels.append(f"{a}  {who}'s session")
+    ys = list(range(len(rows)))[::-1]
+    for y, (off, on, c) in zip(ys, rows):
+        tr = ax.get_yaxis_transform()
+        if c is not None:
+            ax.scatter([c], [y], s=300, marker="D", color=COLLAB, zorder=4, edgecolors=SURFACE, linewidths=1.5)
+            ax.text(1.03, y, f"{c:.0f}", transform=tr, va="center", fontsize=13, color="#b8741a", weight="bold")
+            continue
+        if off is not None and on is not None:
+            ax.plot([off, on], [y, y], color=GRID, linewidth=5, solid_capstyle="round", zorder=1)
+        if off is not None:
+            ax.scatter([off], [y], s=200, facecolors=SURFACE, edgecolors=SKILLS, linewidths=2.4, zorder=3)
+        if on is not None:
+            ax.scatter([on], [y], s=240, color=SKILLS, zorder=4, edgecolors=SURFACE, linewidths=1.5)
+        ax.text(1.03, y, (f"{off:.0f} → " if off is not None else "") + (f"{on:.0f}" if on is not None else ""),
+                transform=tr, va="center", fontsize=13, color=INK, weight="bold")
+    for k in range(1, len(accs)):
+        ax.axhline(ys[k * 4] + 0.5, color=GRID, linewidth=1.2)
+    ax.set_yticks(ys, labels, fontsize=12)
+    ax.text(1.03, len(rows) - 0.3, "no paper → paper", transform=ax.get_yaxis_transform(), fontsize=12,
+            color=INK2, va="bottom")
+    ax.set_xlim(0, 100)
+    ax.set_xlabel("score (0-100)", fontsize=12)
+    handles = [Line2D([], [], marker="o", linestyle="", markerfacecolor=SURFACE, markeredgecolor=SKILLS,
+                      markeredgewidth=2.4, markersize=12),
+               Line2D([], [], marker="o", linestyle="", color=SKILLS, markersize=12),
+               Line2D([], [], marker="D", linestyle="", color=COLLAB, markersize=12)]
+    fig.legend(handles, ["sdrf-skills, no paper", "sdrf-skills, with the paper", "collaborator's own session"],
+               loc="lower left", bbox_to_anchor=(0.04, 0.80), ncol=3, frameon=False, fontsize=13, labelcolor=INK)
+    _save(fig, out, "fig10_equal_terms")
+
+
+# ----------------------------------------------------------------------------- 11. open models (Pablo)
+
+def fig_open_models(collab_all, scorecard_path, out, acc="PXD008012"):
+    """Pablo Moreno's open models (as reported) next to our Claude runs on the same dataset and reference."""
+    if not Path(scorecard_path).exists():
+        return
+    with open(scorecard_path, newline="") as fh:
+        pablo = list(csv.DictReader(fh, delimiter="\t"))
+    ours = [r for r in collab_all if r["accession"] == acc and not r.get("manuscript")]
+    if not ours:
+        return
+    rows = [(r["model"], float(r["cost_usd"]), float(r["reported_score"]), "reported") for r in pablo]
+    for m, label in MODELS:
+        for arm in ("skills", "raw"):
+            rs = _pick(ours, m, arm)
+            if rs:
+                rows.append((f"{label} {'+ skills' if arm == 'skills' else 'prompt only'}", _mean(r["cost_usd"] for r in rs),
+                             _mean(r["deterministic"] for r in rs), arm))
+    rows.sort(key=lambda r: r[1])
+    colour = {"reported": "#3b7d4f", "skills": SKILLS, "raw": PROMPT}
+    fig = _fig("sdrf-skills runs on open models, for a few cents",
+               f"{acc} (141 samples, LFQ): cost per SDRF, with each run's quality score and who scored it",
+               "Green: Pablo Moreno's open-weight models running sdrf-skills; his reported scores and costs, scored against "
+               "the pre-2026-09-24 reference (his SDRFs are not available,\nso they are not re-scored). Vermilion/slate: "
+               "our Claude runs, offline, no paper, scored by this benchmark against the same reference version. "
+               "The two score scales are not the same instrument.")
+    ax = _ax(fig, [0.27, 0.16, 0.50, 0.6])
+    ys = list(range(len(rows)))[::-1]
+    for y, (label, cost, score, kind) in zip(ys, rows):
+        ax.barh(y, cost, height=0.62, color=colour[kind], edgecolor=SURFACE, linewidth=2)
+        ax.text(cost * 1.06, y, f"${cost:.2f}", va="center", fontsize=12.5, color=INK, weight="bold")
+        ax.text(1.02, y, f"{score:.0f}", transform=ax.get_yaxis_transform(), va="center", ha="left", fontsize=15,
+                weight="bold", color=colour[kind])
+        ax.text(1.09, y, "reported" if kind == "reported" else "this rubric", transform=ax.get_yaxis_transform(),
+                va="center", ha="left", fontsize=11, color=INK2, style="italic")
+    ax.set_xscale("log")
+    ticks = [0.05, 0.1, 0.3, 1, 3, 10]
+    ax.set_xticks(ticks, [f"${t:g}" for t in ticks])
+    ax.minorticks_off()
+    ax.set_xlim(0.04, max(r[1] for r in rows) * 3)
+    ax.set_yticks(ys, [r[0] for r in rows], fontsize=13.5)
+    ax.set_xlabel("cost per SDRF (US$, log scale)", fontsize=12)
+    ax.text(1.02, len(rows) - 0.35, "score", transform=ax.get_yaxis_transform(), fontsize=13, weight="bold", color=INK)
+    fig.legend([Patch(color=colour[k]) for k in ("reported", "skills", "raw")],
+               ["open model + sdrf-skills (Pablo Moreno)", "Claude + sdrf-skills", "Claude, prompt only"],
+               loc="lower left", bbox_to_anchor=(0.04, 0.80), ncol=3, frameon=False, fontsize=13, labelcolor=INK)
+    _save(fig, out, "fig11_open_models")
+
+
 def render_all(main_path, collab_path, external_path, history_path, out, data_dirs=("data", "data-ext")):
     _style()
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     offp = lambda rs: [r for r in rs if not r.get("manuscript")]  # noqa: E731
-    main, collab = offp(_load(main_path)), offp(_load(collab_path))
+    main_all, collab_all = _load(main_path), _load(collab_path)
+    main, collab = offp(main_all), offp(collab_all)
     external, history = _load(external_path), offp(_load(history_path))
     fig_impact(main, collab, external, out)
     fig_cost_quality(main, out)
@@ -500,4 +653,9 @@ def render_all(main_path, collab_path, external_path, history_path, out, data_di
     fig_next(main, collab, out)
     fig_designs(main, collab, out)
     fig_size(main, collab, out, data_dirs)
+    if any(r.get("manuscript") for r in main_all):
+        fig_paper(main_all, out)
+    if any(r.get("manuscript") for r in collab_all):
+        fig_equal_terms(collab_all, external, out)
+    fig_open_models(collab_all, Path(external_path).parent.parent.parent / "external" / "pablo" / "scorecard.tsv", out)
     return sorted(p.name for p in out.glob("*.png"))

@@ -1,6 +1,6 @@
 # Figures: sdrf-skills, models, cost and experimental design
 
-Eight slides, one style (16:9, PNG at 300 dpi + SVG). All are generated from the scored runs by
+Eleven slides, one style (16:9, PNG at 300 dpi + SVG). All are generated from the scored runs by
 `uv run sdrf-bench figures`.
 
 Colours are the same on every slide:
@@ -53,7 +53,7 @@ knowledge, so a small model no longer has to recall it.
 | Sonnet 5, prompt only | 76 | $0.57 |
 | Sonnet 5 + skills | 79 | $1.74 |
 | Opus 5, prompt only | 79 | $1.11 |
-| Opus 5 + skills | 80 | $2.65 |
+| Opus 5 + skills | 80 | $2.85 |
 
 **Haiku 4.5 + skills is the value point:** Sonnet-level quality at a sixth of Opus's price.
 
@@ -94,10 +94,10 @@ before (v2) and after (bigbio/sdrf-skills #91–#98):
 
 | | Opus 5 | Sonnet 5 | Haiku 4.5 |
 |---|---|---|---|
-| cost per SDRF | $4.90 → $2.65 | $2.88 → $1.74 | $0.53 → $0.36 |
-| minutes | 13 → 8 | 14 → 10 | 8 → 5 |
+| cost per SDRF | $4.90 → $2.85 | $2.88 → $1.74 | $0.53 → $0.36 |
+| minutes | 13 → 9 | 14 → 10 | 8 → 5 |
 | score | 82 → 80 | 81 → 79 | **59 → 77** |
-| files that validate | 100% → 99% | 100% → 100% | **81% → 100%** |
+| files that validate | 100% → 100% | 100% → 100% | **81% → 100%** |
 
 What produced it:
 
@@ -121,6 +121,7 @@ What produced it:
 | 4 | **Read remote `.msf`/`.pdResult` by byte range.** Proteome Discoverer results are multi-GB SQLite files; the search settings sit in one table. | `search-params` remote mode | idea |
 | 5 | **Cache ontology lookups across runs.** A shared, offline cache of OLS terms would cut the most frequent tool calls and make runs reproducible. | cost | idea |
 | 6 | **Check the reference before trusting a disagreement.** The benchmark found curated SDRFs that collapse TMT channels, use malformed accessions, pair `HCD` with the wrong accession (MS:1002481 instead of MS:1000422), or fail validation themselves. Feed these back to sdrf-annotated-datasets. | references | ongoing |
+| 7 | **Issue every tool command on one line.** With the paper, one Haiku run wrote a correct `sdrf-tools build` call split with `\` line continuations; the sandbox refused it and the model stopped without an SDRF. One sentence in the skill ("tool commands on a single line; if a call is refused, retry it on one line") removes the failure. | robustness | next |
 
 ## 5. Experimental designs: difficulty and cost
 
@@ -147,6 +148,84 @@ What produced it:
   1.5× for 100× more rows.
 - **Crossover:** at about 200 rows, sdrf-skills becomes the cheaper option. Large studies (fractionated,
   multiplexed, many samples) are where the skills pay for themselves.
+
+## 6. Does the paper help?
+
+![](fig9_paper_effect.png)
+
+**The paper adds only 1–2 points.** The 8 benchmark datasets with an open-access paper were
+annotated without and with the paper's Methods and sample legends:
+
+| configuration | no paper | with paper | change |
+|---|---|---|---|
+| Opus 5 + skills | 82 | 83 | +1 |
+| Opus 5, prompt only | 81 | 83 | +2 |
+| Sonnet 5 + skills | 80 | 82 | +2 |
+| Sonnet 5, prompt only | 79 | 80 | +1 |
+| Haiku 4.5 + skills | 76 | 76 | 0 |
+| Haiku 4.5, prompt only | 69 | 71 | +2 |
+
+- **The paper matters less than expected.** The PRIDE record and the raw file names already carry
+  most of what an SDRF needs; the paper sharpens sample metadata (disease, tissue) but doesn't
+  change the design.
+- **Skills matter more than the paper.** For Haiku, skills are worth +7 and the paper about 0.
+- **The paper also costs more:** Opus + skills goes from $2.85 to $4.26 per SDRF, because it reads the
+  extra text.
+- *Speaker note:* one Haiku + skills run was repeated. The sandbox refused its multi-line command,
+  and the model stopped without writing an SDRF (idea 7 above).
+
+![](fig10_equal_terms.png)
+
+**With the paper, our offline runs match the collaborators' own sessions.** Dai and Jonas had the
+paper and network access; here our sdrf-skills runs get the paper too (still offline).
+
+| dataset | collaborator | Opus 5 + skills | Sonnet 5 + skills | Haiku 4.5 + skills |
+|---|---|---|---|---|
+| PXD005354 (1,560 rows) | Dai 83 | 80 → 79 | 69 → 80 | 75 → 74 |
+| PXD013923 (SILAC) | Dai 81 | 84 → 84 | 81 → 82 | 65 → **20** |
+| PXD015744 | Dai 88 | 88 → 88 | 81 → 86 | 80 → 79 |
+| PXD037221 (TMT, iProX) | Jonas 82 | **20 → 78** | **20 → 82** | **20 → 73** |
+
+(no paper → with the paper)
+
+- **Parity with the collaborators.** With the paper, Opus and Sonnet land within about 3 points of
+  the collaborators' own sessions.
+- **The paper is decisive when the record is empty.** PXD037221's record has no protocol text, so
+  no offline run recognises its TMT design (20). With the paper, every model does (73–82).
+- **One Haiku regression.** On PXD013923, Haiku with the paper modelled the SILAC channels
+  wrongly: a valid SDRF, but no row matches the reference. It is a real model error, kept as
+  scored.
+- *Speaker note:* one Haiku + skills run on PXD058436 was repeated because of the same sandbox
+  refusal as on slide 9 (idea 7).
+
+## 7. sdrf-skills on open models (Pablo Moreno)
+
+![](fig11_open_models.png)
+
+**sdrf-skills runs on open models, for a few cents.** Pablo Moreno ran three open-weight models
+through the same sdrf-skills workflow (`samples.tsv` + `technical.tsv` → `sdrf-tools build`) on
+PXD008012 (141 samples, label-free).
+
+| model | cost per SDRF | score | scored by |
+|---|---|---|---|
+| DeepSeek V4.1 Flash + skills | **$0.06** | 96 | Pablo (reported) |
+| Qwen 3 Coder Turbo + skills | $0.19 | 86 | Pablo (reported) |
+| GLM 5.3 + skills | $0.73 | 97 | Pablo (reported) |
+| Haiku 4.5 + skills | $0.49 | 79 | this benchmark |
+| Opus 5 + skills | $2.23 | **93** | this benchmark |
+| Opus 5, prompt only | $1.54 | 88 | this benchmark |
+
+- **The workflow isn't tied to Claude.** Three open models completed it with no hallucinated terms.
+  DeepSeek wrote a 143-row SDRF for six cents, 6× cheaper than our cheapest Claude configuration.
+- **Two scales, never on one axis.** Pablo's files aren't available, so his scores are shown as
+  he reported them. Both his runs and ours were measured against the same reference version
+  (before the 2026-09-24 correction), but his scoring rubric isn't ours.
+- **Opus 5 + skills tops our side (93).** On this one dataset Sonnet + skills (76) scored below
+  Sonnet prompt-only (82): a single run, within run-to-run spread.
+- **Reference sensitivity.** Against the corrected reference (fixed from the deposited searches),
+  every one of our runs drops 2–4 points and the ranking holds. The correction fixed values that
+  only the search files carry, which no offline run could see: another argument for
+  `search-params` (idea 1).
 
 ---
 
