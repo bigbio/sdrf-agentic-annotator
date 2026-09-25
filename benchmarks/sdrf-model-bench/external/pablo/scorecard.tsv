@@ -1,0 +1,4 @@
+model	provider_id	status	reported_score	reported_rating	cost_usd	tokens_total	tokens_cached	tokens_fresh	hallucinations	notes
+GLM 5.3	zai-org/GLM-5.3	completed	97	Excellent	0.7264	2586084	2480000	84600	0	identified the MS2 method (ETD decision tree, HCD/ETD) from raw headers; resolved donor records from the Cellosaurus API; built the full table
+DeepSeek V4.1 Flash	deepseek-ai/DeepSeek-V4.1-Flash	completed	96	Excellent	0.0615	2148816	1920000	212000	0	full 143-row mapping; separated biological and technical replicates; integrated missing C2b runs
+Qwen 3 Coder Turbo	Qwen/Qwen3-Coder-480B-A35B-Instruct-Turbo	completed	86	Good	0.1903	1600714	1480000	117000	0	ran the samples.tsv + technical.tsv build pipeline with 51 tool calls in under 4 minutes

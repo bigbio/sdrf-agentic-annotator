@@ -1,0 +1,20 @@
+{
+ "accession": "PXD008012",
+ "has_deposited_sdrf": true,
+ "has_manuscript": true,
+ "license": "cc by",
+ "n_raw_files": 141,
+ "n_raw_files_pride": 143,
+ "pmcid": "PMC6115463",
+ "pmid": 30158526,
+ "pride_quality": 0.75,
+ "reference_version": "sdrf-annotated-datasets@ec76d5224 (before the 2026-09-24 correction)",
+ "source_benchmark": "pablo",
+ "qtype": "LFQ",
+ "tier": "rich",
+ "templates": [
+  "ms-proteomics"
+ ],
+ "organism": "Homo sapiens",
+ "n_rows": 141
+}

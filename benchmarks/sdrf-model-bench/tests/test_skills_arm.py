@@ -144,3 +144,16 @@ def test_timeout_is_a_scored_failure(tmp_path):
     out = run_skills("m", ev, "PXD1", False, [], tmp_path / "run", tmp_path / "plugin",
                      claude_bin=str(fake), timeout=1)
     assert out["timed_out"] and out["sdrf"] is None
+
+
+def test_interrupted_runs_are_flagged():
+    import json
+
+    from sdrf_model_bench.skills_arm import parse_stream
+    limit = {"type": "result", "api_error_status": 429, "result": "You've hit your session limit", "num_turns": 45}
+    offline = {"type": "result", "api_error_status": None, "terminal_reason": "api_error",
+               "result": "API Error: Can't reach the API server (ENOTFOUND)"}
+    done = {"type": "result", "api_error_status": None, "terminal_reason": "completed", "result": "Wrote the SDRF"}
+    assert parse_stream([json.dumps(limit)], "/ws")["interrupted"]
+    assert parse_stream([json.dumps(offline)], "/ws")["interrupted"]
+    assert not parse_stream([json.dumps(done)], "/ws")["interrupted"]

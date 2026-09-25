@@ -5,3 +5,4 @@ PXD015744	LFQ	rich	1.000	Homo sapiens	100	true	False	100	dai	74.0	PMC7716908	cc 
 PXD019515	LFQ	rich	0.750	Homo sapiens	12	false	False	12	dai	80.6		
 PXD037221	TMT	poor	0.375	Escherichia coli	90	true	False	10	jonas	75.0	PMC9769978	cc by
 PXD058436	LFQ	rich	0.750	Homo sapiens	633	true	True	633	jonas	66.8	PMC12455830	cc by
+PXD008012	LFQ	rich	0.750	Homo sapiens	141	true	True	141	pablo	69.2	PMC6115463	cc by
