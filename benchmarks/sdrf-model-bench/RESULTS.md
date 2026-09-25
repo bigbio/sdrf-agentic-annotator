@@ -20,14 +20,14 @@ their means. The prompt-only runs are unchanged between the two.
 
 | model | prompt only | skills v2 | **skills v4** | cost/SDRF v2 → v4 | minutes v2 → v4 | validity v2 → v4 |
 |---|---|---|---|---|---|---|
-| Opus 5 | 79.4 | 82.0 | **80.2** | $4.90 → **$2.65** | 12.9 → 7.9 | 1.00 → 0.99 |
+| Opus 5 | 79.4 | 82.0 | **80.4** | $4.90 → **$2.85** | 12.9 → 8.6 | 1.00 → 1.00 |
 | Sonnet 5 | 76.1 | 81.1 | **78.7** | $2.88 → **$1.74** | 13.5 → 9.9 | 1.00 → 1.00 |
 | Haiku 4.5 | 69.5 | 58.7 | **76.9** | $0.53 → **$0.36** | 7.6 → 5.0 | 0.81 → 1.00 |
 
 - **Haiku improves the most.** It was 11 points below its own prompt-only run in v2 and is now
   7.4 points above it, at the prompt-only cost. It improved on 14 of 15 datasets, and every file
   it writes now validates.
-- **Opus and Sonnet got cheaper and faster.** Cost fell 40–46% and time 25–40%, while they stayed
+- **Opus and Sonnet got cheaper and faster.** Cost fell 40–42% and time 27–33%, while they stayed
   1–3 points above prompt-only. They are about 2 points below v2, which is within the spread of a
   single replicate. The cells that dropped are the next thing to look at.
 - **All three configurations beat the no-evidence baseline**: a file filled with priors scores 64.

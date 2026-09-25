@@ -1,0 +1,197 @@
+{
+ "accession": "PXD008012",
+ "additionalAttributes": [],
+ "botCount": 6604,
+ "countries": [
+  "Spain"
+ ],
+ "dataProcessingProtocol": "Raw data was processed with MaxQuant 1.3.0.5 using the standard settings",
+ "diseases": [
+  {
+   "@type": "CvParam",
+   "accession": "DOID:1612",
+   "cvLabel": "DOID",
+   "name": "Breast cancer"
+  }
+ ],
+ "doi": "",
+ "experimentTypes": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000429",
+   "cvLabel": "PRIDE",
+   "name": "Shotgun proteomics"
+  }
+ ],
+ "hubCount": 17493,
+ "identifiedPTMStrings": [
+  {
+   "@type": "CvParam",
+   "accession": "MOD:00696",
+   "cvLabel": "MOD",
+   "name": "phosphorylated residue"
+  }
+ ],
+ "instruments": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001910",
+   "cvLabel": "MS",
+   "name": "LTQ Orbitrap Elite"
+  }
+ ],
+ "keywords": [
+  "Phophoproteomics",
+  "Kinases",
+  "Triple negative breast cancer"
+ ],
+ "labPIs": [
+  {
+   "affiliation": "Breast Cancer Clinical Research Unit, CNIO, Spanish National Cancer Research Centre, Spain",
+   "country": "",
+   "email": "mquintela@cnio.es",
+   "firstName": "Miguel",
+   "id": "111210100",
+   "identifier": "111210100",
+   "lastName": "Quintela-Fandino",
+   "name": "Miguel Quintela-Fandino",
+   "orcid": "",
+   "title": "Dr"
+  }
+ ],
+ "license": "Creative Commons Public Domain (CC0)",
+ "organicCount": 259,
+ "organismParts": [
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000214",
+   "cvLabel": "BTO",
+   "name": "Cell culture"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "BTO:0000149",
+   "cvLabel": "BTO",
+   "name": "Breast"
+  },
+  {
+   "@type": "CvParam",
+   "accession": "UBERON:0000310",
+   "cvLabel": "CL",
+   "name": "Breast"
+  }
+ ],
+ "organisms": [
+  {
+   "@type": "CvParam",
+   "accession": "NEWT:9606",
+   "cvLabel": "NEWT",
+   "name": "Homo sapiens (human)"
+  }
+ ],
+ "projectDescription": "Triple-negative  breast  cancer  (TNBC) lacks  prognostic  and  predictive markers.  We  used  high-throughput  phosphoproteomics  to build  a functional TNBC taxonomy.  A  cluster of 159 phosphosites was upregulated in relapsed cases of a training set (n=34  patients).  Eleven  hyperactive  kinases  accounted  for  this  phosphoprofile. A  massspectrometry-to-immunohistochemistry  translation  step  that  assessed  113  TNBC  validation specimens revealed  that 6/12 kinases (PRKCE,  KIT,  PNKP,  ERK, CDK6, and P70S6K) preserved independent prognostic value. The kinases split the validation  set  into  two  patterns:  one  (0/6 hyperactive  kinases;  29%  of  the  patients)  associated  with  a  93.5%  cure  rate.  The  other   (\u22651  hyperactive  kinase;  37  subpatterns)  was  associated with  a  9.5-fold  higher relapse  risk.  Each  kinase  pattern  agglutinated  different  mutational  patterns.  Drug  regimens  designed  based  on  these  six  kinases  showed  synergistic  activity  in  vitro  and in  vivo.  Our  results  elucidated  novel  phosphosites/kinases  that  are  implicated  in  TNBC  and  provide  a  ready-to-use,  actionable target-based clinical classification system for TNBC",
+ "projectTags": [
+  "Prime-xs project",
+  "Biomedical"
+ ],
+ "publicationDate": "2018-07-23",
+ "quantificationMethods": [
+  {
+   "@type": "CvParam",
+   "accession": "PRIDE:0000425",
+   "cvLabel": "PRIDE",
+   "name": "MS1 intensity based label-free quantification method"
+  }
+ ],
+ "references": [
+  {
+   "doi": "10.1038/s41467-018-05742-z",
+   "pubmedID": 30158526,
+   "referenceLine": "Zagorac I, Fernandez-Gaitero S, Penning R, Post H, Bueno MJ, Mouron S, Manso L, Morente MM, Alonso S, Serra V, Mu\u00f1oz J, G\u00f3mez-L\u00f3pez G, Lopez-Acosta JF, Jimenez-Renard V, Gris-Oliver A, Al-Shahrour F, Pi\u00f1eiro-Ya\u00f1ez E, Montoya-Suarez JL, Apala JV, Moreno-Torres A, Colomer R, Dopazo A, Heck AJR, Altelaar M, Quintela-Fandino M. In vivo phosphoproteomics reveals kinase activity profiles that predict treatment outcome in triple-negative breast cancer. Nat Commun. 2018 9(1):3501"
+  }
+ ],
+ "sampleAttributes": [
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000635",
+    "cvLabel": "EFO",
+    "name": "organism part"
+   },
+   "value": [
+    {
+     "accession": "BTO:0000214",
+     "cvLabel": "BTO",
+     "name": "cell culture"
+    },
+    {
+     "accession": "BTO:0000149",
+     "cvLabel": "BTO",
+     "name": "breast"
+    },
+    {
+     "accession": "UBERON:0000310",
+     "cvLabel": "CL",
+     "name": "breast"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "OBI:0100026",
+    "cvLabel": "EFO",
+    "name": "organism"
+   },
+   "value": [
+    {
+     "accession": "NEWT:9606",
+     "cvLabel": "NEWT",
+     "name": "Homo sapiens (Human)"
+    }
+   ]
+  },
+  {
+   "@type": "Tuple",
+   "key": {
+    "accession": "EFO:0000408",
+    "cvLabel": "EFO",
+    "name": "disease"
+   },
+   "value": [
+    {
+     "accession": "DOID:1612",
+     "cvLabel": "DOID",
+     "name": "breast cancer"
+    }
+   ]
+  }
+ ],
+ "sampleProcessingProtocol": "Proteins were extracted and digested with Lys-C/trypsin. Phosphopeptides were purified with Ti4+-IMAC micro-columns and analyzed by LC-MS/MS on an Orbitrap Elite",
+ "softwares": [
+  {
+   "@type": "CvParam",
+   "accession": "MS:1001583",
+   "cvLabel": "MS",
+   "name": "MaxQuant"
+  }
+ ],
+ "submissionDate": "2018-07-23",
+ "submissionType": "PARTIAL",
+ "submitters": [
+  {
+   "affiliation": "CNIO",
+   "country": "Spain",
+   "email": "jmunozpe@cnio.es",
+   "firstName": "Javier",
+   "id": "27280149",
+   "identifier": "27280149",
+   "lastName": "Munoz",
+   "name": "Javier Munoz",
+   "orcid": "0000-0003-3288-3496",
+   "title": "Mr"
+  }
+ ],
+ "title": "In vivo phosphoproteomics reveals kinase activity profiles that predict treatment  outcome in triple-negative breast cancer",
+ "totalFileDownloads": 24356
+}
