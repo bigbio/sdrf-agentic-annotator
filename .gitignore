@@ -8,3 +8,6 @@ work/
 docker/build.log
 CLAUDE.md
 .claude/
+.nf-test/
+.nf-test.log
+null/

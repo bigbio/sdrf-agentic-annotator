@@ -1,0 +1,73 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/jonasscheid/nf-agent-sdrf/main/nextflow_schema.json",
+    "title": "jonasscheid/nf-agent-sdrf pipeline parameters",
+    "description": "Annotate PRIDE datasets with SDRF using Nextflow agents and the bigbio/sdrf-skills",
+    "type": "object",
+    "$defs": {
+        "input_output_options": {
+            "title": "Input/output options",
+            "type": "object",
+            "fa_icon": "fas fa-terminal",
+            "description": "Define where the pipeline should find input data and save output data.",
+            "required": [
+                "input",
+                "outdir"
+            ],
+            "properties": {
+                "input": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "schema": "assets/schema_input.json",
+                    "mimetype": "text/csv",
+                    "pattern": "^\\S+\\.(csv|tsv)$",
+                    "description": "Path to a samplesheet with one PXD accession per row.",
+                    "help_text": "The samplesheet has one column with the header `pxd`. See the usage docs.",
+                    "fa_icon": "fas fa-file-csv"
+                },
+                "outdir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "The output directory where the results will be saved.",
+                    "fa_icon": "fas fa-folder-open"
+                }
+            }
+        },
+        "agent_options": {
+            "title": "Agent options",
+            "type": "object",
+            "fa_icon": "fas fa-robot",
+            "description": "Options for the LLM agents. The API key is the Nextflow secret `LLM_KEY`.",
+            "properties": {
+                "model": {
+                    "type": "string",
+                    "default": "google/gemini-3.5-flash-lite",
+                    "description": "Model that the agents use, as `<provider>/<model>`.",
+                    "fa_icon": "fas fa-brain"
+                },
+                "api_provider": {
+                    "type": "string",
+                    "default": "google",
+                    "description": "Provider of the API key in the `LLM_KEY` secret.",
+                    "fa_icon": "fas fa-key",
+                    "help_text": "For example `google`, `anthropic`, `openai` or `openrouter`."
+                },
+                "revise": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Revise an SDRF once when its review fails, then review it again.",
+                    "fa_icon": "fas fa-redo"
+                }
+            }
+        }
+    },
+    "allOf": [
+        {
+            "$ref": "#/$defs/input_output_options"
+        },
+        {
+            "$ref": "#/$defs/agent_options"
+        }
+    ]
+}

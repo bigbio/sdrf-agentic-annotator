@@ -1,23 +1,47 @@
-include { SDRF_ANNOTATE } from './modules/sdrf_annotate'
-include { SDRF_REVIEW   } from './modules/sdrf_review'
+#!/usr/bin/env nextflow
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+jonasscheid/nf-agent-sdrf
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Github : https://github.com/jonasscheid/nf-agent-sdrf
+----------------------------------------------------------------------------------------
+ */
 
-params.pxd = 'PXD074155'
+include { SDRF_AGENT } from './workflows/sdrf_agent'
+include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_sdrf_agent'
+include { PIPELINE_COMPLETION } from './subworkflows/local/utils_sdrf_agent'
 
 workflow {
+
     main:
-    ch_annotated = SDRF_ANNOTATE(channel.of(params.pxd))
+    PIPELINE_INITIALISATION(params.input)
 
-    // The reviewer gets the SDRF and the evidence manifest only, not the producer report
-    ch_reviewed = SDRF_REVIEW(ch_annotated.map { r -> record(pxd: r.pxd, sdrf: r.sdrf, manifest: r.manifest) })
+    SDRF_AGENT(PIPELINE_INITIALISATION.out.pxds)
 
-    ch_reviewed.view { r -> "${r.pxd}: verdict=${new groovy.json.JsonSlurper().parse(r.review.toFile()).verdict}" }
+    PIPELINE_COMPLETION(SDRF_AGENT.out.summary)
 
     publish:
-    annotated = ch_annotated
-    reviewed  = ch_reviewed
+    annotated = SDRF_AGENT.out.annotated
+    reviewed = SDRF_AGENT.out.reviewed
+    revised = SDRF_AGENT.out.revised
+    revised_review = SDRF_AGENT.out.revised_review
+    summary = SDRF_AGENT.out.summary
 }
 
 output {
-    annotated { path { r -> r.pxd } }
-    reviewed  { path { r -> r.pxd } }
+    annotated {
+        path { r -> r.pxd }
+    }
+    reviewed {
+        path { r -> r.pxd }
+    }
+    revised {
+        path { r -> "${r.pxd}/revised" }
+    }
+    revised_review {
+        path { r -> "${r.pxd}/revised" }
+    }
+    summary {
+        path '.'
+    }
 }
