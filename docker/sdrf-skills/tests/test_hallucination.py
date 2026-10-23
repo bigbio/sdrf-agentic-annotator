@@ -1,0 +1,573 @@
+"""Tests for tools.hallucination — ontology hallucination detector."""
+
+from __future__ import annotations
+
+from pathlib import Path
+from typing import ClassVar
+from unittest.mock import MagicMock, patch
+
+import pytest
+
+from tools.hallucination import (
+    HallucinationReport,
+    detect_hallucinations,
+    _check_unimod_swap,
+    _check_modification_cell,
+    _modification_label_matches,
+)
+from tools.column_ontology_map import (
+    UNIMOD_BY_NAME,
+    UNIMOD_KNOWN,
+    UNIMOD_SWAPS,
+)
+from tools.ols_client import OLSClient, OLSTerm, VerificationResult
+
+
+class TestUnimodSwapDetection:
+    """Test offline UNIMOD swap detection (no API calls needed)."""
+
+    def test_acetyl_phospho_swap(self):
+        """UNIMOD:21 labeled 'Acetyl' is the #1 most common error."""
+        swap = _check_unimod_swap("UNIMOD:21", "Acetyl")
+        assert swap is not None
+        assert swap.correct_accession == "UNIMOD:1"
+        assert swap.correct_name == "Acetyl"
+
+    def test_phospho_acetyl_swap(self):
+        swap = _check_unimod_swap("UNIMOD:1", "Phospho")
+        assert swap is not None
+        assert swap.correct_accession == "UNIMOD:21"
+
+    def test_oxidation_methyl_swap(self):
+        swap = _check_unimod_swap("UNIMOD:34", "Oxidation")
+        assert swap is not None
+        assert swap.correct_accession == "UNIMOD:35"
+
+    def test_methyl_oxidation_swap(self):
+        swap = _check_unimod_swap("UNIMOD:35", "Methyl")
+        assert swap is not None
+        assert swap.correct_accession == "UNIMOD:34"
+
+    def test_correct_acetyl_no_swap(self):
+        swap = _check_unimod_swap("UNIMOD:1", "Acetyl")
+        assert swap is None
+
+    def test_correct_phospho_no_swap(self):
+        swap = _check_unimod_swap("UNIMOD:21", "Phospho")
+        assert swap is None
+
+    def test_correct_oxidation_no_swap(self):
+        swap = _check_unimod_swap("UNIMOD:35", "Oxidation")
+        assert swap is None
+
+    def test_known_accession_wrong_name(self):
+        """Known accession, known-but-different name: the accession is the typo.
+
+        Same rule as the hardcoded UNIMOD_SWAPS entries -- the name is what a
+        curator or a search tool supplies, the accession is what gets guessed.
+        """
+        swap = _check_unimod_swap("UNIMOD:4", "Phospho")
+        assert swap is not None
+        assert swap.correct_accession == "UNIMOD:21"
+        assert swap.correct_name == "Phospho"
+
+
+class TestModificationCellCheck:
+    def test_correct_mod(self):
+        verified, swaps, warnings = _check_modification_cell(
+            "NT=Carbamidomethyl;AC=UNIMOD:4;TA=C;MT=Fixed",
+            "comment[modification parameters]",
+            [1],
+        )
+        assert len(verified) == 1
+        assert len(swaps) == 0
+        assert verified[0].accession == "UNIMOD:4"
+
+    def test_swap_detected(self):
+        verified, swaps, warnings = _check_modification_cell(
+            "NT=Acetyl;AC=UNIMOD:21;PP=Protein N-term;MT=Variable",
+            "comment[modification parameters]",
+            [3],
+        )
+        assert len(swaps) == 1
+        assert swaps[0].wrong_accession == "UNIMOD:21"
+        assert swaps[0].correct_accession == "UNIMOD:1"
+        assert swaps[0].rows == [3]
+
+    def test_wrong_mt_value(self):
+        verified, swaps, warnings = _check_modification_cell(
+            "NT=Oxidation;AC=UNIMOD:35;TA=M;MT=variable",
+            "comment[modification parameters]",
+            [1],
+        )
+        assert any("MT=" in w for w in warnings)
+
+    def test_ta_looks_like_pp(self):
+        verified, swaps, warnings = _check_modification_cell(
+            "NT=Acetyl;AC=UNIMOD:1;TA=Protein N-term;MT=Variable",
+            "comment[modification parameters]",
+            [1],
+        )
+        assert any("PP=" in w for w in warnings)
+
+
+class TestDetectHallucinationsOffline:
+    """Test hallucination detection with offline mode (no OLS calls)."""
+
+    def test_synthetic_sdrf_unimod_swaps(self, synthetic_sdrf_path: Path):
+        """The synthetic SDRF has deliberate UNIMOD swap errors."""
+        report = detect_hallucinations(
+            synthetic_sdrf_path, verify_online=False
+        )
+        assert isinstance(report, HallucinationReport)
+        # Row 3 has UNIMOD:21 for Acetyl (should be UNIMOD:1)
+        assert len(report.unimod_swaps) >= 1
+        swap_accessions = {s.wrong_accession for s in report.unimod_swaps}
+        assert "UNIMOD:21" in swap_accessions
+
+    def test_synthetic_sdrf_oxidation_swap(self, synthetic_sdrf_path: Path):
+        """Row 6 has UNIMOD:34 for Oxidation (should be UNIMOD:35)."""
+        report = detect_hallucinations(
+            synthetic_sdrf_path, verify_online=False
+        )
+        oxidation_swaps = [
+            s for s in report.unimod_swaps
+            if s.wrong_accession == "UNIMOD:34"
+        ]
+        assert len(oxidation_swaps) >= 1
+
+    def test_correct_mods_verified(self, synthetic_sdrf_path: Path):
+        report = detect_hallucinations(
+            synthetic_sdrf_path, verify_online=False
+        )
+        # Carbamidomethyl (UNIMOD:4) and Oxidation (UNIMOD:35) should be verified
+        verified_accessions = {v.accession for v in report.verified}
+        assert "UNIMOD:4" in verified_accessions
+
+    def test_summary_output(self, synthetic_sdrf_path: Path):
+        report = detect_hallucinations(
+            synthetic_sdrf_path, verify_online=False
+        )
+        summary = report.summary()
+        assert "Hallucination Report" in summary
+        assert "UNIMOD swaps" in summary
+
+    def test_report_not_clean_with_swaps(self, synthetic_sdrf_path: Path):
+        report = detect_hallucinations(
+            synthetic_sdrf_path, verify_online=False
+        )
+        assert not report.is_clean
+
+    def test_minimal_sdrf_is_clean(self, minimal_sdrf_content: str):
+        """Minimal SDRF with no ontology columns should be clean."""
+        report = detect_hallucinations(
+            minimal_sdrf_content, verify_online=False
+        )
+        assert report.is_clean
+
+
+class TestDetectHallucinationsOnline:
+    """Test with mocked OLS client."""
+
+    def test_verified_term(self):
+        mock_client = MagicMock(spec=OLSClient)
+        mock_client.search_term.return_value = [
+            OLSTerm(
+                iri="http://purl.obolibrary.org/obo/NCBITaxon_9606",
+                label="Homo sapiens",
+                short_form="NCBITaxon:9606",
+                ontology_name="ncbitaxon",
+            )
+        ]
+
+        sdrf_content = (
+            "source name\tcharacteristics[organism]\n"
+            "s1\tHomo sapiens\n"
+        )
+        report = detect_hallucinations(
+            sdrf_content, ols_client=mock_client, verify_online=True
+        )
+        assert len(report.verified) == 1
+        assert report.verified[0].label == "Homo sapiens"
+
+    def test_hallucinated_term(self):
+        mock_client = MagicMock(spec=OLSClient)
+        mock_client.search_term.return_value = []
+
+        sdrf_content = (
+            "source name\tcharacteristics[organism]\n"
+            "s1\tFake organism\n"
+        )
+        report = detect_hallucinations(
+            sdrf_content, ols_client=mock_client, verify_online=True
+        )
+        assert len(report.hallucinated) == 1
+        assert report.hallucinated[0].label == "Fake organism"
+
+    def test_synonym_match_not_hallucinated(self):
+        """A term found via synonym must not be reported as hallucinated.
+
+        Mirrors the 'HeLa S3' vs 'HeLa-S3' class of false positives: the SDRF
+        value matches a synonym rather than the OLS primary label.
+        """
+        mock_client = MagicMock(spec=OLSClient)
+        # OLS primary label differs (hyphen vs space) but SDRF value is a synonym
+        mock_client.search_term.return_value = [
+            OLSTerm(
+                iri="http://www.ebi.ac.uk/efo/EFO_0002791",
+                label="HeLa-S3",          # primary label uses hyphen
+                short_form="EFO:0002791",
+                ontology_name="efo",
+                synonyms=["HeLa S3"],     # SDRF value matches this synonym
+            )
+        ]
+
+        sdrf_content = (
+            "source name\tcharacteristics[cell line]\n"
+            "s1\tHeLa S3\n"
+        )
+        report = detect_hallucinations(
+            sdrf_content, ols_client=mock_client, verify_online=True
+        )
+        assert len(report.hallucinated) == 0, (
+            "Term found via synonym should not be reported as hallucinated"
+        )
+        assert len(report.verified) == 1
+        assert report.verified[0].label == "HeLa S3"
+
+
+class TestStructuredCVColumns:
+    """comment[...] CV columns are written NT=<label>;AC=<accession>.
+
+    Regression tests: these columns were routed to the bare-label checker,
+    which searched OLS for the literal cell string and always missed, so every
+    value was reported as hallucinated.
+    """
+
+    @staticmethod
+    def _client():
+        client = MagicMock(spec=OLSClient)
+        client.verify_accession.return_value = VerificationResult(
+            accession="MS:1002038",
+            expected_label="label free sample",
+            exists=True,
+            resolved_term=OLSTerm(
+                iri="http://purl.obolibrary.org/obo/MS_1002038",
+                label="label free sample",
+                short_form="MS:1002038",
+                ontology_name="ms",
+            ),
+            label_match=True,
+        )
+        return client
+
+    def test_label_column_not_hallucinated(self):
+        client = self._client()
+        sdrf = (
+            "source name\tcomment[label]\n"
+            "s1\tNT=label free sample;AC=MS:1002038\n"
+        )
+        report = detect_hallucinations(sdrf, ols_client=client, verify_online=True)
+        assert report.hallucinated == []
+        assert len(report.verified) == 1
+        assert report.verified[0].accession == "MS:1002038"
+
+    def test_dissociation_method_not_hallucinated(self):
+        client = self._client()
+        client.verify_accession.return_value = VerificationResult(
+            accession="MS:1000133",
+            expected_label="collision-induced dissociation",
+            exists=True,
+            resolved_term=OLSTerm(
+                iri="http://purl.obolibrary.org/obo/MS_1000133",
+                label="collision-induced dissociation",
+                short_form="MS:1000133",
+                ontology_name="ms",
+            ),
+            label_match=True,
+        )
+        sdrf = (
+            "source name\tcomment[dissociation method]\n"
+            "s1\tNT=collision-induced dissociation;AC=MS:1000133\n"
+        )
+        report = detect_hallucinations(sdrf, ols_client=client, verify_online=True)
+        assert report.hallucinated == []
+        assert len(report.verified) == 1
+
+    def test_structured_value_in_unmapped_column_is_checked(self):
+        """A column outside COLUMN_ONTOLOGY_MAP still gets verified when its
+        values carry AC= — e.g. comment[cross-linker] (XLMOD)."""
+        client = MagicMock(spec=OLSClient)
+        client.verify_accession.return_value = VerificationResult(
+            accession="XLMOD:02126",
+            expected_label="DSSO",
+            exists=True,
+            resolved_term=OLSTerm(
+                iri="http://purl.obolibrary.org/obo/XLMOD_02126",
+                label="DSSO",
+                short_form="XLMOD:02126",
+                ontology_name="xlmod",
+            ),
+            label_match=True,
+        )
+        sdrf = (
+            "source name\tcomment[cross-linker]\n"
+            "s1\tNT=DSSO;AC=XLMOD:02126\n"
+        )
+        report = detect_hallucinations(sdrf, ols_client=client, verify_online=True)
+        assert report.total_terms_checked == 1
+        assert report.hallucinated == []
+
+    def test_provenance_column_without_accession_is_skipped(self):
+        """comment[sdrf template] uses NT=..;VV=.. and carries no accession,
+        so it must not be treated as a CV column."""
+        client = MagicMock(spec=OLSClient)
+        sdrf = (
+            "source name\tcomment[sdrf template]\n"
+            "s1\tNT=ms-proteomics;VV=v1.1.0\n"
+        )
+        report = detect_hallucinations(sdrf, ols_client=client, verify_online=True)
+        assert report.total_terms_checked == 0
+        assert report.hallucinated == []
+        client.verify_accession.assert_not_called()
+
+    def test_reserved_words_do_not_decide_column_style(self):
+        """A leading 'not applicable' must not make the column look bare-label."""
+        client = self._client()
+        sdrf = (
+            "source name\tcomment[label]\n"
+            "s1\tnot applicable\n"
+            "s2\tNT=label free sample;AC=MS:1002038\n"
+        )
+        report = detect_hallucinations(sdrf, ols_client=client, verify_online=True)
+        assert report.hallucinated == []
+        assert len(report.verified) == 1
+
+
+class TestModificationLabelMatching:
+    """The NT/AC pair must name the same modification.
+
+    Tuned against every NT/AC pair in bigbio/sdrf-annotated-datasets: the
+    accept rules below cover 98.3% of rows, and each rejected pair inspected
+    named a genuinely different chemistry.
+    """
+
+    def test_exact(self):
+        assert _modification_label_matches("Oxidation", "Oxidation", "UNIMOD:35")
+
+    def test_case_and_punctuation_insensitive(self):
+        assert _modification_label_matches("deamidated", "Deamidated", "UNIMOD:7")
+        assert _modification_label_matches("Gln->pyro-Glu", "Gln->pyro Glu", "UNIMOD:28")
+
+    def test_abbreviation_is_substring(self):
+        assert _modification_label_matches("TMT", "TMT6plex", "UNIMOD:737")
+        assert _modification_label_matches("iTRAQ", "iTRAQ4plex", "UNIMOD:214")
+
+    def test_process_name_vs_residue_name(self):
+        assert _modification_label_matches("Phosphorylation", "Phospho", "UNIMOD:21")
+        assert _modification_label_matches("Deamidation", "Deamidated", "UNIMOD:7")
+
+    def test_multiname_accession(self):
+        """UNIMOD:737 is one term for TMT6/10/11plex."""
+        assert _modification_label_matches("TMT10plex", "TMT6plex", "UNIMOD:737")
+
+    def test_different_chemistry_rejected(self):
+        assert not _modification_label_matches("Oxidation", "Dimethyl", "UNIMOD:36")
+        assert not _modification_label_matches("Oxidation", "Methylthio", "UNIMOD:39")
+        assert not _modification_label_matches("Acetyl", "Amidated", "UNIMOD:2")
+        assert not _modification_label_matches("Carbamidomethyl", "Asp->Cys", "UNIMOD:1067")
+        assert not _modification_label_matches("Ubiquitination", "Label:2H(4)+GG", "UNIMOD:853")
+
+    def test_swapped_pyro_glu_pair_rejected(self):
+        """Gln->pyro-Glu is UNIMOD:28; UNIMOD:27 is Glu->pyro-Glu."""
+        assert not _modification_label_matches("Gln->pyro-Glu", "Glu->pyro-Glu", "UNIMOD:27")
+
+    def test_multiname_does_not_leak_to_other_accessions(self):
+        assert not _modification_label_matches("TMT10plex", "Oxidation", "UNIMOD:35")
+
+    def test_isotope_label_prefix_omitted(self):
+        """UNIMOD prefixes isotope labels with 'Label:'; SDRFs often omit it."""
+        assert _modification_label_matches("13C6-15N4", "Label:13C(6)15N(4)", "UNIMOD:267")
+
+    def test_containment_alone_must_not_accept(self):
+        """The swaps this check exists to catch are all substring-related."""
+        assert not _modification_label_matches("Trimethyl", "Methyl", "UNIMOD:34")
+        assert not _modification_label_matches("Carbamidomethyl", "Methyl", "UNIMOD:34")
+        assert not _modification_label_matches("Acetyl", "Pyridylacetyl", "UNIMOD:25")
+        assert not _modification_label_matches(
+            "Carbamidomethyl", "Pyro-carbamidomethyl", "UNIMOD:26")
+
+    def test_isotope_labels_are_not_prefix_matched(self):
+        """13C(6) is a prefix of 13C(6)15N(2) but a different label."""
+        assert not _modification_label_matches(
+            "Label:13C(6)", "Label:13C(6)15N(2)", "UNIMOD:259")
+
+
+class TestModificationAccessionCrossCheck:
+    """Online NT<->AC verification for comment[modification parameters]."""
+
+    @staticmethod
+    def _sdrf(value):
+        return ("source name\tcomment[modification parameters]\n"
+                f"s1\t{value}\n")
+
+    @staticmethod
+    def _client(term):
+        c = MagicMock(spec=OLSClient)
+        c.resolve_accession.return_value = term
+        return c
+
+    def test_nonexistent_accession_is_hallucinated(self):
+        client = self._client(None)
+        report = detect_hallucinations(
+            self._sdrf("NT=Acetyl;AC=UNIMOD:67;TA=K;MT=Variable"),
+            ols_client=client, verify_online=True)
+        assert len(report.hallucinated) == 1
+        assert report.hallucinated[0].accession == "UNIMOD:67"
+
+    def test_accession_naming_other_chemistry_is_mismatch(self):
+        client = self._client(OLSTerm(
+            iri="", label="Asp->Cys", short_form="UNIMOD:1067",
+            ontology_name="unimod"))
+        report = detect_hallucinations(
+            self._sdrf("NT=Carbamidomethyl;AC=UNIMOD:1067;TA=C;MT=Fixed"),
+            ols_client=client, verify_online=True)
+        assert len(report.mismatched) == 1
+        assert report.mismatched[0].actual_label == "Asp->Cys"
+        assert report.hallucinated == []
+
+    def test_variant_spelling_is_verified_not_flagged(self):
+        client = self._client(OLSTerm(
+            iri="", label="Deamidated", short_form="UNIMOD:7",
+            ontology_name="unimod"))
+        report = detect_hallucinations(
+            self._sdrf("NT=Deamidation;AC=UNIMOD:7;TA=N,Q;MT=Variable"),
+            ols_client=client, verify_online=True)
+        assert report.mismatched == [] and report.hallucinated == []
+        assert any(v.accession == "UNIMOD:7" for v in report.verified)
+
+    def test_offline_mode_makes_no_calls(self):
+        client = MagicMock(spec=OLSClient)
+        report = detect_hallucinations(
+            self._sdrf("NT=Carbamidomethyl;AC=UNIMOD:1067;TA=C;MT=Fixed"),
+            ols_client=client, verify_online=False)
+        client.resolve_accession.assert_not_called()
+        assert report.mismatched == [] and report.hallucinated == []
+
+    def test_known_swap_is_not_double_reported(self):
+        """The offline swap check already names the correct accession."""
+        client = self._client(OLSTerm(
+            iri="", label="Phospho", short_form="UNIMOD:21",
+            ontology_name="unimod"))
+        report = detect_hallucinations(
+            self._sdrf("NT=Acetyl;AC=UNIMOD:21;TA=K;MT=Variable"),
+            ols_client=client, verify_online=True)
+        assert len(report.unimod_swaps) == 1
+        assert report.mismatched == [] and report.hallucinated == []
+
+    def test_correct_pair_stays_clean(self):
+        client = self._client(OLSTerm(
+            iri="", label="Carbamidomethyl", short_form="UNIMOD:4",
+            ontology_name="unimod"))
+        report = detect_hallucinations(
+            self._sdrf("NT=Carbamidomethyl;AC=UNIMOD:4;TA=C;MT=Fixed"),
+            ols_client=client, verify_online=True)
+        assert report.is_clean
+
+
+class TestUnimodTableIntegrity:
+    """Guard the UNIMOD_KNOWN table itself -- a wrong row here is invisible.
+
+    The detector's whole job is catching NT=/AC= mismatches, so a transposed
+    entry makes it endorse the exact error it exists to catch (issue #73).
+    """
+
+    # Independently sourced from OLS4 (ontologies/unimod/terms), not copied
+    # from the module under test.
+    VERIFIED: ClassVar[dict[str, str]] = {
+        "UNIMOD:1": "Acetyl",
+        "UNIMOD:4": "Carbamidomethyl",
+        "UNIMOD:21": "Phospho",
+        "UNIMOD:24": "Propionamide",
+        "UNIMOD:30": "Cation:Na",
+        "UNIMOD:35": "Oxidation",
+        "UNIMOD:199": "Dimethyl:2H(4)",
+        "UNIMOD:214": "iTRAQ4plex",
+        "UNIMOD:259": "Label:13C(6)15N(2)",
+        "UNIMOD:267": "Label:13C(6)15N(4)",
+        "UNIMOD:312": "Cysteinyl",
+        "UNIMOD:354": "Nitro",
+        "UNIMOD:374": "Dehydro",
+        "UNIMOD:730": "iTRAQ8plex",
+        "UNIMOD:737": "TMT6plex",
+        "UNIMOD:2016": "TMTpro",
+    }
+
+    def test_known_accessions_match_unimod(self):
+        for accession, label in self.VERIFIED.items():
+            assert UNIMOD_KNOWN[accession] == label
+
+    def test_labels_are_unique(self):
+        """UNIMOD_BY_NAME is only well defined if no label is mapped twice."""
+        labels = [name.lower() for name in UNIMOD_KNOWN.values()]
+        assert len(labels) == len(set(labels))
+        assert len(UNIMOD_BY_NAME) == len(UNIMOD_KNOWN)
+
+    def test_swap_table_agrees_with_known_table(self):
+        """Every UNIMOD_SWAPS target must be the pair UNIMOD_KNOWN gives."""
+        for correct_ac, correct_name in UNIMOD_SWAPS.values():
+            assert UNIMOD_KNOWN[correct_ac] == correct_name
+
+    def test_propionamide_is_not_dehydro(self):
+        """issue #73: NT=Propionamide;AC=UNIMOD:374 must be flagged, not endorsed."""
+        swap = _check_unimod_swap("UNIMOD:374", "Propionamide")
+        assert swap is not None
+        assert swap.correct_accession == "UNIMOD:24"
+        assert swap.correct_name == "Propionamide"
+
+    def test_propionamide_with_correct_accession_verifies(self):
+        verified, swaps, _warnings = _check_modification_cell(
+            "NT=Propionamide;AC=UNIMOD:24;TA=C;MT=Fixed",
+            "comment[modification parameters]", [1],
+        )
+        assert not swaps
+        assert len(verified) == 1
+        assert verified[0].accession == "UNIMOD:24"
+
+    def test_unknown_name_falls_back_to_relabelling(self):
+        """When only the accession is recognised, the name is what gets corrected."""
+        swap = _check_unimod_swap("UNIMOD:374", "Totally Not A Mod")
+        assert swap is not None
+        assert swap.correct_accession == "UNIMOD:374"
+        assert swap.correct_name == "Dehydro"
+
+class TestBundledSpecResolution:
+    """The spec ships in the bundle, so it must resolve from any working directory.
+
+    Installed as a Claude Code plugin, cwd is the user's project, not the plugin
+    root -- a cwd-relative "spec/..." silently misses and the detector degrades to
+    the hardcoded fallback map with no signal.
+    """
+
+    def test_resolves_without_cwd(self, tmp_path, monkeypatch):
+        from tools.column_ontology_map import BUNDLED_TERMS_TSV, resolve_terms_tsv
+
+        if not BUNDLED_TERMS_TSV.exists():
+            pytest.skip("spec submodule not initialised")
+        monkeypatch.chdir(tmp_path)
+        assert resolve_terms_tsv() == BUNDLED_TERMS_TSV
+
+    def test_explicit_path_still_wins(self, tmp_path):
+        from tools.column_ontology_map import resolve_terms_tsv
+
+        terms = tmp_path / "TERMS.tsv"
+        terms.write_text("term\tvalues\n")
+        assert resolve_terms_tsv(terms) == terms
+
+    def test_missing_spec_returns_none(self, tmp_path, monkeypatch):
+        from tools.column_ontology_map import resolve_terms_tsv
+
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setattr("tools.column_ontology_map.BUNDLED_TERMS_TSV",
+                            tmp_path / "nope" / "TERMS.tsv")
+        assert resolve_terms_tsv() is None

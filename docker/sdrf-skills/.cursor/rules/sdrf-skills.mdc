@@ -1,0 +1,71 @@
+---
+description: sdrf-skills — SDRF annotation workflows, setup, validation, ontology lookup for proteomics metadata
+globs:
+  - "**/*.sdrf.tsv"
+  - "**/*.sdrf"
+  - "**/sdrf*"
+alwaysApply: false
+---
+
+# sdrf-skills — SDRF Annotation Skills
+
+Structured skills for expert-level SDRF (Sample and Data Relationship Format)
+annotation in proteomics.
+
+## What You Can Do
+
+When working with SDRF files, proteomics metadata, or when the user asks to **install dependencies** or **set up the environment**, follow these workflows:
+
+### Setup & Knowledge
+
+### Core Workflows
+- **Annotate a dataset**: `skills/sdrf-annotate/SKILL.md` — create an SDRF from a PXD and always have it independently reviewed; review an existing .sdrf.tsv; or plan. The only entry point for annotation and review
+- **Plan metadata**: `skills/sdrf-annotate/SKILL.md` — pre-annotation strategy
+- **Adversarial review**: `skills/sdrf-adversarial-review/SKILL.md` — require a fresh reviewer and hash-bound receipt
+- **Contribute**: `skills/sdrf-contribute/SKILL.md` — PR to community repository
+- **Campaign**: `skills/sdrf-campaign/SKILL.md` — screen a class of studies against your criteria, then loop annotate over the included ones
+
+## Key Rules
+
+1. NEVER guess ontology accessions — always verify via OLS
+2. NEVER invent SDRF column names — use the exact form in `skills/sdrf-annotate/references/format-rules.md`
+3. When a PXD accession is given, ALWAYS fetch project context + publication before annotating
+4. Template selection should happen BEFORE annotation begins
+5. All ontology terms must include both label AND accession (e.g., "breast carcinoma" with EFO:0000305)
+6. Modification parameters must follow NT=;AC=;TA=;MT= format with correct UNIMOD accessions
+
+## Bundled tools: contract and build
+
+Install the helpers once: `pip install -e <sdrf-skills checkout>` (brings `sdrf-pipelines`), then `sdrf-tools doctor`.
+
+Two deterministic helpers keep annotation short and structurally valid. Run them from the
+sdrf-skills checkout (`sdrf-tools ...`; Claude Code sets
+`$CLAUDE_PLUGIN_ROOT` for this):
+
+- `sdrf-tools contract -t ms-proteomics [-t human ...]` — prints the column contract of the
+  template union: every column in order, required/optional/multiple, value form, permitted reserved
+  words and the ontologies to search. Read this instead of `TERMS.tsv` and the template YAMLs.
+- `sdrf-tools build --samples samples.tsv --technical technical.tsv --files files.json
+  -t ms-proteomics [-t ...] -o output.sdrf.tsv` — expands a sample table (one row per source and
+  replicate; `files` = the fractions of one injection; `label` = `label free sample` or one channel)
+  plus a technical table (run-level `comment[...]` values, `|` between multiple values) into the SDRF:
+  fractions, technical replicates, channel rows, repeated columns and column order are decided by
+  code. It refuses, and writes nothing, on a file outside `files.json`, a file claimed twice, two rows
+  sharing a (source, biological replicate, technical replicate, fraction) coordinate, or an incomplete
+  channel map — it never fills a channel in.
+
+Fix validation errors in the two tables and rebuild; never edit the SDRF by hand.
+
+## Specification Data
+
+The SDRF specification lives in the `spec/` git submodule:
+- **Column definitions**: `spec/sdrf-proteomics/TERMS.tsv` — read for valid column names, ontology routing, allowed values
+- **Template manifest**: `spec/sdrf-proteomics/sdrf-templates/templates.yaml` — read for template inventory and versions
+- **Individual templates**: `spec/sdrf-proteomics/sdrf-templates/{name}/{version}/{name}.yaml`
+
+## Important References
+
+- Column-to-ontology mapping: the contract prints it per column (`<- NCBITaxon`, `<- UBERON, BTO`); TERMS.tsv `values` is its source
+- Template layers and the selection decision tree: `skills/sdrf-annotate/references/templates.md`
+- Common UNIMOD IDs: Acetyl=1, Phospho=21, Carbamidomethyl=4, Oxidation=35, TMT6plex=737
+- Common error: UNIMOD:1 (Acetyl) ↔ UNIMOD:21 (Phospho) swap — most frequent mistake

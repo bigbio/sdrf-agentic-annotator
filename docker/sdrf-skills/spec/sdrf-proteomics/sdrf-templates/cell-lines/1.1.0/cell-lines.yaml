@@ -1,0 +1,234 @@
+name: cell-lines
+description: SDRF template for cell line samples with Cellosaurus-based annotation. Cell lines can originate from any organism - combine with appropriate organism template (human for HeLa, vertebrates for NIH 3T3, invertebrates for Sf9).
+documentation: |
+  The cell-lines template provides standardized annotation for cultured cell lines using
+  Cellosaurus as the primary reference database.
+
+  Required combination: technology template + organism template (based on cell line origin).
+  Example: HeLa study = cell-lines + human + ms-proteomics. The same sample-layer
+  combination can also be paired with ms-metabolomics when the experiment is metabolomics.
+
+  Key guidance:
+  - `characteristics[cellosaurus accession]`: Required. Look up accessions at
+    https://www.cellosaurus.org/. Format: CVCL_XXXX (e.g., CVCL_0030 for HeLa).
+  - `characteristics[cell line]`: Required. Use standard cell line names from CLO/BTO/EFO.
+  - `characteristics[disease]`: Required. The disease of the donor tissue from which the
+    cell line was originally derived. Use `normal` for non-disease-derived cell lines.
+  - `characteristics[tissue supergroup]`: Optional broader anatomical bucket inherited from
+    `sample-metadata` for higher-level grouping of tissue of origin, for example `heart`,
+    `liver`, `brain`, or `gastrointestinal tract`.
+  - `characteristics[sampling site]`: Preserve the original Cellosaurus source term, local
+    provenance, or finer tissue-of-origin context. It can be equal to
+    `characteristics[organism part]` when no better distinction exists.
+  - `characteristics[passage number]`: Recommended. Document passage for reproducibility.
+    Passage drift can significantly affect proteomics results.
+  - `characteristics[culture medium]`: Recommended. Use NCIT terms (DMEM, RPMI 1640).
+  - `characteristics[cell line authentication]`: Optional but encouraged. STR profiling
+    is the gold standard for human cell lines.
+contributors:
+  - Yasset Perez-Riverol (yperez@ebi.ac.uk) - EMBL-EBI
+  - Deepti Jaiswal Kundu (jaiswal@ebi.ac.uk) - EMBL-EBI
+  - Nithu Sara John (nithu@ebi.ac.uk) - EMBL-EBI
+  - Nandana Madhusoodanan (nandana@ebi.ac.uk) - EMBL-EBI
+  - Asier Larrea (alarre@ebi.ac.uk) - EMBL-EBI
+  - Toan Phung (TPhung001@dundee.ac.uk) - University of Dundee
+  - Timo Sachsenberg (timo.sachsenberg@uni-tuebingen.de) - University of Tübingen
+version: 1.1.0
+extends: sample-metadata@>=1.0.0
+usable_alone: false
+layer: experiment
+requires:
+  - layer: technology   # ms-proteomics, affinity-proteomics, or ms-metabolomics
+  - layer: sample       # human, vertebrates, or invertebrates (based on cell line origin)
+columns:
+  - name: characteristics[cell line]
+    ontology_accession: CLO:0000031
+    description: Name of the cell line
+    requirement: required
+    allow_not_applicable: false
+    allow_not_available: false
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - clo
+            - bto
+            - efo
+          error_level: warning
+          description: The cell line should be a valid Cell Line Ontology (CLO), BTO, or EFO term
+          examples:
+            - HeLa
+            - HEK293
+            - MCF7
+            - A549
+
+  - name: characteristics[disease]
+    ontology_accession: MONDO:0000001
+    description: Disease state of the donor tissue from which the cell line was established
+    requirement: required
+
+  - name: characteristics[cellosaurus accession]
+    ontology_accession: PRIDE:0000835
+    description: Cellosaurus accession number for the cell line
+    requirement: required
+    allow_not_applicable: false
+    allow_not_available: true
+    validators:
+      - validator_name: accession
+        params:
+          format: cellosaurus
+          error_level: error
+          description: Cellosaurus accession
+          examples:
+            - CVCL_0030
+            - CVCL_0004
+
+  - name: characteristics[cellosaurus name]
+    ontology_accession: PRIDE:0000836
+    description: Official Cellosaurus name for the cell line
+    requirement: recommended
+    allow_not_applicable: false
+    allow_not_available: true
+
+  - name: characteristics[sampling site]
+    ontology_accession: EFO:0000688
+    description: Original source term, local provenance, or finer tissue-of-origin context for the cell line
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - uberon
+            - bto
+          error_level: warning
+          description: The sampling site should be a valid UBERON or BTO term when it is expressed as a normalized anatomy term
+          examples:
+            - cervix
+            - kidney
+            - breast
+
+  - name: characteristics[passage number]
+    ontology_accession: EFO:0007061
+    description: Passage number of the cell line used in the experiment
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^\d+(-\d+)?$
+          description: Passage number should be an integer or range
+          examples:
+            - 10
+            - 15-20
+            - 5
+
+  - name: characteristics[biorepository]
+    ontology_accession: NCIT:C48800
+    description: BioBank or source from which the cell line was obtained
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Source of the cell line
+          examples:
+            - ATCC
+            - DSMZ
+            - ECACC
+            - Sigma-Aldrich
+
+  - name: characteristics[cell line authentication]
+    ontology_accession: PRIDE:0000955
+    description: Method used to authenticate the cell line identity
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Authentication method used
+          examples:
+            - STR profiling
+            - SNP fingerprinting
+            - cytogenetic analysis
+
+  - name: characteristics[culture medium]
+    ontology_accession: OBI:0000079
+    description: Culture medium used to grow the cell line
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ncit
+          error_level: warning
+          description: The culture medium should be a valid ontology term (NCIT:C85504 Growth Medium hierarchy)
+          examples:
+            - DMEM
+            - RPMI 1640
+            - MEM
+            - Ham's F-12
+
+  - name: characteristics[developmental stage]
+    ontology_accession: EFO:0000399
+    description: Developmental stage of the donor from which the cell line was derived
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - efo
+          error_level: warning
+          description: The developmental stage should be a valid EFO ontology term
+          examples:
+            - adult
+            - embryonic
+            - fetal
+            - neonatal
+
+  - name: characteristics[ancestry category]
+    ontology_accession: HANCESTRO:0004
+    description: Ancestry category of the cell line donor (if known)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - hancestro
+          error_level: warning
+          description: The ancestry category should be a valid HANCESTRO term
+          examples:
+            - European
+            - African
+            - East Asian
+            - South Asian
+
+  - name: characteristics[sample storage temperature]
+    ontology_accession: PRIDE:0000705
+    description: Storage temperature of the cell line (in Celsius)
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: ["°C"]
+          allow_negative: true
+          error_level: warning
+          description: Storage temperature in Celsius
+          examples:
+            - -80 °C
+            - -20 °C
+            - 4 °C

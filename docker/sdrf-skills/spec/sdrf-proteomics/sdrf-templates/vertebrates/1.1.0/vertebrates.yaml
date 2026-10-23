@@ -1,0 +1,90 @@
+name: vertebrates
+description: SDRF template for non-human vertebrate samples (mammals, birds, fish, reptiles, amphibians). Must be combined with a technology template (ms-proteomics, affinity-proteomics, or ms-metabolomics).
+documentation: |
+  The vertebrates template covers all non-human vertebrate model organisms including mouse,
+  rat, zebrafish, and other mammals, birds, fish, reptiles, and amphibians.
+
+  Key guidance:
+  - `characteristics[strain or breed]`: Recommended. Use NCBI Taxonomy strain names
+    (C57BL/6, BALB/c, Sprague-Dawley, Wistar for mammals; AB, TU for zebrafish).
+  - `characteristics[developmental stage]`: Required. Use EFO or UBERON terms
+    (adult, embryo, juvenile, larval stage).
+  - `characteristics[sex]`: Recommended. Values: `male`, `female`, `hermaphrodite`.
+  - `characteristics[disease]`: Required (overridden from sample-metadata). Use `normal`
+    for healthy animals.
+
+  Mutually exclusive with human, invertebrates, and plants.
+contributors:
+  - Yasset Perez-Riverol (yperez@ebi.ac.uk) - EMBL-EBI
+  - Deepti Jaiswal Kundu (jaiswal@ebi.ac.uk) - EMBL-EBI
+  - Nithu Sara John (nithu@ebi.ac.uk) - EMBL-EBI
+  - Nandana Madhusoodanan (nandana@ebi.ac.uk) - EMBL-EBI
+  - Asier Larrea (alarre@ebi.ac.uk) - EMBL-EBI
+  - Toan Phung (TPhung001@dundee.ac.uk) - University of Dundee
+  - Timo Sachsenberg (timo.sachsenberg@uni-tuebingen.de) - University of Tübingen
+version: 1.1.0
+extends: sample-metadata@>=1.0.0
+usable_alone: false
+layer: sample
+mutually_exclusive_with:
+  - human
+  - invertebrates
+  - plants
+columns:
+  - name: characteristics[disease]
+    ontology_accession: MONDO:0000001
+    requirement: required
+
+  - name: characteristics[developmental stage]
+    ontology_accession: EFO:0000399
+    description: Developmental stage of the organism
+    requirement: required
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - efo
+          error_level: warning
+          description: The developmental stage should be a valid EFO ontology term
+          examples:
+            - adult
+            - embryo
+            - juvenile
+            - larval stage
+
+  - name: characteristics[strain or breed]
+    ontology_accession: GENO:0000112
+    description: Strain or breed of the organism
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ncbitaxon
+          error_level: warning
+          description: The strain or breed should be documented
+          examples:
+            - C57BL/6
+            - Sprague-Dawley
+            - BALB/c
+            - Wistar
+
+  - name: characteristics[sex]
+    ontology_accession: PATO:0000047
+    description: Biological sex of the organism
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: values
+        params:
+          values:
+            - male
+            - female
+            - hermaphrodite
+          error_level: warning
+          description: Sex should be one of the allowed values

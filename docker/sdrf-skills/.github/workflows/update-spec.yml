@@ -1,0 +1,65 @@
+name: Update SDRF Spec
+
+on:
+  schedule:
+    # Every Monday at 06:00 UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-submodule:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Get current submodule commit
+        id: before
+        run: |
+          echo "commit=$(git -C spec rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Update submodule to latest upstream
+        run: |
+          git submodule update --remote --recursive
+
+      - name: Get updated submodule commit
+        id: after
+        run: |
+          echo "commit=$(git -C spec rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Check for changes
+        id: diff
+        run: |
+          if git diff --quiet spec; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Submodule is already up to date."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Submodule updated: ${{ steps.before.outputs.commit }} → ${{ steps.after.outputs.commit }}"
+          fi
+
+      - name: Create Pull Request
+        if: steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          commit-message: "chore: update SDRF spec to latest version"
+          title: "chore: update SDRF spec to latest version"
+          body: |
+            Automated update of the `spec/` submodule to the latest upstream commit.
+
+            **Before:** `${{ steps.before.outputs.commit }}`
+            **After:** `${{ steps.after.outputs.commit }}`
+
+            Compare changes: https://github.com/bigbio/proteomics-sample-metadata/compare/${{ steps.before.outputs.commit }}...${{ steps.after.outputs.commit }}
+
+            This PR was created automatically by the [update-spec](${{ github.server_url }}/${{ github.repository }}/actions/workflows/update-spec.yml) workflow.
+          branch: chore/update-spec
+          labels: spec-update
+          delete-branch: true

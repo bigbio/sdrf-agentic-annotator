@@ -1,0 +1,127 @@
+name: immunopeptidomics
+description: SDRF template for immunopeptidomics experiments (MHC-bound peptide identification). Works with any organism - combine with appropriate sample template (human for HLA typing, vertebrates for H-2/MHC typing in mouse, etc.).
+documentation: |
+  The immunopeptidomics template captures MHC-bound peptidome analysis metadata for
+  immunology, vaccine design, and neoantigen discovery studies.
+
+  Key guidance:
+  - `characteristics[mhc protein complex]`: Required. Specify the MHC class targeted
+    (class I, class II, non-classical, mutant). Determines the expected peptide length
+    distribution (class I: 8-12aa, class II: 12-25aa).
+  - `characteristics[mhc typing]`: Use IPD-IMGT/HLA notation for human (HLA-A*02:01),
+    H-2 notation for mouse (H-2Kb, H-2Db). Supports 2-4 field resolution and multi-allele
+    semicolon-separated format (HLA-A*02:01;HLA-B*07:02;HLA-C*07:02).
+  - `characteristics[mhc typing method]`: How alleles were determined (NGS-based typing,
+    sequence-based typing, predicted from RNA-seq, inferred from mass spectrometry,
+    inbred strain known genotype).
+  - `characteristics[antibody enrichment]`: The antibody clone used for immunoprecipitation.
+    Common clones: W6/32 (pan-class I), BB7.2 (HLA-A*02), Tu39 (pan-class II).
+  - `characteristics[immunopeptidome enrichment method]`: The IP method used (immunoaffinity
+    purification, mild acid elution, detergent lysis).
+
+  Combine with human template for HLA typing or vertebrates for mouse H-2 typing.
+contributors:
+  - Yasset Perez-Riverol (yperez@ebi.ac.uk) - EMBL-EBI
+  - Deepti Jaiswal Kundu (jaiswal@ebi.ac.uk) - EMBL-EBI
+  - Nithu Sara John (nithu@ebi.ac.uk) - EMBL-EBI
+  - Nandana Madhusoodanan (nandana@ebi.ac.uk) - EMBL-EBI
+  - Asier Larrea (alarre@ebi.ac.uk) - EMBL-EBI
+  - Jonas Scheid (jonas.scheid@uni-tuebingen.de) - Tübingen University, Quantitative Biology Center (QBiC)
+  - Toan Phung (TPhung001@dundee.ac.uk) - University of Dundee
+  - Timo Sachsenberg (timo.sachsenberg@uni-tuebingen.de) - University of Tübingen
+version: 1.0.0
+extends: ms-proteomics@>=1.1.0
+usable_alone: false
+layer: experiment
+columns:
+  - name: characteristics[mhc protein complex]
+    ontology_accession: GO:0042611
+    description: MHC protein complex targeted for immunopeptidome enrichment (GO:0042611)
+    requirement: required
+    allow_not_applicable: false
+    allow_not_available: false
+    validators:
+      - validator_name: values
+        params:
+          values:
+            - MHC class I protein complex
+            - MHC class II protein complex
+            - non-classical MHC protein complex
+            - mutant MHC protein complex
+            - MHC protein complex with serotype
+          error_level: error
+          description: MHC protein complex type should be specified (MRO terms under GO:0042611)
+
+  - name: characteristics[immunopeptidome enrichment method]
+    ontology_accession: PRIDE:0000586
+    description: Method used to enrich MHC-bound peptides
+    requirement: required
+    allow_not_applicable: false
+    allow_not_available: false
+    validators:
+      - validator_name: values
+        params:
+          values:
+            - immunoaffinity purification
+            - immunoaffinity purification (iodoacetamide)
+            - mild acid elution
+            - detergent lysis
+          error_level: warning
+          description: Enrichment method for immunopeptidome
+
+  - name: characteristics[mhc typing]
+    ontology_accession: PRIDE:0000893
+    description: "MHC alleles expressed by the sample (PRIDE:0000893) following IPD-MHC nomenclature (https://www.ebi.ac.uk/ipd/mhc/). Use IPD-IMGT/HLA notation for human (HLA-A*02:01), H-2 notation for mouse (H-2Kb, H-2Db), or appropriate IPD-MHC notation for other species. Multiple alleles can be separated by semicolons."
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: MHC allele notation (HLA for human, H-2 for mouse). Supports multi-allele (semicolon-separated), 2-4 field resolution.
+          examples:
+            - HLA-A*02:01
+            - HLA-B*07:02
+            - HLA-A*02:01;HLA-B*07:02;HLA-C*07:02
+            - HLA-A*02:01:01
+            - HLA-A*02:01:01:01
+            - H-2Kb
+            - H-2Db
+            - H-2IAb
+
+  - name: characteristics[mhc typing method]
+    ontology_accession: PRIDE:0000894
+    description: "MHC typing method used (PRIDE:0000894). Values mapped to NCIT where available: NGS-based typing (NCIT:C101293), sequence-based typing (NCIT:C130180), PCR-SSO (NCIT:C130181), PCR-SSP (NCIT:C130179), PCR-based genotyping (NCIT:C17003)"
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: values
+        params:
+          values:
+            - NGS-based typing          # NCIT:C101293 (Next Generation Sequencing)
+            - sequence-based typing      # NCIT:C130180 (Sequence-based Typing)
+            - PCR-SSO                    # NCIT:C130181 (Sequence-specific Oligonucleotide Probe PCR)
+            - PCR-SSP                    # NCIT:C130179 (Allele Specific Primer PCR)
+            - PCR-based genotyping       # NCIT:C17003 (Polymerase Chain Reaction)
+            - predicted from RNA-seq
+            - inferred from mass spectrometry
+            - inbred strain (known genotype)
+          error_level: warning
+          description: "MHC typing method used (PRIDE:0000894). Values mapped to NCIT where available: NGS-based typing (NCIT:C101293), sequence-based typing (NCIT:C130180), PCR-SSO (NCIT:C130181), PCR-SSP (NCIT:C130179), PCR-based genotyping (NCIT:C17003)"
+
+  - name: characteristics[antibody enrichment]
+    ontology_accession: PRIDE:0000954
+    description: Antibody clone used for MHC immunoprecipitation
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Antibody clone name
+          examples:
+            - W6/32
+            - BB7.2

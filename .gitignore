@@ -1,0 +1,10 @@
+/results/
+/output/
+work/
+.nextflow/
+.nextflow.log*
+.lineage/
+/*.log
+docker/build.log
+CLAUDE.md
+.claude/

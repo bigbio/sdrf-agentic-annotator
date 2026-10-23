@@ -1,0 +1,318 @@
+name: clinical-metadata
+description: SDRF template for clinical study samples with treatment, demographics, and lifestyle metadata. Applicable to any organism. Combine with organism template (human, vertebrates) and technology template (ms-proteomics, affinity-proteomics, or ms-metabolomics).
+documentation: |
+  The clinical-metadata template captures treatment, demographics, and lifestyle data for
+  interventional and observational studies. It extends sample-metadata and is also the parent
+  of oncology-metadata.
+
+  Key guidance:
+  - For drug studies, use `characteristics[compound]` + `characteristics[dose]` +
+    `characteristics[exposure duration]` together for detailed pharmacological annotation.
+  - `characteristics[treatment]`: Broader treatment description. Use `untreated` for controls.
+  - `characteristics[treatment status]`: When the sample was collected relative to treatment
+    (pre-treatment, on treatment, post-treatment, treatment naive).
+  - `characteristics[treatment response]`: Clinical response assessment (complete response,
+    partial response, progressive disease, stable disease).
+  - `characteristics[sampling time]`: Time of collection with unit (0 hour, 24 hour,
+    7 day). Critical for time-course and pharmacokinetic studies.
+  - `characteristics[tissue supergroup]`: Optional broader anatomical bucket inherited from
+    `sample-metadata` for values such as `heart`, `liver`, `brain`, or a broader system like
+    `gastrointestinal tract`.
+  - `characteristics[sampling site]`: Local anatomical context or provenance relative to the
+    normalized `characteristics[organism part]` (tumor, normal tissue adjacent to tumor,
+    heart left ventricle). Important for matched tissue designs.
+  - `characteristics[genotype]`: Known genetic variants (BRCA1 mutation carrier, wild type).
+  - `characteristics[phenotype]`: Observable characteristics (drug resistant, HER2-positive).
+contributors:
+  - Yasset Perez-Riverol (yperez@ebi.ac.uk) - EMBL-EBI
+  - Deepti Jaiswal Kundu (jaiswal@ebi.ac.uk) - EMBL-EBI
+  - Nithu Sara John (nithu@ebi.ac.uk) - EMBL-EBI
+  - Nandana Madhusoodanan (nandana@ebi.ac.uk) - EMBL-EBI
+  - Asier Larrea (alarre@ebi.ac.uk) - EMBL-EBI
+  - Toan Phung (TPhung001@dundee.ac.uk) - University of Dundee
+  - Timo Sachsenberg (timo.sachsenberg@uni-tuebingen.de) - University of Tübingen
+version: 1.0.0
+extends: sample-metadata@>=1.0.0
+usable_alone: false
+layer: sample
+columns:
+  - name: characteristics[disease]
+    requirement: required
+
+  - name: characteristics[compound]
+    ontology_accession: CHEBI:24431
+    description: Chemical compound or drug applied to sample
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - chebi
+            - ncit
+            - efo
+          error_level: warning
+          description: The compound should be a valid ChEBI, NCIT, or EFO term
+          examples:
+            - doxorubicin
+            - cisplatin
+            - tamoxifen
+            - metformin
+
+  - name: characteristics[dose]
+    ontology_accession: NCIT:C25488
+    description: Dose or concentration of compound treatment
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [mg/kg, uM, nM, mg, ug, mg/mL, ug/mL, mM]
+          error_level: warning
+          description: Dose with unit
+          examples:
+            - 10 mg/kg
+            - 50 uM
+            - 100 nM
+            - 5 mg
+
+  - name: characteristics[exposure duration]
+    ontology_accession: NCIT:C83280
+    description: Duration of treatment exposure
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [hour, day, minute, week, month]
+          error_level: warning
+          description: Exposure duration with time unit
+          examples:
+            - 24 hour
+            - 5 day
+            - 30 minute
+            - 2 week
+
+  - name: characteristics[treatment status]
+    ontology_accession: NCIT:C45501
+    description: Treatment status at time of sampling
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: values
+        params:
+          values:
+            - pre-treatment
+            - on treatment
+            - post-treatment
+            - treatment naive
+          error_level: warning
+          description: Treatment status
+
+  - name: characteristics[treatment response]
+    ontology_accession: NCIT:C50995
+    description: Response to treatment (for studies measuring therapeutic outcomes)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ncit
+          error_level: warning
+          description: Treatment response should be a valid NCIT term
+          examples:
+            - complete response
+            - partial response
+            - progressive disease
+            - stable disease
+
+  - name: characteristics[pre-existing condition]
+    ontology_accession: NCIT:C54056
+    description: Pre-existing medical conditions or comorbidities
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    allow_pooled: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - mondo
+            - efo
+            - doid
+          error_level: warning
+          description: Pre-existing condition should be a valid MONDO, EFO, or DOID term
+          examples:
+            - diabetes mellitus
+            - hypertension
+            - obesity
+
+  - name: characteristics[body mass index]
+    ontology_accession: EFO:0004340
+    description: Body mass index (BMI) in kg/m^2
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^[\d.]+$
+          description: Numeric BMI value
+          examples:
+            - 24.5
+            - 31.2
+            - 18.7
+
+  - name: characteristics[smoking status]
+    ontology_accession: NCIT:C19796
+    description: Patient smoking status
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ncit
+          parent_term: NCIT:C19796
+          error_level: warning
+          description: Smoking status should be a child term of NCIT:C19796
+          examples:
+            - never smoker
+            - former smoker
+            - current smoker
+
+  - name: characteristics[menopausal status]
+    ontology_accession: NCIT:C16151
+    description: Menopausal status for female patients
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: values
+        params:
+          values:
+            - pre-menopausal
+            - peri-menopausal
+            - post-menopausal
+          error_level: warning
+          description: Menopausal status
+
+  - name: characteristics[genetic modification]
+    ontology_accession: EFO:0000510
+    description: Method of genetic modification (knockout, knockdown, overexpression, transduction)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - efo
+          error_level: warning
+          description: Genetic modification method should be a valid EFO term
+          examples:
+            - knockout
+            - knockdown
+            - overexpression
+            - transduction
+            - CRISPR-Cas9
+
+  - name: characteristics[phenotype]
+    ontology_accession: EFO:0000651
+    description: Observable characteristics or traits (drug sensitivity, molecular markers, expression phenotypes)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - pato
+            - efo
+          error_level: warning
+          description: Phenotype should be a valid PATO or EFO term, or free text
+          examples:
+            - drug resistant
+            - HER2-positive
+            - high expresser
+            - wild-type phenotype
+
+  # characteristics[treatment] inherited from sample-metadata
+
+  - name: characteristics[weight]
+    ontology_accession: EFO:0004324
+    description: Body weight of the subject
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [kg, g, lb]
+          error_level: warning
+          description: Weight with unit
+          examples:
+            - 70 kg
+            - 55 kg
+            - 154 lb
+
+  - name: characteristics[height]
+    ontology_accession: EFO:0004339
+    description: Height of the subject
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [cm, m]
+          error_level: warning
+          description: Height with unit
+          examples:
+            - 175 cm
+            - 1.75 m
+            - 160 cm
+
+  - name: characteristics[sampling site]
+    ontology_accession: EFO:0000688
+    description: Specific anatomical location or context of sampling within the organism part
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - uberon
+            - bto
+          error_level: warning
+          description: Sampling site should be a valid UBERON or BTO term, or a descriptive term
+          examples:
+            - tumor
+            - normal tissue adjacent to tumor
+            - left ventricle
+            - frontal cortex
+
+  - name: characteristics[genotype]
+    ontology_accession: EFO:0000513
+    description: Known genetic variant, mutation, or genotype of the subject
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Genotype as free text (gene name + variant)
+          examples:
+            - BRCA1 mutation carrier
+            - KRAS G12D mutant
+            - wild type
+            - TP53 R175H

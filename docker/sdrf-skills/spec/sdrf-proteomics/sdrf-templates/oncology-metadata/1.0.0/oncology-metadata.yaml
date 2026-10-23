@@ -1,0 +1,342 @@
+name: oncology-metadata
+description: SDRF template for cancer/oncology study samples with tumor staging, grading, and clinical outcome metadata. Extends clinical-metadata with oncology-specific columns. Combine with organism template (human, vertebrates) and technology template (ms-proteomics, affinity-proteomics, or ms-metabolomics).
+documentation: |
+  The oncology-metadata template extends clinical-metadata with cancer-specific staging,
+  grading, and outcome columns. It supports multiple standardized staging systems.
+
+  Key guidance:
+  - `characteristics[disease staging]`: General disease stage (stage I-IV). Use NCIT or
+    EFO terms.
+  - `characteristics[tumor stage]`: TNM notation (e.g., T2N1M0). Prefix with p for
+    pathological or c for clinical staging.
+  - Specialized staging systems (use the appropriate column for the cancer type):
+    - `characteristics[dukes stage]`: Colorectal cancer (A, B, C, D).
+    - `characteristics[ann arbor stage]`: Lymphoma (I-IV with A/B/E/S suffix).
+    - `characteristics[gleason score]`: Prostate cancer (sum or components: 3+4, 4+3).
+    - `characteristics[weiss grade]`: Adrenal cortical carcinoma (low, high).
+  - `characteristics[histologic subtype]`: Molecular/histologic classification (luminal A,
+    triple-negative, adenocarcinoma, squamous cell carcinoma).
+  - `characteristics[survival time]` / `characteristics[last follow up]`: Time with unit
+    for clinical outcome tracking.
+  - `characteristics[metastasis site]` / `characteristics[biopsy site]`: UBERON/BTO terms
+    for anatomical locations.
+
+  Inherits all clinical-metadata columns (compound, dose, treatment, demographics).
+contributors:
+  - Yasset Perez-Riverol (yperez@ebi.ac.uk) - EMBL-EBI
+  - Deepti Jaiswal Kundu (jaiswal@ebi.ac.uk) - EMBL-EBI
+  - Nithu Sara John (nithu@ebi.ac.uk) - EMBL-EBI
+  - Nandana Madhusoodanan (nandana@ebi.ac.uk) - EMBL-EBI
+  - Asier Larrea (alarre@ebi.ac.uk) - EMBL-EBI
+  - Toan Phung (TPhung001@dundee.ac.uk) - University of Dundee
+  - Timo Sachsenberg (timo.sachsenberg@uni-tuebingen.de) - University of Tübingen
+version: 1.0.0
+extends: clinical-metadata@>=1.0.0
+usable_alone: false
+layer: sample
+columns:
+  - name: characteristics[disease staging]
+    ontology_accession: EFO:0000410
+    description: Disease progression stage (stage I-IV, chronic phase, end stage)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ncit
+            - efo
+          error_level: warning
+          description: Disease staging should be a valid NCIT or EFO term
+          examples:
+            - stage I
+            - stage II
+            - stage III
+            - stage IV
+            - chronic phase
+            - end stage
+
+  - name: characteristics[tumor grading]
+    ontology_accession: OBI:0600002
+    description: Histological tumor grade (describes how abnormal cells look)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ncit
+          error_level: warning
+          description: Tumor grading should be a valid NCIT term
+          examples:
+            - grade 1
+            - grade 2
+            - grade 3
+            - grade 4
+            - high grade
+            - low grade
+
+  - name: characteristics[tumor stage]
+    ontology_accession: EFO:0004925
+    description: TNM staging notation (describes extent of cancer spread)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ncit
+          error_level: warning
+          description: Tumor stage in TNM notation
+          examples:
+            - T2N1M0
+            - T3N0M0
+            - T1N0M0
+            - T4N2M1
+
+  - name: characteristics[tumor size]
+    ontology_accession: EFO:0004134
+    description: Tumor size measurement
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [cm, mm]
+          error_level: warning
+          description: Tumor size with unit
+          examples:
+            - 2.5 cm
+            - 15 mm
+            - 0.8 cm
+
+  - name: characteristics[tumor mass]
+    ontology_accession: EFO:0007062
+    description: Tumor mass/weight measurement
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [g, mg]
+          error_level: warning
+          description: Tumor mass with unit
+          examples:
+            - 15 g
+            - 250 mg
+
+  - name: characteristics[histologic subtype]
+    ontology_accession: NCIT:C19790
+    description: Cancer molecular or histologic subtype
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ncit
+          error_level: warning
+          description: Histologic subtype should be a valid NCIT term
+          examples:
+            - luminal A
+            - luminal B
+            - HER2-enriched
+            - triple-negative
+            - adenocarcinoma
+            - squamous cell carcinoma
+
+  - name: characteristics[metastasis site]
+    ontology_accession: NCIT:C172233
+    description: Location where cancer has spread from primary site
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - uberon
+            - bto
+          error_level: warning
+          description: Metastasis site should be a valid UBERON or BTO term
+          examples:
+            - liver
+            - lung
+            - bone
+            - brain
+
+  - name: characteristics[biopsy site]
+    ontology_accession: EFO:0000288
+    description: Specific anatomical location of biopsy
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - uberon
+            - bto
+          error_level: warning
+          description: Biopsy site should be a valid UBERON or BTO term
+          examples:
+            - breast
+            - colon
+            - prostate
+            - lung
+
+  - name: characteristics[clinical data]
+    ontology_accession: EFO:0030083
+    description: Free-text clinical details (receptor status, treatment history, surgical details)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Free-text clinical data
+          examples:
+            - ER+/PR+/HER2-
+            - prior chemotherapy with doxorubicin
+            - surgical resection performed
+
+  - name: characteristics[clinical history]
+    ontology_accession: EFO:0000352
+    description: Relevant medical history information for the patient
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Free-text clinical history
+          examples:
+            - family history of breast cancer
+            - previous radiation therapy
+            - no significant medical history
+
+  - name: characteristics[survival time]
+    ontology_accession: EFO:0000714
+    description: Patient survival time for survival analysis studies
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [month, year, day, week]
+          error_level: warning
+          description: Survival time with unit
+          examples:
+            - 24 month
+            - 3 year
+            - 180 day
+
+  - name: characteristics[last follow up]
+    ontology_accession: EFO:0007058
+    description: Time of last clinical follow-up for longitudinal studies
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [month, year, day, week]
+          error_level: warning
+          description: Last follow-up time with unit
+          examples:
+            - 36 month
+            - 5 year
+            - 365 day
+
+  - name: characteristics[mitotic rate]
+    ontology_accession: NCIT:C62401
+    description: Number of mitoses per high-power field (indicator of tumor proliferation)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^[\d]+(/\d+\s*HPF)?$
+          description: Mitotic rate as count or count per HPF
+          examples:
+            - 5
+            - 12/10 HPF
+            - 3/10 HPF
+
+  - name: characteristics[dukes stage]
+    ontology_accession: NCIT:C16475
+    description: Dukes staging for colorectal cancer (A, B, C, D)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: values
+        params:
+          values:
+            - A
+            - B
+            - C
+            - D
+          error_level: warning
+          description: Dukes stage (A-D)
+
+  - name: characteristics[ann arbor stage]
+    ontology_accession: NCIT:C16282
+    description: Ann Arbor staging for lymphoma (I, II, III, IV with optional A/B suffix)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^(I|II|III|IV)[AB]?[ES]?$
+          description: Ann Arbor stage (I-IV with optional A/B suffix for symptoms, E for extranodal, S for spleen)
+          examples:
+            - IA
+            - IIB
+            - IIIA
+            - IVB
+            - IIE
+
+  - name: characteristics[gleason score]
+    ontology_accession: NCIT:C28091
+    description: Gleason score for prostate cancer grading (sum of two pattern grades, range 2-10)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^\d+(\+\d+)?$
+          description: Gleason score as sum (e.g., 7) or component pattern (e.g., 3+4)
+          examples:
+            - 7
+            - 3+4
+            - 4+3
+            - 9
+            - 5+4
+
+  - name: characteristics[weiss grade]
+    ontology_accession: NCIT:C160679
+    description: Weiss scoring system for adrenal cortical carcinoma (low or high)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: values
+        params:
+          values:
+            - low
+            - high
+          error_level: warning
+          description: Weiss grade (low or high)

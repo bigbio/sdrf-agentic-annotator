@@ -1,0 +1,392 @@
+name: metaproteomics
+description: >
+  Base SDRF template for metaproteomics experiments (microbial community proteomics).
+  Extends base directly and defines MIxS-aligned sample metadata. When combined with
+  ms-proteomics, sample-metadata columns (organism, disease, cell type) are excluded.
+  Use a child template (human-gut, soil, water) for environment-specific fields.
+documentation: |
+  The metaproteomics template is aligned with the Genomics Standards Consortium (GSC)
+  MIxS standard for environmental and host-associated sample metadata.
+
+  Template hierarchy:
+    metaproteomics (this template) - shared environmental context
+      human-gut  - human gut microbiome (MIxS human-gut extension)
+      soil       - soil metaproteomics (MIxS soil extension)
+      water      - aquatic metaproteomics (MIxS water extension)
+
+  Usage: combine a child template with ms-proteomics, e.g.:
+    human-gut + ms-proteomics
+    soil + ms-proteomics
+
+  Key columns:
+  - `characteristics[geographic location]`: Recommended. GAZ term or coordinates.
+  - `characteristics[collection date]`: ISO 8601 date of sample collection.
+  - `characteristics[environmental medium]`: ENVO term for the environmental material.
+  - `comment[metagenome accession]`: Link to matched metagenome dataset.
+
+  PRIDE ontology terms include MIxS cross-references in their definitions
+  (e.g., MIXS:0001107). Column names use spaces (SDRF convention) rather than
+  underscores (MIxS convention).
+contributors:
+  - Yasset Perez-Riverol (yperez@ebi.ac.uk) - EMBL-EBI
+  - Deepti Jaiswal Kundu (jaiswal@ebi.ac.uk) - EMBL-EBI
+  - Nithu Sara John (nithu@ebi.ac.uk) - EMBL-EBI
+  - Nandana Madhusoodanan (nandana@ebi.ac.uk) - EMBL-EBI
+  - Asier Larrea (alarre@ebi.ac.uk) - EMBL-EBI
+  - Toan Phung (TPhung001@dundee.ac.uk) - University of Dundee
+  - Timo Sachsenberg (timo.sachsenberg@uni-tuebingen.de) - University of Tübingen
+version: 1.0.0
+extends: base@>=1.1.0
+usable_alone: false
+layer: sample
+mutually_exclusive_with:
+  - human
+  - vertebrates
+  - invertebrates
+  - plants
+requires:
+  - layer: technology
+excludes:
+  templates:
+    - sample-metadata
+columns:
+  # ==========================================================================
+  # REQUIRED COLUMNS
+  # ==========================================================================
+
+  - name: characteristics[sample name]
+    ontology_accession: PRIDE:0000623
+    description: Identifier of the sample, provided for backward compatibility with MIxS samp_name (MIXS:0001107). May be identical to `source name` (defined in base); use this column when preserving the original MIxS sample label is required.
+    requirement: required
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: identifier
+        params:
+          charset: "[A-Za-z0-9_.-]"
+          special_values: [anonymized]
+          error_level: error
+          description: sample name identifier
+          examples:
+            - Sample_1
+            - Sample_2
+
+  - name: characteristics[environmental medium]
+    ontology_accession: PRIDE:0000994
+    description: Environmental material from which the sample was obtained (ENVO term). Corresponds to MIxS env_medium (MIXS:0000014).
+    requirement: required
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - envo
+          error_level: error
+          description: Should be a valid ENVO environmental material term
+          examples:
+            - soil
+            - seawater
+            - freshwater
+            - feces
+            - biofilm
+
+  # ==========================================================================
+  # RECOMMENDED COLUMNS
+  # ==========================================================================
+
+  - name: characteristics[project name]
+    ontology_accession: PRIDE:0000676
+    description: Name of the project within which the sequencing was organized (MIXS:0000092).
+    requirement: recommended
+    allow_not_applicable: true
+    validators:
+      - validator_name: identifier
+        params:
+          charset: "[A-Za-z0-9_.-]"
+          special_values: [anonymized]
+          error_level: error
+          description: project name identifier
+          examples:
+            - Bermuda_Atlantic_Time-series_Study
+            - Metaproteomes_of_Seawater_Microbial_Communities
+
+  - name: characteristics[geographic location]
+    ontology_accession: PRIDE:0000995
+    description: Geographic location where sample was collected (GAZ term or coordinates). Corresponds to MIxS geo_loc_name (MIXS:0000010).
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - gaz
+          error_level: warning
+          description: Should be a valid GAZ term or coordinates
+          examples:
+            - Pacific Ocean
+            - Amazon rainforest
+            - 47.6062 N, 122.3321 W
+
+  # ==========================================================================
+  # OPTIONAL COLUMNS - Environmental Context
+  # ==========================================================================
+
+  - name: characteristics[collection date]
+    ontology_accession: PRIDE:0000996
+    description: Date when sample was collected (ISO 8601)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: date
+        params:
+          format: iso8601
+          precision: [year, month, day]
+          error_level: warning
+          description: Sample collection date
+          examples:
+            - "2024"
+            - "2024-01"
+            - "2024-01-15"
+
+  - name: characteristics[sample collection method]
+    ontology_accession: PRIDE:0000997
+    description: Method used to collect the environmental sample
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Collection method description
+          examples:
+            - grab sample
+            - core sample
+            - swab
+            - filtration
+
+  - name: characteristics[depth]
+    ontology_accession: PRIDE:0000711
+    description: Depth at which sample was collected. Corresponds to MIxS depth (MIXS:0000018).
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [m, cm, mm]
+          error_level: error
+          description: Depth with unit
+          examples:
+            - 10 m
+            - 50 cm
+            - 100 m
+
+  - name: characteristics[altitude]
+    ontology_accession: PRIDE:0000712
+    description: Altitude or elevation of sampling site. Corresponds to MIxS elevation (MIXS:0000093).
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [m]
+          error_level: warning
+          description: Altitude with unit
+          examples:
+            - 500 m
+            - 1200 m
+            - 0 m
+
+  - name: characteristics[temperature]
+    ontology_accession: PRIDE:0000703
+    description: Temperature at sampling location. Corresponds to MIxS temperature (MIXS:0000113).
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: ["°C"]
+          allow_negative: true
+          error_level: error
+          description: Temperature in Celsius
+          examples:
+            - 25 °C
+            - 4 °C
+            - -20 °C
+
+  - name: characteristics[ph]
+    ontology_accession: PRIDE:0000746
+    description: pH at sampling location
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^\d+(\.\d+)?$
+          description: pH value
+          examples:
+            - "7.0"
+            - "5.5"
+            - "8.2"
+
+  # ==========================================================================
+  # OPTIONAL COLUMNS - Sample Storage and Processing
+  # ==========================================================================
+
+  - name: characteristics[sample storage]
+    ontology_accession: PRIDE:0000730
+    description: Storage conditions for the sample before analysis
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Storage conditions
+          examples:
+            - -80C
+            - liquid nitrogen
+            - 4C
+
+  - name: comment[metagenome accession]
+    ontology_accession: PRIDE:0000956
+    description: Accession number for matched metagenome data
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: accession
+        params:
+          prefix: "[A-Z]+"
+          suffix: "\\d+"
+          error_level: error
+          description: Database accession number
+          examples:
+            - MGYA00001234
+            - SRP123456
+
+  # ==========================================================================
+  # OPTIONAL COLUMNS - Microbial Community Context
+  # ==========================================================================
+
+  - name: characteristics[microbiome source]
+    ontology_accession: PRIDE:0000986
+    description: Source of the microbiome being studied (e.g., gut microbiome, rhizosphere microbiome)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Microbiome source description
+          examples:
+            - gut microbiome
+            - rhizosphere microbiome
+            - oral microbiome
+            - skin microbiome
+
+  - name: characteristics[biomass estimation]
+    ontology_accession: PRIDE:0000990
+    description: Estimated microbial biomass in the sample
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Biomass estimation
+          examples:
+            - 1e9 cells/g
+            - high biomass
+            - low biomass
+
+  - name: characteristics[host contamination]
+    ontology_accession: PRIDE:0000991
+    description: Level of host protein contamination if known
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Host contamination level
+          examples:
+            - low (<5%)
+            - moderate (5-20%)
+            - high (>20%)
+
+  - name: comment[contaminant database]
+    ontology_accession: PRIDE:0000992
+    description: Contaminant database(s) used in database search
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Contaminant database name(s)
+          examples:
+            - cRAP
+            - MaxQuant contaminants
+            - cRAP;MaxQuant contaminants
+
+  # ==========================================================================
+  # OPTIONAL COLUMNS - Mock Community / QC
+  # ==========================================================================
+
+  - name: characteristics[mock community]
+    ontology_accession: PRIDE:0000987
+    description: Identifier or name of mock community standard used
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Mock community identifier
+          examples:
+            - ZymoBIOMICS Microbial Community Standard
+            - ATCC MSA-1000
+
+  - name: characteristics[mock community composition]
+    ontology_accession: PRIDE:0000988
+    description: Description of mock community composition (species and ratios)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Community composition description
+          examples:
+            - 8 bacteria + 2 yeasts at defined ratios
+            - even mix of 10 species
+
+  - name: comment[expected organism list]
+    ontology_accession: PRIDE:0000989
+    description: Semicolon-separated list of organisms expected in mock community
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Semicolon-separated organism list
+          examples:
+            - E. coli;B. subtilis;S. cerevisiae;L. fermentum
+            - Bacillus subtilis;Staphylococcus aureus

@@ -1,0 +1,25 @@
+# SDRF skills — conda environment
+# Recommended for bioinformatics; includes thermorawfileparser for Thermo .raw files
+#
+# Create and activate:
+#   conda env create -f environment.yml
+#   conda activate sdrf-skills
+
+name: sdrf-skills
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python>=3.10,<3.13  # matches CI matrix (3.10 / 3.11 / 3.12 in tools-tests.yml)
+  - sdrf-pipelines      # parse_sdrf CLI for validation and pipeline conversion
+  - thermorawfileparser # for Thermo .raw files (optional; techsdrf skips .raw without it)
+  - defusedxml          # hardened XML parsing for scripts/europepmc_fulltext.py
+  - pip                 # explicit: conda warns if pip deps are listed without it
+  - pip:
+    - -e .               # sdrf-tools console script: contract, build, check, fix, review gate
+    - requests>=2.28
+    - fastmcp>=3.4      # bundled MCP server (mcp/server.py), wired up via .mcp.json
+    - httpx>=0.28       # HTTP client used by mcp/server.py
+    - git+https://github.com/bigbio/techsdrf.git  # /sdrf:techrefine; not on PyPI or any conda channel
+    # fallback if the git URL fails: git clone https://github.com/bigbio/techsdrf.git ../techsdrf && pip install ../techsdrf

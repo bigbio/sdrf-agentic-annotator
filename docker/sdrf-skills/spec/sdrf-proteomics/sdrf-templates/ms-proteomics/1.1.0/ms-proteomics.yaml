@@ -1,0 +1,617 @@
+name: ms-proteomics
+description: Base SDRF template for mass spectrometry-based proteomics. This is the minimum valid template for any MS experiment.
+documentation: |
+  The ms-proteomics template is one of three usable-alone technology templates (the others
+  are affinity-proteomics and ms-metabolomics). It provides all columns needed for a basic
+  MS proteomics experiment and serves as the parent for specialized experiment templates
+  (DIA, XL-MS, immunopeptidomics, single-cell, metaproteomics).
+
+  Combine with an organism template (human, vertebrates, invertebrates, plants) to add
+  species-specific columns. Add clinical-metadata or oncology-metadata for clinical studies.
+
+  Key annotation guidance:
+  - `comment[label]`: Always required. Use `label free sample` for LFQ, specific channel
+    names for multiplexed (TMT126, iTRAQ114, SILAC light/heavy).
+  - `comment[fraction identifier]`: Always required. Use `1` for non-fractionated samples.
+    For fractionated experiments, each fraction gets its own row with the same source name.
+  - `comment[cleavage agent details]`: Use CV term format `NT=Trypsin;AC=MS:1001251`.
+  - `comment[modification parameters]`: Multiple cardinality. Each PTM gets its own column.
+    Format: `NT=Oxidation;MT=Variable;TA=M;AC=Unimod:35`.
+  - `comment[collision energy]`: Format `{value} {unit}` (e.g., `30 NCE`). For stepped
+    energies: `25 NCE;27 NCE;30 NCE` or `stepped 27+-6%`.
+  - `comment[precursor mass tolerance]` / `comment[fragment mass tolerance]`: Use ppm or Da
+    (e.g., `10 ppm`, `0.02 Da`).
+  - MS range columns (`comment[ms min/max mz/charge/rt/im]`): Optional method parameters
+    for documenting acquisition settings.
+
+  Mutually exclusive with affinity-proteomics and ms-metabolomics.
+contributors:
+  - Yasset Perez-Riverol (yperez@ebi.ac.uk) - EMBL-EBI
+  - Deepti Jaiswal Kundu (jaiswal@ebi.ac.uk) - EMBL-EBI
+  - Nithu Sara John (nithu@ebi.ac.uk) - EMBL-EBI
+  - Nandana Madhusoodanan (nandana@ebi.ac.uk) - EMBL-EBI
+  - Asier Larrea (alarre@ebi.ac.uk) - EMBL-EBI
+  - Toan Phung (TPhung001@dundee.ac.uk) - University of Dundee
+  - Timo Sachsenberg (timo.sachsenberg@uni-tuebingen.de) - University of Tübingen
+version: 1.1.0
+extends: sample-metadata@>=1.0.0
+usable_alone: true
+layer: technology
+mutually_exclusive_with:
+  - affinity-proteomics
+validators:
+  - validator_name: min_columns
+    params:
+      min_columns: 12
+  - validator_name: combination_of_columns_no_duplicate_validator
+    params:
+      column_name:
+        - source name
+        - assay name
+        - comment[label]
+      column_name_warning:
+        - source name
+        - assay name
+columns:
+  - name: comment[proteomics data acquisition method]
+    ontology_accession: PRIDE:0000659
+    description: >
+      Mass spectrometry acquisition method. Values MUST be descendants of
+      PRIDE:0000659. Recommended form is NT+AC using the OLS label as written
+      (e.g. NT=Data-dependent acquisition;AC=PRIDE:0000627); plain free-text
+      OLS labels are also allowed.
+    requirement: required
+    allow_not_applicable: false
+    allow_not_available: false
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - pride
+          error_level: error
+          parent_accession: PRIDE:0000659
+          recommend_nt_ac: true
+          description: >
+            Must be a PRIDE ontology term under proteomics data acquisition
+            method (PRIDE:0000659). Prefer NT=<OLS label>;AC=<accession> using
+            the OLS label as written; plain free-text OLS labels are allowed.
+          examples:
+            - NT=Data-dependent acquisition;AC=PRIDE:0000627
+            - NT=Data-independent acquisition;AC=PRIDE:0000450
+            - NT=Parallel reaction monitoring;AC=PRIDE:0000629
+            - NT=Selected reaction monitoring;AC=PRIDE:0000630
+            - Data-dependent acquisition
+            - Data-independent acquisition
+
+  - name: comment[instrument]
+    ontology_accession: MS:1000031
+    description: Mass spectrometer instrument used
+    requirement: required
+    cardinality: multiple
+    allow_not_applicable: false
+    allow_not_available: false
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ms
+            - pride
+          error_level: warning
+          description: The instrument should be a valid MS or PRIDE ontology term
+          examples:
+            - LTQ Orbitrap
+            - Q Exactive
+            - Orbitrap Fusion Lumos
+            - timsTOF Pro
+
+  - name: comment[cleavage agent details]
+    ontology_accession: MS:1001044
+    description: Enzyme or chemical used for protein digestion
+    requirement: required
+    allow_not_applicable: true
+    allow_not_available: false
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ms
+          error_level: error
+          description: The cleavage agent details should be valid MS ontology terms
+          examples:
+            - NT=Trypsin;AC=MS:1001251
+            - NT=Lys-C;AC=MS:1001309
+            - NT=Chymotrypsin;AC=MS:1001306
+
+  - name: comment[label]
+    ontology_accession: PRIDE:0000514
+    description: Labeling strategy used for quantification
+    requirement: required
+    allow_not_applicable: false
+    allow_not_available: false
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - pride
+          error_level: error
+          description: The label should be a valid PRIDE ontology term
+          examples:
+            - label free sample
+            - SILAC light
+            - SILAC heavy
+            - TMT126
+            - iTRAQ114
+
+  - name: comment[fraction identifier]
+    ontology_accession: MS:1000858
+    description: Fraction number for fractionated samples (integer, use 1 for non-fractionated). In MS proteomics, this identifies the chromatographic or electrophoretic fraction (e.g., SCX, hpHRP, SEC fractions). Each fraction maps to one data file.
+    requirement: required
+    type: integer
+    allow_not_applicable: false
+    allow_not_available: false
+
+  - name: comment[dissociation method]
+    ontology_accession: MS:1000044
+    description: Fragmentation method used in MS/MS
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ms
+            - pride
+          parent_term: MS:1000044
+          error_level: warning
+          description: Dissociation method should be a child term of MS:1000044
+          examples:
+            - HCD
+            - CID
+            - ETD
+            - EThcD
+
+  - name: comment[fractionation method]
+    ontology_accession: PRIDE:0000550
+    description: Peptide fractionation method used before MS analysis
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - pride
+          parent_term: PRIDE:0000550
+          error_level: warning
+          description: Fractionation method should be a child term of PRIDE:0000550
+          examples:
+            - High-pH reversed-phase chromatography (hpHRP)
+            - Strong cation-exchange chromatography (SCX)
+            - Strong anion-exchange chromatography (SAX)
+            - Size-exclusion chromatography (SEC)
+
+  - name: comment[collision energy]
+    ontology_accession: MS:1000045
+    description: Collision energy used for fragmentation
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^\d+(\.\d+)?%?\s*(NCE|eV)(;\d+(\.\d+)?%?\s*(NCE|eV))*$
+          description: "Collision energy format: {value} {unit} where unit is NCE or eV. For multiple values, use semicolon-separated entries."
+          examples:
+            - 30 NCE
+            - 30% NCE
+            - 27 eV
+            - 25 NCE;27 NCE;30 NCE
+
+  - name: comment[precursor mass tolerance]
+    ontology_accession: PRIDE:0000575
+    description: Precursor mass tolerance for database search
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [ppm, Da, mmu]
+          error_level: error
+          description: Mass tolerance with unit (ppm, Da, or mmu)
+          examples:
+            - 10 ppm
+            - 20 ppm
+            - 0.5 Da
+            - 20 mmu
+
+  - name: comment[fragment mass tolerance]
+    ontology_accession: PRIDE:0000576
+    description: Fragment mass tolerance for database search
+    requirement: recommended
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: number_with_unit
+        params:
+          units: [ppm, Da, mmu]
+          error_level: error
+          description: Mass tolerance with unit (ppm, Da, or mmu)
+          examples:
+            - 0.02 Da
+            - 20 ppm
+            - 50 mmu
+
+  - name: comment[reduction reagent]
+    ontology_accession: PRIDE:0000607
+    description: Chemical reagent used for disulfide bond reduction
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - pride
+            - ms
+          error_level: warning
+          description: Reduction reagent should be a valid PRIDE or MS ontology term
+          examples:
+            - dithiothreitol
+            - tris(2-carboxyethyl)phosphine
+
+  - name: comment[alkylation reagent]
+    ontology_accession: PRIDE:0000598
+    description: Chemical reagent used for cysteine alkylation
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - pride
+            - ms
+          error_level: warning
+          description: Alkylation reagent should be a valid PRIDE or MS ontology term
+          examples:
+            - iodoacetamide
+            - chloroacetamide
+
+  - name: characteristics[depletion]
+    ontology_accession: PRIDE:0000020
+    description: Whether abundant protein depletion was performed
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: values
+        params:
+          values:
+            - no depletion
+            - depletion
+          error_level: warning
+          description: Depletion status
+
+  - name: comment[modification parameters]
+    ontology_accession: MS:1001055
+    description: Post-translational modifications searched
+    requirement: recommended
+    cardinality: multiple
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - unimod
+            - mod
+          error_level: warning
+          description: The modification parameters should be valid Unimod or PSI-MOD terms
+          examples:
+            - NT=Oxidation;MT=Variable;TA=M;AC=Unimod:35
+            - NT=Carbamidomethyl;TA=C;MT=fixed;AC=UNIMOD:4
+
+  - name: comment[ms2 mass analyzer]
+    ontology_accession: MS:1000443
+    description: Mass analyzer used for MS2 acquisition
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: ontology
+        params:
+          ontologies:
+            - ms
+          error_level: warning
+          description: Should be a valid MS ontology term
+          examples:
+            - orbitrap
+            - ion trap
+            - TOF
+
+  - name: comment[sample preparation batch]
+    description: Batch identifier for sample preparation (plate, chip, processing batch). Useful for batch effect correction in multi-batch experiments.
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Sample preparation batch identifier
+          examples:
+            - plate1
+            - batch_20220601
+            - prep_A
+
+  - name: comment[lc batch]
+    description: Liquid chromatography batch identifier for batch effect tracking (e.g., column changes, LC system swaps)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: LC batch identifier
+          examples:
+            - LC1
+            - column_A
+
+  - name: comment[acquisition date]
+    description: Date of MS data acquisition (ISO 8601 format recommended). Useful for tracking instrument drift and batch effects.
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Acquisition date/time
+          examples:
+            - "2022-06-01"
+            - "2022-06-01T18:28:37"
+
+  - name: comment[ms min mz]
+    ontology_accession: PRIDE:0000476
+    description: MS method-defined minimum precursor (MS1) m/z setting used to acquire the data
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: mz_value
+        params:
+          description: Precursor m/z value with unit
+          examples:
+            - 100m/z
+            - 200m/z
+            - 350.5m/z
+
+  - name: comment[ms max mz]
+    ontology_accession: PRIDE:0000477
+    description: MS method-defined maximum precursor (MS1) m/z setting used to acquire the data
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: mz_value
+        params:
+          description: Precursor m/z value with unit
+          examples:
+            - 1200m/z
+            - 1600m/z
+            - 2000m/z
+
+  - name: comment[ms min charge]
+    ontology_accession: PRIDE:0000472
+    description: MS method-defined minimum precursor charge state setting used to acquire the data
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^\d+$
+          description: Integer charge state
+          examples:
+            - 1
+            - 2
+
+  - name: comment[ms max charge]
+    ontology_accession: PRIDE:0000473
+    description: MS method-defined maximum precursor charge state setting used to acquire the data
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^\d+$
+          description: Integer charge state
+          examples:
+            - 6
+            - 7
+            - 8
+
+  - name: comment[ms min rt]
+    ontology_accession: PRIDE:0000474
+    description: LC method-defined minimum retention time setting used to acquire the data (in minutes)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^[\d.]+$
+          description: Numeric retention time in minutes
+          examples:
+            - 0
+            - 5
+            - 10.5
+
+  - name: comment[ms max rt]
+    ontology_accession: PRIDE:0000475
+    description: LC method-defined maximum retention time setting used to acquire the data (in minutes)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^[\d.]+$
+          description: Numeric retention time in minutes
+          examples:
+            - 60
+            - 90
+            - 120
+
+  - name: comment[ms min im]
+    ontology_accession: PRIDE:0000841
+    description: MS method-defined minimum ion mobility setting used to acquire the data (1/K0 or Vs/cm2)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^[\d.]+$
+          description: Numeric ion mobility value
+          examples:
+            - 0.6
+            - 0.7
+
+  - name: comment[ms max im]
+    ontology_accession: PRIDE:0000842
+    description: MS method-defined maximum ion mobility setting used to acquire the data (1/K0 or Vs/cm2)
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^[\d.]+$
+          description: Numeric ion mobility value
+          examples:
+            - 1.3
+            - 1.4
+            - 1.6
+
+  # --- MS2/MS3 discrete min/max m/z columns ---
+
+  - name: comment[ms2 min mz]
+    ontology_accession: PRIDE:0001011
+    description: MS method-defined minimum product ion (MS2) m/z setting used to acquire the data
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: mz_value
+        params:
+          description: Product ion m/z value with unit
+          examples:
+            - 100m/z
+            - 200m/z
+
+  - name: comment[ms2 max mz]
+    ontology_accession: PRIDE:0001012
+    description: MS method-defined maximum product ion (MS2) m/z setting used to acquire the data
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: mz_value
+        params:
+          description: Product ion m/z value with unit
+          examples:
+            - 1800m/z
+            - 2000m/z
+
+  - name: comment[ms3 min mz]
+    ontology_accession: PRIDE:0001013
+    description: MS method-defined minimum product ion (MS3) m/z setting used to acquire the data
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: mz_value
+        params:
+          description: Product ion m/z value with unit
+          examples:
+            - 100m/z
+            - 200m/z
+
+  - name: comment[ms3 max mz]
+    ontology_accession: PRIDE:0001014
+    description: MS method-defined maximum product ion (MS3) m/z setting used to acquire the data
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: mz_value
+        params:
+          description: Product ion m/z value with unit
+          examples:
+            - 1500m/z
+            - 2000m/z
+
+  # --- Scan range interval columns (alternative to discrete min/max) ---
+
+  - name: comment[ms1 scan range]
+    ontology_accession: PRIDE:0001008
+    description: m/z scan range for MS1 spectra as an interval. Alternative to separate ms min mz / ms max mz columns
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: mz_range_interval
+        params:
+          description: m/z range interval for MS1 spectra
+          examples:
+            - 400m/z-1200m/z
+            - 350m/z-1600m/z
+
+  - name: comment[ms2 scan range]
+    ontology_accession: PRIDE:0001009
+    description: m/z scan range for MS2 spectra as an interval. Alternative to separate ms2 min mz / ms2 max mz columns
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: mz_range_interval
+        params:
+          description: m/z range interval for MS2 spectra
+          examples:
+            - 100m/z-2000m/z
+            - 200m/z-1800m/z
+
+  - name: comment[ms3 scan range]
+    ontology_accession: PRIDE:0001010
+    description: m/z scan range for MS3 spectra as an interval. Alternative to separate ms3 min mz / ms3 max mz columns
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: mz_range_interval
+        params:
+          description: m/z range interval for MS3 spectra
+          examples:
+            - 100m/z-1500m/z
+            - 200m/z-2000m/z
+
+  - name: comment[elution conditions]
+    ontology_accession: OBI:0302905
+    description: Conditions used for peptide/protein elution
+    requirement: optional
+    allow_not_applicable: true
+    allow_not_available: true
+    validators:
+      - validator_name: pattern
+        params:
+          pattern: ^.+$
+          description: Free-text elution conditions
+          examples:
+            - 0.1% TFA in water
+            - 80% acetonitrile
+            - gradient 5-35% ACN in 60 min

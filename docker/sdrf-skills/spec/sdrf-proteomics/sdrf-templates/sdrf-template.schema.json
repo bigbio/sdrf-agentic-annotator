@@ -1,0 +1,417 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bigbio/sdrf-templates/sdrf-template.schema.json",
+  "title": "SDRF Template",
+  "description": "Schema for SDRF proteomics template YAML files. Defines the structure, columns, and validators for sample-to-data relationship format templates.",
+  "type": "object",
+  "required": ["name", "version", "columns"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Template identifier, must match the directory name.",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "examples": ["ms-proteomics", "human", "single-cell"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Short description of the template purpose."
+    },
+    "documentation": {
+      "type": "string",
+      "description": "Detailed usage guidance, conventions, and examples in Markdown."
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version of this template.",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$",
+      "examples": ["1.0.0", "1.1.0", "2.0.0-dev"]
+    },
+    "extends": {
+      "type": ["string", "null"],
+      "description": "Parent template with optional version constraint. Formats: 'name', 'name@1.1.0' (exact), 'name@>=1.1.0' (lower bound), 'name@>=1.1.0,<2.0.0' (range).",
+      "pattern": "^[a-z][a-z0-9-]*(@(\\d+\\.\\d+\\.\\d+|>=\\d+\\.\\d+\\.\\d+(,<\\d+\\.\\d+\\.\\d+)?))?$",
+      "examples": ["sample-metadata@>=1.0.0", "ms-proteomics@>=1.1.0", "base@>=1.1.0"]
+    },
+    "usable_alone": {
+      "type": "boolean",
+      "description": "Whether this template is complete enough to be used without combining with other templates.",
+      "default": true
+    },
+    "layer": {
+      "type": ["string", "null"],
+      "description": "Hierarchical classification of the template.",
+      "enum": [null, "sample", "technology", "experiment"]
+    },
+    "mutually_exclusive_with": {
+      "type": "array",
+      "description": "List of template names that cannot be combined with this template.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z][a-z0-9-]*$"
+      },
+      "examples": [["affinity-proteomics"], ["human", "vertebrates", "invertebrates", "plants"]]
+    },
+    "requires": {
+      "type": "array",
+      "description": "Dependencies on other template layers that must be present when combining.",
+      "items": {
+        "$ref": "#/$defs/requirement"
+      }
+    },
+    "excludes": {
+      "$ref": "#/$defs/excludes"
+    },
+    "contributors": {
+      "type": "array",
+      "description": "List of template contributors.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "validators": {
+      "type": "array",
+      "description": "Template-level validators applied to the entire spreadsheet.",
+      "items": {
+        "$ref": "#/$defs/templateValidator"
+      }
+    },
+    "columns": {
+      "type": "array",
+      "description": "Column definitions for this template.",
+      "items": {
+        "$ref": "#/$defs/column"
+      },
+      "minItems": 1
+    }
+  },
+  "$defs": {
+    "requirement": {
+      "type": "object",
+      "description": "A dependency on a template layer.",
+      "required": ["layer"],
+      "additionalProperties": false,
+      "properties": {
+        "layer": {
+          "type": "string",
+          "enum": ["sample", "technology", "experiment"],
+          "description": "Required layer that must be present in the template combination."
+        }
+      }
+    },
+    "excludes": {
+      "type": "object",
+      "description": "Column exclusion rules applied when this template is combined with others. Exclusion is version-independent — it matches by template name only.",
+      "additionalProperties": false,
+      "properties": {
+        "templates": {
+          "type": "array",
+          "description": "Exclude all columns originating from these named templates.",
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]*$"
+          }
+        },
+        "categories": {
+          "type": "array",
+          "description": "Exclude all columns matching these prefix categories from other templates.",
+          "items": {
+            "type": "string",
+            "enum": ["characteristics", "comment", "factor value"]
+          }
+        },
+        "columns": {
+          "type": "array",
+          "description": "Exclude specific named columns from other templates.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "templateValidator": {
+      "type": "object",
+      "description": "A validator applied at the template/spreadsheet level.",
+      "required": ["validator_name"],
+      "additionalProperties": false,
+      "properties": {
+        "validator_name": {
+          "type": "string",
+          "enum": [
+            "trailing_whitespace_validator",
+            "column_name_validator",
+            "column_order",
+            "empty_cells",
+            "combination_of_columns_no_duplicate_validator",
+            "min_columns"
+          ],
+          "description": "Name of the template-level validator."
+        },
+        "params": {
+          "$ref": "#/$defs/templateValidatorParams"
+        },
+        "error_level": {
+          "$ref": "#/$defs/errorLevel"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "templateValidatorParams": {
+      "type": "object",
+      "description": "Parameters for template-level validators.",
+      "properties": {
+        "column_name": {
+          "type": "array",
+          "description": "Column names to check for uniqueness (combination_of_columns_no_duplicate_validator).",
+          "items": { "type": "string" }
+        },
+        "column_name_warning": {
+          "type": "array",
+          "description": "Column names to warn about duplicates (combination_of_columns_no_duplicate_validator).",
+          "items": { "type": "string" }
+        },
+        "min_columns": {
+          "type": "integer",
+          "description": "Minimum number of columns required (min_columns).",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "column": {
+      "type": "object",
+      "description": "A column definition in an SDRF template.",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Column header name. Follows the pattern: 'source name', 'characteristics[X]', 'comment[X]', 'factor value[X]', or special names like 'assay name', 'technology type'.",
+          "examples": ["source name", "characteristics[organism]", "comment[data file]", "factor value[disease]"]
+        },
+        "ontology_accession": {
+          "type": "string",
+          "description": "Ontology/CV term accession for this column (e.g., PRIDE, MS, EFO).",
+          "pattern": "^[A-Z]+:[A-Za-z0-9]+$",
+          "examples": ["PRIDE:0000623", "MS:1000031", "MONDO:0000001"]
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the column."
+        },
+        "requirement": {
+          "type": "string",
+          "enum": ["required", "recommended", "optional"],
+          "description": "Whether this column must be present in a valid SDRF file."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["integer", "string", "float"],
+          "description": "Data type of the column values."
+        },
+        "cardinality": {
+          "type": "string",
+          "enum": ["multiple"],
+          "description": "Set to 'multiple' if more than one column with this name is allowed."
+        },
+        "allow_not_applicable": {
+          "type": "boolean",
+          "description": "Whether the value 'not applicable' is accepted.",
+          "default": false
+        },
+        "allow_not_available": {
+          "type": "boolean",
+          "description": "Whether the value 'not available' is accepted.",
+          "default": false
+        },
+        "allow_anonymized": {
+          "type": "boolean",
+          "description": "Whether the value 'anonymized' is accepted (for privacy-sensitive fields).",
+          "default": false
+        },
+        "allow_pooled": {
+          "type": "boolean",
+          "description": "Whether the value 'pooled' is accepted (for multiplexed samples).",
+          "default": false
+        },
+        "error_level": {
+          "$ref": "#/$defs/errorLevel"
+        },
+        "validators": {
+          "type": "array",
+          "description": "Column-level validators for value checking.",
+          "items": {
+            "$ref": "#/$defs/columnValidator"
+          }
+        }
+      }
+    },
+    "columnValidator": {
+      "type": "object",
+      "description": "A validator applied to column values.",
+      "required": ["validator_name"],
+      "additionalProperties": false,
+      "properties": {
+        "validator_name": {
+          "type": "string",
+          "enum": [
+            "single_cardinality_validator",
+            "values",
+            "ontology",
+            "pattern",
+            "number_with_unit",
+            "mz_value",
+            "mz_range_interval",
+            "date",
+            "accession",
+            "identifier",
+            "semver",
+            "structured_kv"
+          ],
+          "description": "Name of the column-level validator."
+        },
+        "params": {
+          "$ref": "#/$defs/columnValidatorParams"
+        },
+        "error_level": {
+          "$ref": "#/$defs/errorLevel"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of what this validator checks."
+        },
+        "examples": {
+          "type": "array",
+          "description": "Example valid values for this validator.",
+          "items": { "type": ["string", "number"] }
+        }
+      }
+    },
+    "columnValidatorParams": {
+      "type": "object",
+      "description": "Parameters for column-level validators. Which properties are relevant depends on the validator_name.",
+      "additionalProperties": false,
+      "properties": {
+        "values": {
+          "type": "array",
+          "description": "Allowed values list (values validator).",
+          "items": { "type": "string" }
+        },
+        "ontologies": {
+          "type": "array",
+          "description": "OLS ontology IDs to validate against (ontology validator).",
+          "items": { "type": "string" },
+          "examples": [["ncbitaxon"], ["pride", "ms"], ["uberon", "bto", "cl"]]
+        },
+        "parent_term": {
+          "type": "string",
+          "description": "Restrict ontology terms to descendants of this term (ontology validator).",
+          "examples": ["EFO:0009090", "MS:1000031"]
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Regular expression to match (pattern validator).",
+          "format": "regex"
+        },
+        "case_sensitive": {
+          "type": "boolean",
+          "description": "Whether pattern matching is case-sensitive (pattern validator).",
+          "default": true
+        },
+        "units": {
+          "type": "array",
+          "description": "Allowed measurement units (number_with_unit validator).",
+          "items": { "type": "string" },
+          "examples": [["mg", "g", "ug"], ["year", "month", "day"]]
+        },
+        "allow_negative": {
+          "type": "boolean",
+          "description": "Whether negative numbers are allowed (number_with_unit validator).",
+          "default": false
+        },
+        "format": {
+          "type": "string",
+          "description": "Format type (date, accession validators).",
+          "examples": ["iso8601", "biosample"]
+        },
+        "precision": {
+          "type": "array",
+          "description": "Allowed time precision levels (date validator).",
+          "items": {
+            "type": "string",
+            "enum": ["year", "month", "day"]
+          }
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Required prefix pattern (accession, semver validators)."
+        },
+        "suffix": {
+          "type": "string",
+          "description": "Required suffix pattern (accession validator)."
+        },
+        "charset": {
+          "type": "string",
+          "description": "Valid character set as regex (identifier validator).",
+          "format": "regex"
+        },
+        "special_values": {
+          "type": "array",
+          "description": "Reserved/special values accepted by the identifier validator.",
+          "items": { "type": "string" },
+          "examples": [["carrier", "reference", "empty"]]
+        },
+        "allow_prerelease": {
+          "type": "boolean",
+          "description": "Whether pre-release versions are allowed (semver validator).",
+          "default": false
+        },
+        "separator": {
+          "type": "string",
+          "description": "Field separator character (structured_kv validator).",
+          "examples": [";"]
+        },
+        "fields": {
+          "type": "array",
+          "description": "Expected key-value fields (structured_kv validator).",
+          "items": {
+            "type": "object",
+            "required": ["key", "value"],
+            "additionalProperties": false,
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Field key name."
+              },
+              "value": {
+                "type": "string",
+                "description": "Regex pattern for the field value.",
+                "format": "regex"
+              }
+            }
+          }
+        },
+        "error_level": {
+          "$ref": "#/$defs/errorLevel"
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the validation."
+        },
+        "examples": {
+          "type": "array",
+          "description": "Example valid values.",
+          "items": { "type": ["string", "number"] }
+        }
+      }
+    },
+    "errorLevel": {
+      "type": "string",
+      "enum": ["error", "warning"],
+      "description": "Severity level: 'error' fails validation, 'warning' reports but does not fail.",
+      "default": "error"
+    }
+  }
+}
