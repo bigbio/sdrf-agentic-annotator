@@ -1,0 +1,60 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  NXF_VER: "26.10.3"
+  NXF_ANSI_LOG: false
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint and preview
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: nf-core/setup-nextflow@v2
+        with:
+          version: ${{ env.NXF_VER }}
+      - name: Check formatting and lint
+        run: |
+          nextflow lint -format .
+          git diff --exit-code
+      - name: Check the config
+        # -preview does not end for agent pipelines (#15), so only parse the config here
+        run: |
+          nextflow secrets set LLM_KEY dummy
+          nextflow config -profile test,docker . > /dev/null
+
+  test:
+    name: Pipeline test
+    # Runs the agents, so it needs a real API key in the repository secret LLM_KEY
+    if: github.event_name == 'workflow_dispatch'
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: nf-core/setup-nextflow@v2
+        with:
+          version: ${{ env.NXF_VER }}
+      - uses: nf-core/setup-nf-test@v1
+      - name: Run nf-test
+        env:
+          LLM_KEY: ${{ secrets.LLM_KEY }}
+        run: |
+          nextflow secrets set LLM_KEY "$LLM_KEY"
+          nf-test test --profile=+docker --verbose

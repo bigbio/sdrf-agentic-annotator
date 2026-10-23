@@ -1,0 +1,19 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://raw.githubusercontent.com/jonasscheid/nf-agent-sdrf/main/assets/schema_input.json",
+    "title": "jonasscheid/nf-agent-sdrf pipeline - params.input schema",
+    "description": "Schema for the file provided with params.input",
+    "type": "array",
+    "items": {
+        "type": "object",
+        "properties": {
+            "pxd": {
+                "type": "string",
+                "pattern": "^PXD\\d{6}$",
+                "errorMessage": "PXD accession must be 'PXD' followed by six digits, for example PXD074155"
+            }
+        },
+        "required": ["pxd"]
+    },
+    "uniqueEntries": ["pxd"]
+}

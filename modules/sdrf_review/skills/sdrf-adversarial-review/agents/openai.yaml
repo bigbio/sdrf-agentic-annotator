@@ -1,4 +1,0 @@
-interface:
-  display_name: "SDRF Adversarial Review"
-  short_description: "Independent evidence-first SDRF review gate"
-  default_prompt: "Use $sdrf-adversarial-review to independently review this SDRF and issue a hash-bound verdict."
