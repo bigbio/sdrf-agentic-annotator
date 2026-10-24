@@ -37,12 +37,22 @@ they support the stated granularity.
   "artifact": "path/PXD000001.sdrf.tsv",
   "artifact_sha256": "sha256-of-the-content-you-reviewed",
   "verdict": "PASS",
+  "confidence": 0.97,
   "summary": "Independent review found no blocking or important issues.",
   "reviewer_context": {
     "independent": true,
     "context": "fresh hook agent without producer transcript"
   },
   "evidence_manifest": "path/PXD000001.evidence.json",
+  "coverage": {
+    "status": "ok",
+    "sdrf_files": 24,
+    "matched_count": 24,
+    "missing_count": 0,
+    "deposit_data_count": 24,
+    "coverage": 1.0,
+    "declared_subset": false
+  },
   "checks": {
     "spec_compliance": {"status": "pass", "evidence": "Template validator passed ..."},
     "ontology_integrity": {"status": "pass", "evidence": "Unique controlled terms resolved ..."},
@@ -79,3 +89,30 @@ integrity, omission safety, and deterministic validation must pass.
 for values that assert more than the cited evidence supports. If you could not
 perform that pass, the verdict is `FAIL`, not a passing report with the check
 left out.
+
+## Confidence
+
+Every report must include a `confidence` in `0..1` reflecting how strongly the
+reviewed evidence supports the verdict. It is the reviewer's calibrated estimate,
+not a synthetic score; a PASS backed only by a subset of the evidence or by
+best-effort reconstruction should be scored well below 1. The pipeline uses it for
+the optional `confidence_gate`: a PASS below the gate is accepted and passed on
+but flagged `LOW_CONF` in `summary.tsv` so the operator can revisit.
+
+## Coverage / subset gate
+
+A deterministic coverage precheck (the pipeline's `SDRF_COVERAGE` step) runs the
+SDRF's `comment[data file]` values against the PRIDE deposit file list before the
+adversarial review and emits `PXDXXX.coverage.json`. Report its numbers in the
+`coverage` section above. Coverage gate rules for the verdict:
+
+- `missing_count > 0`: the SDRF references deposit files that do not exist →
+  `file_mapping` is at least an important finding; a file-mapping hallucination
+  blocks approval.
+- Coverage below the configured `coverage_min` (a fraction of the deposit's data
+  files) with no honest subset declaration → an important finding (or blocker if
+  nothing in the artifact signals subsetting).
+- With `subset_mode` enabled, a clearly-declared representative subset may be
+  accepted; record `declared_subset: true` and mirror the precheck coverage.
+- A reproducible review `FAIL` is a content outcome, not an infrastructure error:
+  return `verdict: FAIL` with concrete findings and never crash the task.

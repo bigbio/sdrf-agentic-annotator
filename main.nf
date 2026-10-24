@@ -25,9 +25,9 @@ workflow {
     reviewed = SDRF_AGENT.out.reviewed
     revised = SDRF_AGENT.out.revised
     revised_review = SDRF_AGENT.out.revised_review
+    coverage = SDRF_AGENT.out.coverage
     summary = SDRF_AGENT.out.summary
 }
-
 output {
     annotated {
         path { r -> r.pxd }
@@ -40,6 +40,9 @@ output {
     }
     revised_review {
         path { r -> "${r.pxd}/revised" }
+    }
+    coverage {
+        path { r -> r.pxd }
     }
     summary {
         path '.'

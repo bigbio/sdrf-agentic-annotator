@@ -28,7 +28,44 @@ Nextflow keeps secrets in `~/.nextflow/secrets`, outside the project folder. To 
 |---|---|---|
 | `--model` | `google/gemini-3.5-flash-lite` | Model as `<provider>/<model>`. |
 | `--api_provider` | `google` | Provider of the key in `LLM_KEY`. |
-| `--revise` | `true` | Revise an SDRF once when its review fails, then review it again. |
+| `--revise` | `true` | Revise an SDRF when its review fails, then review it again. |
+| `--max_revise` | `1` | Maximum revise -> re-review rounds a dataset may go through (bounded escalation). |
+| `--max_parallel` | `0` | Max agent tasks that run concurrently across the batch; `0` = unlimited. Lower it to reduce resource contention. |
+| `--models_json` | `null` | Bind-mount a pi `models.json` registering an OpenAI-compatible gateway (e.g. EBI's). |
+| `--max_fetch_bytes` | `524288000` | Skip remote evidence files above this size; prefer small derived files. |
+
+### Coverage / subset gate
+
+A deterministic `SDRF_COVERAGE` step runs before every review. It compares each
+`comment[data file]` in the SDRF against the PRIDE deposit file list and writes a
+`PXDXXX.coverage.json` reporting matched/missing files and the fraction of the
+deposit the SDRF represents. The reviewer must fold this into its verdict:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `--coverage_min` | `0.0` | If an SDRF represents less than this fraction (0..1) of the deposit's data files, the reviewer must treat it as an important finding unless the artifact honestly declares itself a subset. `0.0` = informational only (backward compatible). |
+| `--subset_mode` | `false` | Permit a clearly-declared representative subset (e.g. a huge DIA deposit) to be accepted instead of failing on under-representation. |
+
+### Confidence gating
+
+Every review records a `confidence` (0..1). A PASS below the following gate is
+still accepted and passed on, but flagged `LOW_CONF` in `summary.tsv` so you can
+revisit it:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `--confidence_gate` | `0.0` | Flag PASSes with confidence below this threshold as `LOW_CONF`. `0.0` = no gating. |
+
+### Content FAIL vs infrastructure FAIL
+
+A dataset whose final review is `FAIL` is a *content* outcome (the SDRF did not
+survive review), not an infrastructure error. By default the pipeline publishes the
+outputs, logs a warning and completes normally. Only genuine task/infra errors fail
+tasks (which auto-retry via `conf/base.config`):
+
+| Parameter | Default | Description |
+|---|---|---|
+| `--exit_on_review_fail` | `false` | `true` makes the run exit non-zero when any dataset's final verdict is FAIL. |
 
 ### Gemini free tier
 

@@ -16,10 +16,11 @@ nextflow_pipeline {
             def summary = path("$outputDir/summary.tsv").readLines()
             assertAll(
                 { assert workflow.success },
-                { assert summary[0] == 'pxd\tinitial_verdict\tfinal_verdict\trevised' },
+                { assert summary[0] == 'pxd\tinitial_verdict\tfinal_verdict\trevised\tconfidence\tcoverage' },
                 { assert summary[1].startsWith('PXD074155\t') },
                 { assert path("$outputDir/PXD074155/PXD074155.sdrf.tsv").exists() },
-                { assert path("$outputDir/PXD074155/PXD074155.review.json").exists() }
+                { assert path("$outputDir/PXD074155/PXD074155.review.json").exists() },
+                { assert path("$outputDir/PXD074155/PXD074155.coverage.json").exists() }
             )
         }
     }
