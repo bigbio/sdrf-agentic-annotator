@@ -1,7 +1,11 @@
 # pi runner image plus the sdrf-skills command-line tools (sdrf-tools, parse_sdrf); techsdrf is left out because its wheel build fails
 FROM public.cr.seqera.io/nextflow/nf-agent-pi:0.6.0
 
-ARG SDRF_SKILLS_REF=0fb449f3c7ba6ed5820df062910463c4253ed254
+# Pin sdrf-skills to a ref that contains the curated uveal-melanoma cell-line DB
+# additions (UPMD-2/UPMM-2/UPMM-3/92-1) from bigbio/sdrf-skills PR #126.
+# 0fb449f (previous pin) lacked these curated rows, so the offline
+# `sdrf-tools cellline lookup` could not resolve those real Cellosaurus lines.
+ARG SDRF_SKILLS_REF=ebf95fb3a36a1a81437a26472b14df3ecfa22924
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 python3-venv git curl ca-certificates jq \
