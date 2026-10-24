@@ -6,6 +6,8 @@ work/
 .lineage/
 /*.log
 docker/build.log
+# Runtime-only, never-committed agent config (e.g. --models_json bind-mount) may contain private endpoints/keys
+runtime/
 CLAUDE.md
 .claude/
 .nf-test/

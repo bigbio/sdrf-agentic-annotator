@@ -22,3 +22,14 @@ ENV PATH=/opt/venv/bin:$PATH \
     SDRF_SKILLS_ROOT=/opt/sdrf-skills
 WORKDIR /opt/nf-agent-pi
 ENTRYPOINT []
+
+# pi resolves extra OpenAI-compatible providers from $PI_CODING_AGENT_DIR/models.json.
+# The agent task runs as an arbitrary non-root uid (Nextflow `-u $(id -u):$(id -g)`), and the
+# image HOME (`/`) is not writable, so we provide a config dir and point PI_CODING_AGENT_DIR at it.
+# The baked models.json here is only a credential-free TEMPLATE (empty providers): users register
+# their own OpenAI-compatible gateway at run time with `--models_json`, which the docker profile
+# bind-mounts over /opt/pi-config/models.json. pi also writes models-store.json beside models.json,
+# hence 0777 on the dir.
+RUN mkdir -p /opt/pi-config && chmod 0777 /opt/pi-config
+COPY models.json /opt/pi-config/models.json
+ENV PI_CODING_AGENT_DIR=/opt/pi-config

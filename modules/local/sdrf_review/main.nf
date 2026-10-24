@@ -16,7 +16,15 @@ agent SDRF_REVIEW {
         For the omission-safety pass, list every column whose value is not a reserved word and find
         the manifest claim that cites its source. A value with no claim, such as a mass tolerance or a
         cleavage agent that no source states, is an important finding and omission_safety fails.
-        '''.stripIndent()
+        '''.stripIndent() + """
+
+        Remote-fetch policy (set by the pipeline): before downloading a remote file, read its Content-Length
+        first (`curl -sI <url> | grep -i content-length`) and skip any single file larger than
+        ${params.max_fetch_bytes} bytes. For MaxQuant PRIDE datasets prefer the small derived files
+        (mqpar.xml, peptides.txt, modificationSpecificPeptides.txt, evidence.txt) over the full msms.txt /
+        raw bundles. If a source record is only verifiable from a file above the limit, note the finding as
+        not fully verifiable rather than downloading it.
+        """
 
     input:
     record(

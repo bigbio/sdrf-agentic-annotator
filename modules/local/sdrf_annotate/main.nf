@@ -27,7 +27,14 @@ agent SDRF_ANNOTATE {
 
         Step 9.5 (independent review) is done by a separate reviewer agent after you finish.
         Do not review your own SDRF and do not run the review gate.
-        '''.stripIndent()
+        '''.stripIndent() + """
+
+        Remote-fetch policy (set by the pipeline to this task): before downloading a remote file, read its
+        Content-Length first (`curl -sI <url> | grep -i content-length`) and skip any single file larger than
+        ${params.max_fetch_bytes} bytes. For MaxQuant (and other DDA) PRIDE datasets prefer the small derived
+        files -- mqpar.xml, peptides.txt, modificationSpecificPeptides.txt, evidence.txt -- over the full
+        msms.txt / raw spectral files, which are usually many GB and rarely needed for SDRF annotation.
+        """
 
     input:
     pxd: String
