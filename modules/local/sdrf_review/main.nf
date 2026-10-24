@@ -18,14 +18,23 @@ agent SDRF_REVIEW {
         cleavage agent that no source states, is an important finding and omission_safety fails.
 
         Coverage / subset gate (improvement 1). The deterministic coverage precheck tells you how many
-        deposit data files the SDRF represents. If it represents fewer than coverage_min
-        (${params.coverage_min}, a fraction of 1.0 = 100%) of them and the artifact does not honestly
-        declare itself a representative subset, treat that as an important finding (or blocker if nothing
-        in the file signals subsetting). When subset_mode=${params.subset_mode} is enabled, a clearly-declared
-        representative subset may be accepted with the disclosure recorded. Every PASS must include a
-        `confidence` in 0..1 and a `coverage` section mirroring the precheck. A reproducible FAIL is a
-        content outcome, not an error: return verdict FAIL and concrete findings — do not crash.
+        deposit data files the SDRF represents. The coverage threshold and subset policy for this run are
+        set below. If the SDRF represents fewer than that coverage_min fraction of the deposit's data files
+        and the artifact does not honestly declare itself a representative subset, treat that as an
+        important finding (or blocker if nothing in the file signals subsetting). When subset_mode is
+        enabled, a clearly-declared representative subset may be accepted with the disclosure recorded.
+        Every PASS must include a `confidence` in 0..1 and a `coverage` section mirroring the precheck.
+        A reproducible FAIL is a content outcome, not an error: return verdict FAIL and concrete findings —
+        do not crash.
+
+        Coverage gate configuration for this run
         '''.stripIndent() + """
+        coverage_min = ${params.coverage_min}
+            A fraction of 1.0 (100%) of the deposit's data files. The SDRF must represent at least this
+            fraction, or honestly declare itself a subset, or this is at least an important finding (and a
+            blocker if nothing in the artifact signals subsetting).
+        subset_mode = ${params.subset_mode}
+            true = a clearly-declared representative subset may be accepted with the disclosure recorded.
 
         Remote-fetch policy (set by the pipeline): before downloading a remote file, read its Content-Length
         first (`curl -sI <url> | grep -i content-length`) and skip any single file larger than
@@ -59,7 +68,7 @@ agent SDRF_REVIEW {
     (you did not compute it yourself). Incorporate it as described in your instructions and in the
     skill's review contract:
       - reuse its matched/missing lists for the file_mapping check,
-      - apply the coverage/subset gate ({coverage_min} minimum fraction; subset_mode=${params.subset_mode}),
+      - apply the coverage/subset gate (coverage_min=${params.coverage_min}; subset_mode=${params.subset_mode}),
       - record a `confidence` (0..1) in the review report reflecting how strongly the evidence
         supports the PASS, and a `coverage` section mirroring the precheck numbers.
       - a reproducible FAIL is a content outcome, not an error: return verdict FAIL with findings,
