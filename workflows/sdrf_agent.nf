@@ -33,7 +33,7 @@ workflow SDRF_AGENT {
     // The reviewer gets the SDRF, the evidence manifest, and the coverage report (not the producer report)
     ch_initial_review_in = ch_annotated
         .map { r -> tuple(r.pxd, r) }
-        .join(ch_initial_cov.map { pxd, cov, sdrf, manifest -> tuple(pxd, cov) }, remainder: true)
+        .join(ch_initial_cov.map { pxd, cov, _sdrf, _manifest -> tuple(pxd, cov) }, remainder: true)
         .map { pxd, ann, cov -> record(pxd: pxd, sdrf: ann.sdrf, manifest: ann.manifest, coverage: cov) }
     ch_reviewed = SDRF_REVIEW(ch_initial_review_in)
 
@@ -55,7 +55,7 @@ workflow SDRF_AGENT {
         ch_rev1_cov = SDRF_COVERAGE_REV1(ch_rev1.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })
         ch_rev1_in = ch_rev1
             .map { r -> tuple(r.pxd, r) }
-            .join(ch_rev1_cov.map { pxd, cov, sdrf, manifest -> tuple(pxd, cov) }, remainder: true)
+            .join(ch_rev1_cov.map { pxd, cov, _sdrf, _manifest -> tuple(pxd, cov) }, remainder: true)
             .map { pxd, rev, cov -> record(pxd: pxd, sdrf: rev.sdrf, manifest: rev.manifest, coverage: cov) }
         ch_rev1_view = SDRF_REVIEW_REVISED(ch_rev1_in)
 
@@ -74,7 +74,7 @@ workflow SDRF_AGENT {
             ch_rev2_cov = SDRF_COVERAGE_REV2(ch_rev2.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })
             ch_rev2_in = ch_rev2
                 .map { r -> tuple(r.pxd, r) }
-                .join(ch_rev2_cov.map { pxd, cov, sdrf, manifest -> tuple(pxd, cov) }, remainder: true)
+                .join(ch_rev2_cov.map { pxd, cov, _sdrf, _manifest -> tuple(pxd, cov) }, remainder: true)
                 .map { pxd, rev, cov -> record(pxd: pxd, sdrf: rev.sdrf, manifest: rev.manifest, coverage: cov) }
             ch_rev2_view = SDRF_REVIEW_REVISED_REV2(ch_rev2_in)
 
@@ -87,14 +87,16 @@ workflow SDRF_AGENT {
     ch_final = ch_reviewed
         .map { r -> tuple(r.pxd, r) }
         .join(ch_revised_review.map { r -> tuple(r.pxd, r) }, remainder: true)
-        .map { pxd, ini, rev -> record(
+        .map { pxd, ini, rev ->
+            record(
                 pxd: pxd,
                 initial: verdictOf(ini.review),
                 final: rev ? verdictOf(rev.review) : verdictOf(ini.review),
                 revised: rev ? 'true' : 'false',
                 review: (rev ? rev : ini).review,
-                coverage: (rev ? rev : ini).coverage
-            ) }
+                coverage: (rev ? rev : ini).coverage,
+            )
+        }
         .map { r ->
             def verdict = r.final
             def confidence = confidenceOf(r.review)
@@ -108,23 +110,27 @@ workflow SDRF_AGENT {
             [r.pxd, r.initial, verdict, r.revised, confidence, cov].join('\t')
         }
 
-    ch_summary = ch_final
-        .collectFile(name: 'summary.tsv',
-                     seed: 'pxd\tinitial_verdict\tfinal_verdict\trevised\tconfidence\tcoverage',
-                     newLine: true, sort: true)
+    ch_summary = ch_final.collectFile(
+        name: 'summary.tsv',
+        seed: 'pxd\tinitial_verdict\tfinal_verdict\trevised\tconfidence\tcoverage',
+        newLine: true,
+        sort: true,
+    )
 
     // ---- exit behaviour (improvement 5): content FAIL != infrastructure error ----
     // The pipeline always publishes outputs and completes. A final content verdict of FAIL/LOW_CONF
     // is surfaced as a warning (not a crash) unless exit_on_review_fail is requested.
-    ch_final.map { it }
-        .branch {
-            content_fail: it.split('\t')[2] != 'PASS'
-            content_pass:  true
+    ch_final
+        .map { row -> row }
+        .branch { row ->
+            content_fail: row.split('\t')[2] != 'PASS'
+            content_pass: true
         }
         .set { ch_by_verdict }
     ch_by_verdict.content_fail.subscribe { r ->
-        log.warn("Content verdict is not a clean PASS for ${r.split('\t')[0]} (final=${r.split('\t')[2]}). " +
-                 "This is a content outcome, not an infrastructure error. See summary.tsv.")
+        log.warn(
+            "Content verdict is not a clean PASS for ${r.split('\t')[0]} (final=${r.split('\t')[2]}). " + "This is a content outcome, not an infrastructure error. See summary.tsv."
+        )
     }
 
     emit:
@@ -132,7 +138,7 @@ workflow SDRF_AGENT {
     reviewed = ch_reviewed
     revised = ch_revised_all
     revised_review = ch_revised_review
-    coverage = ch_initial_cov.map { pxd, cov, sdrf, manifest -> record(pxd: pxd, coverage: cov) }
+    coverage = ch_initial_cov.map { pxd, cov, _sdrf, _manifest -> record(pxd: pxd, coverage: cov) }
     summary = ch_summary
 }
 
@@ -143,18 +149,22 @@ def verdictOf(review) {
 def confidenceOf(review) {
     try {
         def c = new groovy.json.JsonSlurper().parse(review.toFile()).confidence
-        return c != null ? c as double : -1.0
-    } catch (Exception e) {
+        return c != null ? c as Float : -1.0
+    }
+    catch (_e: Exception) {
         return -1.0
     }
 }
 
 def coverageOf(coverage) {
-    if (!coverage) return 'n/a'
+    if (!coverage) {
+        return 'n/a'
+    }
     try {
         def c = new groovy.json.JsonSlurper().parse(coverage.toFile())
         return c.status == 'ok' ? (c.coverage != null ? c.coverage as String : 'n/a') : 'unverifiable'
-    } catch (Exception e) {
+    }
+    catch (_e: Exception) {
         return 'n/a'
     }
 }
