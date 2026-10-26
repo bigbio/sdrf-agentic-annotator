@@ -9,6 +9,9 @@ env:
   NXF_VER: "26.10.3"
   NXF_ANSI_LOG: false
 
+permissions:
+  contents: read
+
 concurrency:
   group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
   cancel-in-progress: true
@@ -39,6 +42,28 @@ jobs:
           nextflow config -profile test,docker . > /dev/null
           nextflow config -profile test,singularity . > /dev/null
           nextflow config -profile test,apptainer . > /dev/null
+
+  unit:
+    name: Unit tests
+    # Samplesheet parsing, the summary and refine-gate channel logic, and the coverage script.
+    # No agents run, so no API key is needed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: nf-core/setup-nextflow@v2
+        with:
+          version: ${{ env.NXF_VER }}
+      - uses: nf-core/setup-nf-test@v1
+      - name: Coverage script tests
+        run: python3 -m unittest discover -s tests/python -v
+      - name: Run nf-test unit tests
+        run: |
+          nextflow secrets set LLM_KEY dummy
+          nf-test test --tag unit --verbose
 
   test:
     name: Pipeline test

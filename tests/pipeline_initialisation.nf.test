@@ -1,0 +1,28 @@
+nextflow_workflow {
+
+    name "Samplesheet parsing in annotate mode"
+    script "../subworkflows/local/utils_sdrf_agent/main.nf"
+    workflow "PIPELINE_INITIALISATION"
+    tag "unit"
+
+    test("a pxd-only samplesheet gives one PXD per row") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+            }
+            workflow {
+                """
+                input[0] = "${baseDir}/assets/samplesheet.csv"
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.pxds == ['PXD074155'] }
+            )
+        }
+    }
+}
