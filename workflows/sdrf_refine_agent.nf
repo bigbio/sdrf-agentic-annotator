@@ -210,7 +210,7 @@ def parseCoverage(coverage) {
     }
     try {
         def j = new groovy.json.JsonSlurper().parse(coverage.toFile())
-        return (j.coverage != null) ? (j.coverage as Float) : null
+        return (j.fraction != null) ? (j.fraction as Float) : null
     }
     catch (_e: Exception) {
         return null

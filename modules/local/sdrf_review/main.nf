@@ -6,8 +6,8 @@ agent SDRF_REVIEW {
     instruction """\
         Follow the `sdrf-adversarial-review` skill. There are no MCP tools: use `sdrf-tools fetch` and
         `sdrf-tools ols`.
-        Use the matched and missing files of the coverage precheck in the file_mapping pass.
-        ${params.coverage_min > 0 ? "If the SDRF represents less than ${params.coverage_min} of the deposit's data files, report an important finding. Make it a blocker if nothing in the SDRF or manifest declares a subset." : ''}
+        Use the `missing` and `invented` runs of the coverage precheck in the file_mapping pass.
+        ${params.coverage_min > 0 ? "If the precheck `fraction` is below ${params.coverage_min}, report an important finding. Make it a blocker if nothing in the SDRF or manifest declares a subset." : ''}
         ${params.subset_mode ? 'A clearly declared representative subset can pass: record the disclosure in the summary.' : ''}
         Do not download a deposited file larger than ${params.max_fetch_bytes} bytes. If a value can only
         be checked in a larger file, report it as not fully verifiable.
@@ -38,9 +38,8 @@ agent SDRF_REVIEW {
     ${validation ? "The producer's validation output is ${validation}." : ''}
     ${evidence ? "The manifest's local evidence files are in ${evidence}/." : ''}
     The deterministic coverage precheck is ${coverage}.
-    Write the report to ${pxd}.review.json. Add `confidence` (0 to 1) and `coverage` from the
-    precheck: deposited_runs = deposit_data_count, matched_runs = represented_data_count,
-    fraction = coverage, invented = missing.
+    Write the report to ${pxd}.review.json. Add `confidence` (0 to 1). Copy the precheck into
+    `coverage` unless it has an `error`.
     Do not ask questions.
     """
 }

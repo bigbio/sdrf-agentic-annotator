@@ -156,14 +156,15 @@ The agents read the `Content-Length` of a remote file before they download it. T
 
 ### Coverage / subset gate
 
-A deterministic `SDRF_COVERAGE` step runs before every review. It compares each
-`comment[data file]` in the SDRF against the PRIDE deposit file list and writes a
-`PXDXXX.coverage.json` reporting matched/missing files and the fraction of the
-deposit the SDRF represents. The reviewer must fold this into its verdict:
+A deterministic `SDRF_COVERAGE` step runs before every review. It runs `sdrf-tools fetch` and
+`sdrf-tools audit-existing --json`, which compare each `comment[data file]` in the SDRF with the
+deposited runs. `PXDXXX.coverage.json` is the `coverage` block of that report: `deposited_runs`,
+`annotated_runs`, `matched_runs`, `fraction`, `missing` and `invented`. The reviewer must fold
+this into its verdict:
 
 | Parameter | Default | Description |
 |---|---|---|
-| `--coverage_min` | `0.0` | If an SDRF represents less than this fraction (0..1) of the deposit's data files, the reviewer must treat it as an important finding unless the artifact honestly declares itself a subset. `0.0` = informational only (backward compatible). |
+| `--coverage_min` | `0.0` | If an SDRF annotates less than this fraction (0..1) of the deposited runs, the reviewer must treat it as an important finding unless the artifact honestly declares itself a subset. `0.0` = informational only (backward compatible). |
 | `--subset_mode` | `false` | Permit a clearly-declared representative subset (e.g. a huge DIA deposit) to be accepted instead of failing on under-representation. |
 
 ### Confidence gating
