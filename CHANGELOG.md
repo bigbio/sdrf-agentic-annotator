@@ -57,6 +57,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New parameters `--coverage_min`, `--subset_mode`, `--confidence_gate`,
   `--max_revise`, `--max_parallel` and `--exit_on_review_fail`.
 
+### `Fixed`
+
+- Annotate mode aborted with `Argument of file() function cannot be empty` on nf-schema 2.8.0:
+  the optional `ref_sdrf` column had `"default": ""` with `format: file-path`, which the
+  samplesheet converter turned into `file("")`. The empty default is removed.
+
 ### `Added` (coverage module internals)
 
 - `SDRF_COVERAGE` prefers the PRIDE `/files/all` endpoint (single call) and falls
