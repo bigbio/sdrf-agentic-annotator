@@ -74,9 +74,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `SCORE_SDRF` runs the coverage precheck and the review for both workflows. In refine mode, the reviewer of a revised SDRF now also gets its validation output ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - `REVISE_SDRF` runs one revise round and `REVIEW_REVISE` runs the review and up to two revise rounds. `--max_revise` takes 0 to 2; the schema rejects other values ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - Refine mode scores the refined SDRF with `SCORE_SDRF` and revises it with `REVIEW_REVISE` ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
+- `REFINE_GATE` holds the acceptance gate, `REFINE_VERDICT` (now a module with record I/O) and `refine_summary.tsv` ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 
 ### `Fixed`
 
 - With `--max_revise 2`, `summary.tsv` takes the final verdict from the last revise round. Before, a PXD with two revise rounds stopped the run ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - In refine mode, the completion check reads the verdict of the chosen SDRF. Before, it read `refined_verdict`, so a kept baseline gave a wrong warning and `--exit_on_review_fail` could stop the run ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - In refine mode, `SDRF_REVISE` gets the evidence manifest of the refined SDRF. Before, it got no manifest and the task failed when the refined review failed ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
+- Refine mode publishes `<PXD>.refine_verdict.json`. Before, the output block could not read the PXD of the `REFINE_VERDICT` tuple and the run failed ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).

@@ -1,0 +1,44 @@
+nextflow_workflow {
+
+    name "Test workflow REFINE_GATE"
+    script "subworkflows/local/refine_gate/main.nf"
+    workflow "REFINE_GATE"
+    tag "unit"
+
+    test("accepts a better refined SDRF and keeps the baseline without a refined review") {
+
+        when {
+            workflow {
+                """
+                def data = "${projectDir}/tests/data"
+                input[0] = channel.of(
+                    record(pxd: 'PXD000001', sdrf: file("\${data}/baseline.sdrf.tsv"), coverage: file("\${data}/coverage.json"), review: file("\${data}/review_fail.json")),
+                    record(pxd: 'PXD000002', sdrf: file("\${data}/baseline.sdrf.tsv"), coverage: file("\${data}/coverage.json"), review: file("\${data}/review_pass.json")),
+                )
+                input[1] = channel.of(
+                    record(pxd: 'PXD000001', sdrf: file("\${data}/refined.sdrf.tsv"), coverage: file("\${data}/coverage.json"), review: file("\${data}/review_pass.json")),
+                )
+                """
+            }
+        }
+
+        then {
+            def rows = path(workflow.out.summary[0]).readLines()
+            def verdicts = workflow.out.verdict.collectEntries { r -> [(r.pxd): path(r.verdict).json] }
+            def decisions = workflow.out.decision.collectEntries { r -> [(r.pxd): r.chosen_sdrf.toString()] }
+            assertAll(
+                { assert workflow.success },
+                { assert rows == [
+                    'pxd\tbaseline_verdict\trefined_verdict\tchosen\tbaseline_coverage\trefined_coverage\tbaseline_confidence\trefined_confidence',
+                    'PXD000001\tFAIL\tPASS\trefined\t1.0\t1.0\t0.4\t0.9',
+                    'PXD000002\tPASS\tn/a\tbaseline\t1.0\tnull\t0.9\tnull',
+                ] },
+                { assert verdicts.PXD000001.chosen == 'refined' },
+                { assert verdicts.PXD000002.chosen == 'baseline' },
+                { assert verdicts.PXD000002.refined == null },
+                { assert decisions.PXD000001.endsWith('refined.sdrf.tsv') },
+                { assert decisions.PXD000002.endsWith('baseline.sdrf.tsv') }
+            )
+        }
+    }
+}
