@@ -236,6 +236,19 @@ The skills in `modules/local/*/skills/` must have the same commit as `SDRF_SKILL
 Dockerfile. Nextflow cannot load them from bigbio/sdrf-skills yet (see
 [#1](https://github.com/jonasscheid/nf-agent-sdrf/issues/1)).
 
+## Agent requests
+
+The agents follow the bigbio/sdrf-skills workflow without overrides. The pipeline only adds what
+the skills cannot know:
+
+- Each request says not to ask questions, so the skills run in unattended mode.
+- `SDRF_ANNOTATE` and `SDRF_REVISE` choose `Existing annotation: reannotate`.
+- Their requests name `SDRF_REVIEW` as the external reviewer, so they write `<PXD>.validation.txt`
+  and do not review their own SDRF.
+- The runner has no MCP tools. The agents use `sdrf-tools fetch` and `sdrf-tools ols` instead.
+- The reviewer receives the original request, the SDRF, the evidence manifest, the validation
+  output, `evidence/` and the coverage precheck. It records `confidence` and `coverage`.
+
 ## Agent traces
 
 To record the agent conversations, add `-with-agent-trace`. To list the agent runs after a run:

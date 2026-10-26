@@ -52,6 +52,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - A final review `FAIL` is treated as a content outcome, not an infrastructure
   error: the pipeline publishes outputs, warns and completes normally unless
   `--exit_on_review_fail` is set. Genuine task/infra errors still auto-retry.
+- `SDRF_ANNOTATE`, `SDRF_REVIEW` and `SDRF_REVISE` use the unattended mode, external-review hand-off and output contract of bigbio/sdrf-skills `5f5966b` instead of their own overrides. The reviewer receives `<PXD>.validation.txt` and `evidence/`; the revise agent edits `samples.tsv` and `technical.tsv` ([#PR](https://github.com/bigbio/sdrf-agentic-annotator/pull/PR)).
 - `--revise` now takes a bounded `--max_revise` (default 1 preserves the current
   single-revise behaviour); additional revise rounds are statically unrolled.
 - New parameters `--coverage_min`, `--subset_mode`, `--confidence_gate`,

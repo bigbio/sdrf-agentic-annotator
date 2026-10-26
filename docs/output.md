@@ -8,13 +8,21 @@ The pipeline writes all files to `--outdir`.
 └── <PXD>/
     ├── <PXD>.sdrf.tsv
     ├── <PXD>.evidence.json
+    ├── <PXD>.validation.txt
     ├── <PXD>.report.md
     ├── <PXD>.review.json
+    ├── <PXD>.coverage.json
+    ├── samples.tsv
+    ├── technical.tsv
+    ├── evidence/
     └── revised/            only if the first review failed and --revise is true
         ├── <PXD>.sdrf.tsv
         ├── <PXD>.evidence.json
+        ├── <PXD>.validation.txt
         ├── <PXD>.revision.md
-        └── <PXD>.review.json
+        ├── <PXD>.review.json
+        ├── samples.tsv
+        └── technical.tsv
 ```
 
 | File | Content |
@@ -22,7 +30,11 @@ The pipeline writes all files to `--outdir`.
 | `summary.tsv` | One row per PXD: `initial_verdict`, `final_verdict` (`PASS` or `FAIL`) and `revised`. |
 | `<PXD>.sdrf.tsv` | The validated SDRF. |
 | `<PXD>.evidence.json` | The evidence manifest: a source for each value. |
-| `<PXD>.report.md` | What the agent annotated, the validation commands with their exit codes, and the values it could not verify. |
+| `<PXD>.validation.txt` | Each validation command, its output and its exit code. The reviewer receives this file. |
+| `<PXD>.report.md` | What the agent annotated, the review status (`REVIEW_PENDING_EXTERNAL`) and the open items. |
+| `<PXD>.coverage.json` | The deterministic coverage precheck: SDRF data files matched against the deposit. |
+| `samples.tsv`, `technical.tsv` | The tables that `sdrf-tools build` turns into the SDRF. The revise agent edits these, not the SDRF. |
+| `evidence/` | The project record from `sdrf-tools fetch` that the evidence manifest cites. |
 | `<PXD>.review.json` | The independent review report, in the schema of the `sdrf-adversarial-review` review contract. |
 | `revised/<PXD>.revision.md` | Each review finding, and what the revise agent changed for it or why it did not. |
 
