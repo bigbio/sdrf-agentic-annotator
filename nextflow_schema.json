@@ -56,19 +56,22 @@
                 "revise": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Revise an SDRF once when its review fails, then review it again.",
+                    "description": "Revise an SDRF when its review fails, then review it again (up to `max_revise` rounds).",
                     "fa_icon": "fas fa-redo"
                 },
                 "max_revise": {
                     "type": "integer",
                     "default": 1,
-                    "description": "Maximum number of revise -> re-review rounds a dataset may go through (bounded escalation).",
+                    "minimum": 0,
+                    "maximum": 2,
+                    "description": "Maximum number of revise -> re-review rounds a dataset may go through (0 to 2). Refine mode revises at most once.",
                     "fa_icon": "fas fa-redo"
                 },
                 "max_parallel": {
                     "type": "integer",
                     "default": 0,
-                    "description": "Maximum number of agent tasks that run concurrently across the batch; 0 = unlimited.",
+                    "minimum": 0,
+                    "description": "Maximum number of concurrent tasks of each process (each agent and the coverage step); 0 = the default of 10.",
                     "fa_icon": "fas fa-tasks"
                 },
                 "coverage_min": {
@@ -86,7 +89,7 @@
                 "confidence_gate": {
                     "type": "number",
                     "default": 0.0,
-                    "description": "Flag PASSes with confidence below this threshold (0..1) as LOW_CONF. 0.0 = no gating.",
+                    "description": "Flag PASSes with confidence below this threshold (0..1), or without a confidence, as LOW_CONF. 0.0 = no gating.",
                     "fa_icon": "fas fa-tachometer-alt"
                 },
                 "exit_on_review_fail": {

@@ -18,13 +18,13 @@ agent SDRF_FETCH_BASELINE {
         never ask a question, never wait for a user, never use MCP tools.
 
         Environment facts (do not probe for them):
-          - The canonical layout is:
-              https://raw.githubusercontent.com/bigbio/sdrf-annotated-datasets/main/datasets/${pxd}/${pxd}.sdrf.tsv
+          - The canonical layout, for the accession <PXD> given in the prompt, is:
+              https://raw.githubusercontent.com/bigbio/sdrf-annotated-datasets/main/datasets/<PXD>/<PXD>.sdrf.tsv
           - If that URL 404s, search the repository (GitHub code search or the Git trees API) for
             the dataset's SDRF and download the one you find. Prefer the file whose basename is
-            exactly ${pxd}.sdrf.tsv under a datasets/ path for ${pxd}.
+            exactly <PXD>.sdrf.tsv under a datasets/ path for <PXD>.
 
-        Download the existing SDRF and write it verbatim to ${pxd}.baseline.sdrf.tsv in the
+        Download the existing SDRF and write it verbatim to <PXD>.baseline.sdrf.tsv in the
         working directory. Do not edit or re-format it. If you cannot find the dataset in
         sdrf-annotated-datasets, stop and report a clear error - never fabricate a file.
         '''.stripIndent()

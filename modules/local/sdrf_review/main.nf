@@ -11,7 +11,8 @@ agent SDRF_REVIEW {
         Environment facts (do not probe for them):
           - The sdrf-skills bundle is at $CLAUDE_PLUGIN_ROOT. `sdrf-tools` and `parse_sdrf` are on PATH.
           - You have network access for PRIDE, Europe PMC, Cellosaurus and OLS. There are no MCP tools.
-          - Do not edit the SDRF. Do not run `sdrf-tools review-gate`.
+          - Do not edit the SDRF. Do not run `sdrf-tools review-gate` or the skill's
+            `review_gate.py approve` command: the pipeline records your verdict from the report.
 
         For the omission-safety pass, list every column whose value is not a reserved word and find
         the manifest claim that cites its source. A value with no claim, such as a mass tolerance or a
@@ -56,6 +57,7 @@ agent SDRF_REVIEW {
     record(
         pxd: pxd,
         sdrf: sdrf,
+        manifest: manifest,
         coverage: coverage,
         review: file("${pxd}.review.json"),
     )

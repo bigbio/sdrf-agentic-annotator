@@ -8,13 +8,13 @@ dataset from fresh evidence, seeded by (and improving on) that baseline, and wri
 refined/<pxd>.sdrf.tsv          the improved, validated SDRF
 refined/<pxd>.evidence.json     evidence manifest for the improved SDRF
 refined/<pxd>.refine.md         how it improves on the baseline + validation commands
-baseline/<pxd>.baseline.sdrf.tsv      verbatim copy of the existing SDRF (read-only input)
 baseline/<pxd>.baseline.evidence.json evidence manifest for the EXISTING SDRF, so the
 independent reviewer can score the baseline on the
 same terms as the refined version.
 
-The pipeline then runs the same SDRF_COVERAGE + SDRF_REVIEW on both and only accepts the
-refined SDRF if it is strictly better (see workflows/sdrf_refine_agent.nf).
+The input baseline is passed through unchanged. The pipeline then runs the same
+SDRF_COVERAGE + SDRF_REVIEW on the input baseline and the refined SDRF and only accepts the
+refined SDRF if it is strictly better (see subworkflows/local/utils_sdrf_agent, REFINE_DECISION).
 ----------------------------------------------------------------------------------------
  */
 
@@ -39,6 +39,7 @@ agent SDRF_REFINE {
           - The sdrf-skills bundle is at $CLAUDE_PLUGIN_ROOT (spec/, tools/, scripts/, data/).
           - `sdrf-tools` and `parse_sdrf` are on PATH. There are no MCP tools.
           - Write only into ./refined/ and ./baseline/ and keep fetched evidence in ./evidence/.
+            Do not copy the existing SDRF: the pipeline scores the input file itself.
 
         Before you finish, both checks must pass on the improved SDRF:
           1. `parse_sdrf validate-sdrf -s <sdrf> -t <template> ...` for every active template.
@@ -78,7 +79,7 @@ agent SDRF_REFINE {
         sdrf: file("refined/${pxd}.sdrf.tsv"),
         manifest: file("refined/${pxd}.evidence.json"),
         report: file("refined/${pxd}.refine.md"),
-        baseline_sdrf: file("baseline/${pxd}.baseline.sdrf.tsv"),
+        baseline: baseline,
         baseline_manifest: file("baseline/${pxd}.baseline.evidence.json"),
     )
 
@@ -92,9 +93,9 @@ agent SDRF_REFINE {
       - refined/${pxd}.refine.md           how it improves on the baseline, the parse_sdrf and
                                            sdrf-tools check commands with their exit codes and final
                                            status, and every value you could not verify
-      - baseline/${pxd}.baseline.sdrf.tsv  a verbatim copy of ${baseline} (the existing SDRF)
       - baseline/${pxd}.baseline.evidence.json
-                                           evidence manifest for the EXISTING SDRF, tracing each of
-                                           its values to a source or listing them under limitations
+                                           evidence manifest for the EXISTING SDRF ${baseline}, tracing
+                                           each of its values to a source or listing them under
+                                           limitations
     """
 }

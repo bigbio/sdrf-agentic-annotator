@@ -9,7 +9,7 @@ Github : https://github.com/bigbio/sdrf-agentic-annotator
 
 include { SDRF_AGENT } from './workflows/sdrf_agent'
 include { SDRF_REFINE_AGENT } from './workflows/sdrf_refine_agent'
-include { PIPELINE_INITIALISATION ; PIPELINE_REFINE_INITIALISATION ; PIPELINE_COMPLETION } from './subworkflows/local/utils_sdrf_agent'
+include { PIPELINE_INITIALISATION ; PIPELINE_REFINE_INITIALISATION ; PIPELINE_COMPLETION ; isTrue } from './subworkflows/local/utils_sdrf_agent'
 
 workflow {
 
@@ -25,7 +25,7 @@ workflow {
     ch_refine_decision = channel.empty()
     ch_refine_verdict = channel.empty()
 
-    if (params.refine) {
+    if (isTrue(params.refine)) {
         PIPELINE_REFINE_INITIALISATION(params.input)
         SDRF_REFINE_AGENT(PIPELINE_REFINE_INITIALISATION.out.rows)
         PIPELINE_COMPLETION(SDRF_REFINE_AGENT.out.summary)
@@ -57,27 +57,45 @@ workflow {
 }
 output {
     annotated {
-        path { r -> r.pxd }
+        path { r ->
+            r.sdrf >> "${r.pxd}/${r.sdrf.name}"
+            r.manifest >> "${r.pxd}/${r.manifest.name}"
+            r.report >> "${r.pxd}/${r.report.name}"
+        }
     }
     reviewed {
-        path { r -> r.pxd }
-    }
-    revised {
-        path { r -> "${r.pxd}/revised" }
-    }
-    revised_review {
-        path { r -> "${r.pxd}/revised" }
+        path { r -> r.review >> "${r.pxd}/${r.review.name}" }
     }
     coverage {
-        path { r -> r.pxd }
+        path { r -> r.coverage >> "${r.pxd}/${r.coverage.name}" }
+    }
+    // revise round 1 in <pxd>/revised/, round 2 in <pxd>/revised_2/
+    revised {
+        path { r ->
+            r.sdrf >> "${r.pxd}/${r.dir}/${r.sdrf.name}"
+            r.manifest >> "${r.pxd}/${r.dir}/${r.manifest.name}"
+            r.report >> "${r.pxd}/${r.dir}/${r.report.name}"
+        }
+    }
+    revised_review {
+        path { r ->
+            r.review >> "${r.pxd}/${r.dir}/${r.review.name}"
+            r.coverage >> "${r.pxd}/${r.dir}/${r.coverage.name}"
+        }
     }
     summary {
         path '.'
     }
+    // the chosen SDRF (refined or existing) with its evidence manifest, review and coverage report
     refine_decision {
-        path { r -> r.pxd }
+        path { r ->
+            r.sdrf >> "${r.pxd}/${r.pxd}.sdrf.tsv"
+            r.manifest >> "${r.pxd}/${r.pxd}.evidence.json"
+            r.review >> "${r.pxd}/${r.pxd}.review.json"
+            r.coverage >> "${r.pxd}/${r.pxd}.coverage.json"
+        }
     }
     refine_verdict {
-        path { r -> r.pxd }
+        path { r -> r.verdict >> "${r.pxd}/${r.verdict.name}" }
     }
 }

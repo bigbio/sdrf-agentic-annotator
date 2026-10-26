@@ -39,17 +39,148 @@ workflow PIPELINE_REFINE_INITIALISATION {
     validateParameters()
     log.info(paramsSummaryLog(workflow))
 
+    // samplesheetToList returns one list per row in schema column order (pxd, ref_sdrf).
+    // An empty or absent ref_sdrf comes back as an empty list.
     ch_rows = channel.fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
-        .map { row ->
-            // nf-schema returns a Map per row (keyed by column); tolerate a bare list too.
-            def r = (row instanceof Map)
-                ? [pxd: row.pxd, ref_sdrf: row.ref_sdrf]
-                : [pxd: row[0], ref_sdrf: (row.size() >= 2 ? row[1] : null)]
-            record(pxd: r.pxd as String, ref_sdrf: (r.ref_sdrf ? r.ref_sdrf as String : null))
-        }
+        .map { row -> record(pxd: row[0] as String, ref_sdrf: row[1] ? row[1] as String : null) }
 
     emit:
     rows = ch_rows
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBWORKFLOW TO SUMMARISE ANNOTATE MODE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+One row per PXD in summary.tsv. The final verdict comes from the latest review: revise
+round 2, else round 1, else the initial review.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+workflow SUMMARISE_REVIEWS {
+    take:
+    ch_reviewed // records: pxd, review, coverage (initial review)
+    ch_rev1_view // records: pxd, review, coverage (review after revise round 1)
+    ch_rev2_view // records: pxd, review, coverage (review after revise round 2)
+
+    main:
+    // One join per round, so each join sees at most one item per PXD and key
+    ch_summary = ch_reviewed
+        .map { r -> tuple(r.pxd, r) }
+        .join(ch_rev1_view.map { r -> tuple(r.pxd, r) }, remainder: true)
+        .join(ch_rev2_view.map { r -> tuple(r.pxd, r) }, remainder: true)
+        .filter { _pxd, ini, _rev1, _rev2 -> ini }
+        .map { pxd, ini, rev1, rev2 ->
+            def last = rev2 ?: rev1 ?: ini
+            def review = readReview(last.review)
+            def verdict = gateVerdict(review.verdict, review.confidence, (params.confidence_gate as String).toDouble())
+            def coverage = readCoverage(last.coverage)
+            [pxd, readReview(ini.review).verdict, verdict, rev1 ? 'true' : 'false', review.confidence, coverageLabel(coverage)].join('\t')
+        }
+        .collectFile(
+            name: 'summary.tsv',
+            seed: 'pxd\tinitial_verdict\tfinal_verdict\trevised\tconfidence\tcoverage',
+            newLine: true,
+            sort: true,
+        )
+
+    emit:
+    summary = ch_summary
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBWORKFLOW FOR THE REFINE ACCEPTANCE GATE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Accept the refined SDRF only if, on the same review, it is strictly better than the
+baseline (see isBetter). Emits one decision record per PXD with the chosen SDRF and its
+evidence manifest, review and coverage report, plus <pxd>.refine_verdict.json files and
+refine_summary.tsv.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+workflow REFINE_DECISION {
+    take:
+    ch_base_rev // records: pxd, sdrf, manifest, coverage, review (baseline)
+    ch_final_rev // records: pxd, sdrf, manifest, coverage, review (latest review of the refined SDRF)
+
+    main:
+    ch_decision = ch_base_rev
+        .map { r -> tuple(r.pxd, r) }
+        .join(ch_final_rev.map { r -> tuple(r.pxd, r) }, remainder: true)
+        .filter { _pxd, b, _f -> b }
+        .map { pxd, b, f ->
+            def base = scoreOf(b)
+            def refined = f ? scoreOf(f) : null
+            def chosen = (refined && isBetter(base, refined)) ? 'refined' : 'baseline'
+            def reason = !refined
+                ? 'no refined review produced - kept existing SDRF'
+                : (chosen == 'refined')
+                    ? 'refined passes and is strictly better (verdict/confidence, coverage not worse)'
+                    : 'refined not strictly better - kept existing SDRF'
+            def pick = (chosen == 'refined') ? f : b
+            record(
+                pxd: pxd,
+                chosen: chosen,
+                final_verdict: (chosen == 'refined') ? refined.verdict : base.verdict,
+                baseline_verdict: base.verdict,
+                baseline_confidence: base.confidence,
+                baseline_coverage: base.coverage,
+                refined_verdict: refined ? refined.verdict : 'n/a',
+                refined_confidence: refined ? refined.confidence : null,
+                refined_coverage: refined ? refined.coverage : null,
+                sdrf: pick.sdrf,
+                manifest: pick.manifest,
+                review: pick.review,
+                coverage: pick.coverage,
+                json: new groovy.json.JsonBuilder([
+                    pxd: pxd,
+                    chosen: chosen,
+                    reason: reason,
+                    baseline: [verdict: base.verdict, confidence: base.confidence, coverage: base.coverage],
+                    refined: refined ? [verdict: refined.verdict, confidence: refined.confidence, coverage: refined.coverage] : null,
+                ]).toPrettyString(),
+            )
+        }
+
+    ch_verdict = ch_decision
+        .collectFile { d -> ["${d.pxd}.refine_verdict.json", d.json + '\n'] }
+        .map { f -> record(pxd: f.name - '.refine_verdict.json', verdict: f) }
+
+    ch_summary = ch_decision
+        .map { d ->
+            [
+                d.pxd,
+                d.baseline_verdict,
+                d.refined_verdict,
+                d.chosen,
+                d.final_verdict,
+                orNa(d.baseline_coverage),
+                orNa(d.refined_coverage),
+                orNa(d.baseline_confidence),
+                orNa(d.refined_confidence),
+            ].join('\t')
+        }
+        .collectFile(
+            name: 'refine_summary.tsv',
+            seed: 'pxd\tbaseline_verdict\trefined_verdict\tchosen\tfinal_verdict\tbaseline_coverage\trefined_coverage\tbaseline_confidence\trefined_confidence',
+            newLine: true,
+            sort: true,
+        )
+
+    ch_decision.subscribe { d ->
+        if (d.chosen == 'baseline') {
+            log.info("Refine: ${d.pxd} kept existing SDRF (baseline=${d.baseline_verdict}, refined=${d.refined_verdict})")
+        }
+        else {
+            log.info("Refine: ${d.pxd} accepted refined SDRF (baseline=${d.baseline_verdict} -> refined=${d.refined_verdict})")
+        }
+    }
+
+    emit:
+    decision = ch_decision
+    verdict = ch_verdict
+    summary = ch_summary
 }
 
 /*
@@ -60,16 +191,16 @@ SUBWORKFLOW FOR PIPELINE COMPLETION
 
 workflow PIPELINE_COMPLETION {
     take:
-    summary // path: summary.tsv
+    summary // path: summary.tsv or refine_summary.tsv, both with `pxd` and `final_verdict` columns
 
     main:
     summary.subscribe { tsv ->
-        def rows = tsv.readLines().drop(1).findAll { line -> line.trim() }
-        def notPass = rows.findAll { line -> line.split('\t')[2] != 'PASS' && line.split('\t')[2] != 'LOW_CONF' }.collect { line -> line.split('\t')[0] }
-        def lowConf = rows.findAll { line -> line.split('\t')[2] == 'LOW_CONF' }.collect { line -> line.split('\t')[0] }
+        def rows = readSummary(tsv)
+        def notPass = rows.findAll { r -> !(r.final_verdict in ['PASS', 'LOW_CONF']) }.collect { r -> r.pxd }
+        def lowConf = rows.findAll { r -> r.final_verdict == 'LOW_CONF' }.collect { r -> r.pxd }
         if (notPass) {
             log.warn(
-                "Final review did not pass for ${notPass.size()} PXD(s): ${notPass.join(', ')}. " + "This is a content outcome, not an infrastructure error. See summary.tsv and review reports."
+                "Final review did not pass for ${notPass.size()} PXD(s): ${notPass.join(', ')}. " + "This is a content outcome, not an infrastructure error. See ${tsv.name} and review reports."
             )
         }
         if (lowConf) {
@@ -77,10 +208,136 @@ workflow PIPELINE_COMPLETION {
                 "Final verdict is LOW_CONF for ${lowConf.size()} PXD(s): ${lowConf.join(', ')}. " + "Accepted and passed on; revisit if you want a stronger annotation."
             )
         }
-        if (params.exit_on_review_fail && notPass) {
+        if (isTrue(params.exit_on_review_fail) && notPass) {
             error(
                 "exit_on_review_fail requested and ${notPass.size()} PXD(s) have a non-PASS final verdict: ${notPass.join(', ')}. " + "This is an intentional exit-on-content-fail; infra errors are handled separately by task retries."
             )
         }
     }
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+HELPERS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+// Review input records (a channel helper): each SDRF with its evidence manifest and its coverage report
+def withCoverage(ch_sdrfs, ch_cov) {
+    return ch_sdrfs
+        .map { r -> tuple(r.pxd, r) }
+        .join(ch_cov.map { pxd, cov, _sdrf, _manifest -> tuple(pxd, cov) })
+        .map { pxd, r, cov -> record(pxd: pxd, sdrf: r.sdrf, manifest: r.manifest, coverage: cov) }
+}
+
+// Verdict and confidence of a review report written by an agent. A report the pipeline cannot
+// read (e.g. JSON wrapped in a markdown code fence that is not JSON inside) is a FAIL with a
+// warning, never a crash of the whole run. The verdict is upper-cased, so `pass` is a PASS.
+def readReview(review) {
+    def text = review.text.trim()
+    if (text.startsWith('```')) {
+        text = text.substring(text.indexOf('\n') + 1).trim()
+        if (text.endsWith('```')) {
+            text = text.substring(0, text.lastIndexOf('```'))
+        }
+    }
+    def json = null
+    try {
+        json = new groovy.json.JsonSlurper().parseText(text)
+    }
+    catch (e: Exception) {
+        log.warn("Cannot parse the review report ${review}: ${e.message}. Counting it as FAIL.")
+    }
+    if (!(json instanceof Map)) {
+        return [verdict: 'FAIL', confidence: -1.0d]
+    }
+    def verdict = json.verdict ? (json.verdict as String).trim().toUpperCase() : 'FAIL'
+    return [verdict: verdict, confidence: toConfidence(json.confidence)]
+}
+
+// Reviewer confidence as a number in 0..1, or -1 when it is missing or not a number in 0..1
+def toConfidence(value) {
+    try {
+        def c = (value as String).toDouble()
+        return (c >= 0 && c <= 1) ? c : -1.0d
+    }
+    catch (_e: Exception) {
+        return -1.0d
+    }
+}
+
+// A PASS below the confidence gate, or without a confidence, is accepted but flagged LOW_CONF
+def gateVerdict(verdict, confidence, gate) {
+    if (verdict == 'PASS' && gate > 0 && confidence < gate) {
+        return 'LOW_CONF'
+    }
+    return verdict
+}
+
+// Status and coverage fraction (or null) of a SDRF_COVERAGE report
+def readCoverage(coverage) {
+    if (!coverage) {
+        return [status: 'missing', coverage: null]
+    }
+    try {
+        def json = new groovy.json.JsonSlurper().parse(coverage.toFile())
+        def fraction = (json.status == 'ok' && json.coverage != null) ? (json.coverage as String).toDouble() : null
+        return [status: json.status ?: 'unknown', coverage: fraction]
+    }
+    catch (_e: Exception) {
+        return [status: 'unreadable', coverage: null]
+    }
+}
+
+// Coverage column of summary.tsv: the fraction, `unverifiable` when PRIDE could not be checked, else `n/a`
+def coverageLabel(coverage) {
+    if (coverage.coverage != null) {
+        return coverage.coverage as String
+    }
+    return coverage.status == 'not_verifiable' ? 'unverifiable' : 'n/a'
+}
+
+// Verdict, confidence and coverage of one reviewed SDRF, as compared by the refine gate
+def scoreOf(reviewed) {
+    def review = readReview(reviewed.review)
+    return [verdict: review.verdict, confidence: review.confidence, coverage: readCoverage(reviewed.coverage).coverage]
+}
+
+// Accept the refined SDRF only if it is strictly better than the baseline:
+//   - refined must PASS the independent adversarial review,
+//   - refined coverage must be measurable and not worse than baseline,
+//   - and either the baseline did not PASS (FAIL -> PASS) or the refined confidence is higher.
+def isBetter(base, refined) {
+    if (refined.verdict != 'PASS') {
+        return false
+    }
+    if (refined.coverage == null) {
+        return false
+    }
+    if (base.coverage != null && refined.coverage < base.coverage) {
+        return false
+    }
+    if (base.verdict != 'PASS') {
+        return true
+    }
+    return refined.confidence > base.confidence
+}
+
+// Rows of a summary TSV as maps keyed by its header
+def readSummary(tsv) {
+    def lines = tsv.readLines().findAll { line -> line.trim() }
+    if (!lines) {
+        return []
+    }
+    def header = lines[0].split('\t') as List
+    return lines.drop(1).collect { line -> [header, line.split('\t', -1) as List].transpose().collectEntries() }
+}
+
+// Boolean parameter value. On the command line, `--revise false` arrives as the string 'false'.
+def isTrue(value) {
+    return (value instanceof Boolean) ? value : ((value as String)?.trim()?.toLowerCase() in ['true', 'yes', '1'])
+}
+
+def orNa(value) {
+    return value != null ? value as String : 'n/a'
 }
