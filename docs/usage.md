@@ -154,7 +154,7 @@ Pick exactly one container profile (`docker`, `singularity` or `apptainer`), plu
 
 | Profile | Description |
 |---|---|
-| `docker` | Run the agents in the runner image `ghcr.io/jonasscheid/nf-agent-sdrf` with Docker. Suitable for a local machine or CI. |
+| `docker` | Run the agents in the runner image `ghcr.io/bigbio/sdrf-agentic-annotator` with Docker. Suitable for a local machine or CI. |
 | `singularity` | Run the same runner image with Singularity (no root, no daemon). For HPC clusters. Requires Singularity on the execution node. |
 | `apptainer` | Same as `singularity`, using Apptainer (the renamed Singularity). |
 | `test` | Annotates one PXD from [assets/samplesheet.csv](../assets/samplesheet.csv). Needs `LLM_KEY`. Combine with a container profile, e.g. `-profile test,docker`. |
@@ -163,11 +163,11 @@ Pick exactly one container profile (`docker`, `singularity` or `apptainer`), plu
 
 [docker/Dockerfile](../docker/Dockerfile) builds the runner image. It adds `sdrf-tools`,
 `parse_sdrf` and the sdrf-skills bundle at a fixed commit to the pi runner image. GitHub
-Actions builds and pushes the image to `ghcr.io/jonasscheid/nf-agent-sdrf`. To build it
+Actions builds and pushes the image to `ghcr.io/bigbio/sdrf-agentic-annotator`. To build it
 locally:
 
 ```bash
-docker build -t ghcr.io/jonasscheid/nf-agent-sdrf:dev docker/
+docker build -t ghcr.io/bigbio/sdrf-agentic-annotator:dev docker/
 ```
 
 The image is an OCI/Docker image. Under the `singularity`/`apptainer` profiles, the first use
@@ -176,7 +176,7 @@ pulls it from the registry and converts it to a SIF; set `NXF_SINGULARITY_CACHED
 cluster cannot reach the registry, build a SIF once with
 
 ```bash
-singularity build sdrf-agentic-annotator.sif docker://ghcr.io/jonasscheid/nf-agent-sdrf:dev
+singularity build sdrf-agentic-annotator.sif docker://ghcr.io/bigbio/sdrf-agentic-annotator:dev
 ```
 
 and point the profile at it, or add the cached pull into the shared cache directory.
