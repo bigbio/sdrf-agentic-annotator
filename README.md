@@ -47,6 +47,6 @@ See [docs/usage.md](docs/usage.md) for all options and [docs/output.md](docs/out
 
 ## Credits
 
-jonasscheid/nf-agent-sdrf was written by Jonas Scheid. The annotation and review logic comes from [bigbio/sdrf-skills](https://github.com/bigbio/sdrf-skills). The skills in `modules/local/*/skills/` are copies of bigbio/sdrf-skills at commit `0fb449f`, under the MIT licence in the `LICENSE` file next to them.
+jonasscheid/nf-agent-sdrf was written by Jonas Scheid. The annotation and review logic comes from [bigbio/sdrf-skills](https://github.com/bigbio/sdrf-skills). The skills in `modules/local/*/skills/` are copies of bigbio/sdrf-skills at commit `ebf95fb`, under the MIT licence in the `LICENSE` file next to them.
 
 The pipeline structure follows the [nf-core](https://nf-co.re) guidelines, but it is not an nf-core pipeline.

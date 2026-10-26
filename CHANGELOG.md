@@ -4,7 +4,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## v0.1.0dev - [unreleased]
 
-[#16](https://github.com/jonasscheid/nf-agent-sdrf/pull/16)
+[#16](https://github.com/jonasscheid/nf-agent-sdrf/pull/16), [#17](https://github.com/jonasscheid/nf-agent-sdrf/pull/17)
 
 ### `Added`
 
@@ -20,11 +20,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   every review (including each revise round) and is published as `PXD.coverage.json`.
 - `confidence` (0..1) and `coverage` columns in `summary.tsv`, plus a
   `--confidence_gate` to flag low-confidence PASSes as `LOW_CONF` (still accepted).
+- `--models_json` to add an OpenAI-compatible gateway as a pi provider.
+- `--max_fetch_bytes`: the agents do not download remote files above this size.
 
 ### `Changed`
 
 - The runner image clones bigbio/sdrf-skills at a fixed commit and no longer needs a copy of the bundle in the repo.
 - Workflow outputs are copied, not linked, to `--outdir`.
+- bigbio/sdrf-skills `ebf95fb` in the runner image and the module skills, with curated uveal-melanoma cell lines.
 - The pipeline needs Nextflow 26.10.3 or later. In 26.10.0, `-preview` does not stop when the script has workflow outputs.
 - The reviewer now receives the coverage report and must record a `confidence` and
   fold the coverage/subset gate into its verdict (see the review contract).

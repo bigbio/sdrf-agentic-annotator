@@ -31,8 +31,43 @@ Nextflow keeps secrets in `~/.nextflow/secrets`, outside the project folder. To 
 | `--revise` | `true` | Revise an SDRF when its review fails, then review it again. |
 | `--max_revise` | `1` | Maximum revise -> re-review rounds a dataset may go through (bounded escalation). |
 | `--max_parallel` | `0` | Max agent tasks that run concurrently across the batch; `0` = unlimited. Lower it to reduce resource contention. |
-| `--models_json` | `null` | Bind-mount a pi `models.json` registering an OpenAI-compatible gateway (e.g. EBI's). |
-| `--max_fetch_bytes` | `524288000` | Skip remote evidence files above this size; prefer small derived files. |
+| `--models_json` | none | Absolute path to a pi `models.json` that adds an OpenAI-compatible gateway as a provider. Works with the `docker` profile only. |
+| `--max_fetch_bytes` | `524288000` | The agents do not download a remote file larger than this number of bytes. |
+
+### OpenAI-compatible gateway
+
+To use a model on an OpenAI-compatible gateway, write a pi `models.json` file. Keep this file outside the repository, for example in `runtime/`. Git ignores `runtime/`.
+
+```json
+{
+  "providers": {
+    "mygateway": {
+      "baseUrl": "https://gateway.example.org/v1",
+      "api": "openai-completions",
+      "models": [
+        { "id": "openai/DeepSeek-V4-Flash-0731" }
+      ]
+    }
+  }
+}
+```
+
+The key of the provider, here `mygateway`, is the provider name. The model `id` must be the model string that the gateway expects. Do not put the API key in this file. The agents get the key from the `LLM_KEY` secret.
+
+Give the file with `--models_json`. Use the provider name in `--model` and `--api_provider`:
+
+```bash
+nextflow run jonasscheid/nf-agent-sdrf -profile docker --input samplesheet.csv --outdir <OUTDIR> \
+    --models_json $PWD/runtime/models.json \
+    --model mygateway/openai/DeepSeek-V4-Flash-0731 \
+    --api_provider mygateway
+```
+
+The `docker` profile mounts the file read-only at `/opt/pi-config/models.json` in the agent container. Without `--models_json`, the image uses [docker/models.json](../docker/models.json). This file has no providers, so pi uses only its built-in models. For all `models.json` fields, see the [pi model documentation](https://pi.dev/docs/latest/models).
+
+### Large remote files
+
+The agents read the `Content-Length` of a remote file before they download it. They do not download a file larger than `--max_fetch_bytes`. For MaxQuant datasets, they use the small result files, such as `mqpar.xml`, `peptides.txt` and `evidence.txt`. They do not use `msms.txt` or raw files, because these are often many GB. If the reviewer can only verify a value from a file above the limit, it reports the value as not fully verifiable.
 
 ### Coverage / subset gate
 
