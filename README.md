@@ -58,8 +58,8 @@ To test the pipeline with one PXD, use `-profile test,docker`.
 [bigbio/sdrf-annotated-datasets](https://github.com/bigbio/sdrf-annotated-datasets) and only
 accepts the refined version if it is strictly better annotated (same independent review, scored
 on verdict/confidence + coverage, with coverage not worse). The samplesheet can give a
-`ref_sdrf` path per PXD, or the pipeline fetches the existing SDRF from `sdrf-annotated-datasets`
-by PXD.
+`ref_sdrf` path per PXD, or the pipeline downloads the existing SDRF from `sdrf-annotated-datasets`
+with `sdrf-tools curated`.
 
 ```bash
 nextflow run bigbio/sdrf-agentic-annotator -profile docker \
