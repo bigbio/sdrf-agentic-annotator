@@ -1,11 +1,11 @@
-# jonasscheid/nf-agent-sdrf
+# bigbio/sdrf-agentic-annotator
 
-[![CI](https://github.com/jonasscheid/nf-agent-sdrf/actions/workflows/ci.yml/badge.svg)](https://github.com/jonasscheid/nf-agent-sdrf/actions/workflows/ci.yml)
+[![CI](https://github.com/bigbio/sdrf-agentic-annotator/actions/workflows/ci.yml/badge.svg)](https://github.com/bigbio/sdrf-agentic-annotator/actions/workflows/ci.yml)
 [![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A526.10.3-23aa62.svg)](https://www.nextflow.io/)
 
 ## Introduction
 
-**jonasscheid/nf-agent-sdrf** annotates PRIDE datasets with [SDRF](https://github.com/bigbio/proteomics-sample-metadata). It runs the [bigbio/sdrf-skills](https://github.com/bigbio/sdrf-skills) workflow in Nextflow `agent` tasks.
+**bigbio/sdrf-agentic-annotator** annotates PRIDE datasets with [SDRF](https://github.com/bigbio/proteomics-sample-metadata). It runs the [bigbio/sdrf-skills](https://github.com/bigbio/sdrf-skills) workflow in Nextflow `agent` tasks.
 
 ```
 PXD ──► SDRF_ANNOTATE ──► SDRF_REVIEW ──► PASS ──────────────────────────────────► <outdir>/<PXD>/
@@ -22,6 +22,10 @@ PXD ──► SDRF_ANNOTATE ──► SDRF_REVIEW ──► PASS ─────
 
 ## Usage
 
+This pipeline runs its LLM agents inside a container image, so you must pick a container
+profile: `docker` for a local machine or CI, or `singularity`/`apptainer` on an HPC cluster
+without root (see [docs/usage.md](docs/usage.md) for the differences).
+
 1. Make a samplesheet with one PXD accession per row:
 
    ```csv
@@ -35,11 +39,18 @@ PXD ──► SDRF_ANNOTATE ──► SDRF_REVIEW ──► PASS ─────
    nextflow secrets set LLM_KEY <your-api-key>
    ```
 
+   One single key is enough: the pipeline delivers it to whichever provider `--api_provider`
+   selects. See [docs/usage.md](docs/usage.md) for which key value a provider expects
+   (a Google/OpenAI/Anthropic key for built-in providers, or your org's gateway token for an
+   OpenAI-compatible gateway such as the EBI AI Gateway).
+
 3. Run the pipeline:
 
    ```bash
-   nextflow run jonasscheid/nf-agent-sdrf -profile docker --input samplesheet.csv --outdir <OUTDIR>
+   nextflow run bigbio/sdrf-agentic-annotator -profile docker --input samplesheet.csv --outdir <OUTDIR>
    ```
+
+   On an HPC node, use `-profile singularity` (or `-profile apptainer`) instead of `docker`.
 
 To test the pipeline with one PXD, use `-profile test,docker`.
 
@@ -47,6 +58,10 @@ See [docs/usage.md](docs/usage.md) for all options and [docs/output.md](docs/out
 
 ## Credits
 
-jonasscheid/nf-agent-sdrf was written by Jonas Scheid. The annotation and review logic comes from [bigbio/sdrf-skills](https://github.com/bigbio/sdrf-skills). The skills in `modules/local/*/skills/` are copies of bigbio/sdrf-skills at commit `ebf95fb`, under the MIT licence in the `LICENSE` file next to them.
+bigbio/sdrf-agentic-annotator was originally written by Jonas Scheid (as
+jonasscheid/nf-agent-sdrf) and is maintained in the bigbio organisation. The annotation and
+review logic comes from [bigbio/sdrf-skills](https://github.com/bigbio/sdrf-skills). The skills
+in `modules/local/*/skills/` are copies of bigbio/sdrf-skills at commit `ebf95fb`, under the
+MIT licence in the `LICENSE` file next to them.
 
 The pipeline structure follows the [nf-core](https://nf-co.re) guidelines, but it is not an nf-core pipeline.

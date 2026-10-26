@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/jonasscheid/nf-agent-sdrf/main/nextflow_schema.json",
-    "title": "jonasscheid/nf-agent-sdrf pipeline parameters",
+    "$id": "https://raw.githubusercontent.com/bigbio/sdrf-agentic-annotator/main/nextflow_schema.json",
+    "title": "bigbio/sdrf-agentic-annotator pipeline parameters",
     "description": "Annotate PRIDE datasets with SDRF using Nextflow agents and the bigbio/sdrf-skills",
     "type": "object",
     "$defs": {
@@ -51,7 +51,7 @@
                     "default": "google",
                     "description": "Provider of the API key in the `LLM_KEY` secret.",
                     "fa_icon": "fas fa-key",
-                    "help_text": "For example `google`, `anthropic`, `openai` or `openrouter`."
+                    "help_text": "Either a built-in provider such as `google`, `anthropic`, `openai` or `openrouter`, or the provider key you registered in `models.json` for an OpenAI-compatible gateway (e.g. `ebi`). The `<provider>` prefix of `--model` must match this value."
                 },
                 "revise": {
                     "type": "boolean",
@@ -101,7 +101,7 @@
                     "exists": true,
                     "pattern": "^/\\S+\\.json$",
                     "description": "Absolute path to a pi `models.json` that adds an OpenAI-compatible gateway as a provider.",
-                    "help_text": "The `docker` profile mounts the file at `/opt/pi-config/models.json` in the agent container. Do not put the API key in the file. See the usage docs.",
+                    "help_text": "The `docker` profile mounts the file with `-v`; the `singularity` and `apptainer` profiles with `-B`, all read-only at `/opt/pi-config/models.json` in the agent container. Do not put the API key in the file. See the usage docs.",
                     "fa_icon": "fas fa-network-wired"
                 },
                 "max_fetch_bytes": {

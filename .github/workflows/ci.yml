@@ -32,9 +32,13 @@ jobs:
           git diff --exit-code
       - name: Check the config
         # -preview does not end for agent pipelines (#15), so only parse the config here
+        # `test,x` parses each container profile (docker, singularity, apptainer) without
+        # needing the engine itself, so the new Singularity/Apptainer profiles are validated.
         run: |
           nextflow secrets set LLM_KEY dummy
           nextflow config -profile test,docker . > /dev/null
+          nextflow config -profile test,singularity . > /dev/null
+          nextflow config -profile test,apptainer . > /dev/null
 
   test:
     name: Pipeline test

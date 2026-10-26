@@ -1,9 +1,9 @@
 #!/usr/bin/env nextflow
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-jonasscheid/nf-agent-sdrf
+bigbio/sdrf-agentic-annotator
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Github : https://github.com/jonasscheid/nf-agent-sdrf
+Github : https://github.com/bigbio/sdrf-agentic-annotator
 ----------------------------------------------------------------------------------------
  */
 

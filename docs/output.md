@@ -1,4 +1,4 @@
-# jonasscheid/nf-agent-sdrf: Output
+# bigbio/sdrf-agentic-annotator: Output
 
 The pipeline writes all files to `--outdir`.
 
