@@ -5,14 +5,11 @@ IMPORT MODULES
  */
 
 include { SDRF_ANNOTATE } from '../modules/local/sdrf_annotate'
-include { SDRF_REVIEW } from '../modules/local/sdrf_review'
 include { SDRF_REVISE } from '../modules/local/sdrf_revise'
-include { SDRF_REVIEW as SDRF_REVIEW_REVISED } from '../modules/local/sdrf_review'
-include { SDRF_COVERAGE } from '../modules/local/sdrf_coverage'
-include { SDRF_COVERAGE as SDRF_COVERAGE_REV1 } from '../modules/local/sdrf_coverage'
-include { SDRF_COVERAGE as SDRF_COVERAGE_REV2 } from '../modules/local/sdrf_coverage'
 include { SDRF_REVISE as SDRF_REVISE_REV2 } from '../modules/local/sdrf_revise'
-include { SDRF_REVIEW as SDRF_REVIEW_REVISED_REV2 } from '../modules/local/sdrf_review'
+include { SCORE_SDRF } from '../subworkflows/local/score_sdrf'
+include { SCORE_SDRF as SCORE_SDRF_REV1 } from '../subworkflows/local/score_sdrf'
+include { SCORE_SDRF as SCORE_SDRF_REV2 } from '../subworkflows/local/score_sdrf'
 include { verdictOf ; confidenceOf ; coverageOf } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
@@ -28,16 +25,10 @@ workflow SDRF_AGENT {
     main:
     ch_annotated = SDRF_ANNOTATE(ch_pxds)
 
-    // ---- deterministic coverage precheck (improvement 1 + file-existence, improvement 3) ----
-    // Runs the SDRF's data files against the PRIDE deposit file list BEFORE the adversarial pass.
-    ch_initial_cov = SDRF_COVERAGE(ch_annotated.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })
-    // The reviewer gets the original request and the hand-off files, never the producer report
-    ch_initial_review_in = ch_annotated
-        .map { r -> tuple(r.pxd, r) }
-        .join(ch_initial_cov.map { pxd, cov, _sdrf, _manifest -> tuple(pxd, cov) }, remainder: true)
-        .map { pxd, ann, cov -> record(pxd: pxd, sdrf: ann.sdrf, manifest: ann.manifest, coverage: cov, validation: ann.validation, evidence: ann.evidence) }
-    ch_reviewed = SDRF_REVIEW(ch_initial_review_in)
-    ch_evidence = ch_annotated.map { r -> tuple(r.pxd, r.evidence) }
+    // The coverage precheck runs before each review
+    SCORE_SDRF(ch_annotated)
+    ch_reviewed = SCORE_SDRF.out.review
+    ch_evidence = ch_annotated.map { r -> record(pxd: r.pxd, evidence: r.evidence) }
 
     // ---- bounded revise / escalation loop (improvement 3) ----
     // Statically unrolled with `if` guards (Nextflow DSL does not allow process calls in a for
@@ -54,13 +45,9 @@ workflow SDRF_AGENT {
     if (params.revise && params.max_revise >= 1) {
         // ---- round 1 ----
         ch_rev1 = SDRF_REVISE(ch_fail_round1)
-        ch_rev1_cov = SDRF_COVERAGE_REV1(ch_rev1.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })
-        ch_rev1_in = ch_rev1
-            .map { r -> tuple(r.pxd, r) }
-            .join(ch_rev1_cov.map { pxd, cov, _sdrf, _manifest -> tuple(pxd, cov) }, remainder: true)
-            .join(ch_evidence)
-            .map { pxd, rev, cov, evidence -> record(pxd: pxd, sdrf: rev.sdrf, manifest: rev.manifest, coverage: cov, validation: rev.validation, evidence: evidence) }
-        ch_rev1_view = SDRF_REVIEW_REVISED(ch_rev1_in)
+        ch_rev1_view = SCORE_SDRF_REV1(
+            ch_rev1.join(ch_evidence, by: 'pxd')
+        ).review
 
         ch_revised_all = ch_revised_all.mix(ch_rev1)
         ch_revised_review = ch_revised_review.mix(ch_rev1_view)
@@ -70,18 +57,14 @@ workflow SDRF_AGENT {
             .filter { r -> verdictOf(r.review) != 'PASS' }
             .map { r -> tuple(r.pxd, r) }
             .join(ch_rev1.map { r -> tuple(r.pxd, r) })
-            .join(ch_evidence)
-            .map { pxd, review, rev, evidence -> record(pxd: pxd, sdrf: rev.sdrf, manifest: rev.manifest, review: review.review, samples: rev.samples, technical: rev.technical, evidence: evidence) }
+            .map { pxd, review, rev -> record(pxd: pxd, sdrf: rev.sdrf, manifest: rev.manifest, review: review.review, samples: rev.samples, technical: rev.technical) }
+            .join(ch_evidence, by: 'pxd')
 
         if (params.max_revise >= 2) {
             ch_rev2 = SDRF_REVISE_REV2(ch_fail_round2)
-            ch_rev2_cov = SDRF_COVERAGE_REV2(ch_rev2.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })
-            ch_rev2_in = ch_rev2
-                .map { r -> tuple(r.pxd, r) }
-                .join(ch_rev2_cov.map { pxd, cov, _sdrf, _manifest -> tuple(pxd, cov) }, remainder: true)
-                .join(ch_evidence)
-                .map { pxd, rev, cov, evidence -> record(pxd: pxd, sdrf: rev.sdrf, manifest: rev.manifest, coverage: cov, validation: rev.validation, evidence: evidence) }
-            ch_rev2_view = SDRF_REVIEW_REVISED_REV2(ch_rev2_in)
+            ch_rev2_view = SCORE_SDRF_REV2(
+                ch_rev2.join(ch_evidence, by: 'pxd')
+            ).review
 
             ch_revised_all = ch_revised_all.mix(ch_rev2)
             ch_revised_review = ch_revised_review.mix(ch_rev2_view)
@@ -95,7 +78,7 @@ workflow SDRF_AGENT {
     reviewed = ch_reviewed
     revised = ch_revised_all
     revised_review = ch_revised_review
-    coverage = ch_initial_cov.map { pxd, cov, _sdrf, _manifest -> record(pxd: pxd, coverage: cov) }
+    coverage = SCORE_SDRF.out.coverage
     summary = ch_summary
 }
 

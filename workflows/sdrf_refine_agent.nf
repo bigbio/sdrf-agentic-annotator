@@ -6,13 +6,10 @@ IMPORT MODULES
 
 include { SDRF_FETCH_BASELINE } from '../modules/local/sdrf_fetch_baseline'
 include { SDRF_REFINE } from '../modules/local/sdrf_refine'
-include { SDRF_REVIEW as SDRF_REVIEW_BASELINE } from '../modules/local/sdrf_review'
-include { SDRF_REVIEW as SDRF_REVIEW_REFINED } from '../modules/local/sdrf_review'
-include { SDRF_REVIEW as SDRF_REVIEW_REFV2 } from '../modules/local/sdrf_review'
-include { SDRF_COVERAGE as SDRF_COVERAGE_BASELINE } from '../modules/local/sdrf_coverage'
-include { SDRF_COVERAGE as SDRF_COVERAGE_REFINED } from '../modules/local/sdrf_coverage'
-include { SDRF_COVERAGE as SDRF_COVERAGE_REFV2 } from '../modules/local/sdrf_coverage'
 include { SDRF_REVISE } from '../modules/local/sdrf_revise'
+include { SCORE_SDRF as SCORE_BASELINE } from '../subworkflows/local/score_sdrf'
+include { SCORE_SDRF as SCORE_REFINED } from '../subworkflows/local/score_sdrf'
+include { SCORE_SDRF as SCORE_REVISED } from '../subworkflows/local/score_sdrf'
 include { verdictOf ; parseReview ; coverageFraction ; isBetter } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
@@ -69,21 +66,9 @@ workflow SDRF_REFINE_AGENT {
     // ---- refine agent: seeded re-annotation + baseline evidence manifest ----
     ch_refined = SDRF_REFINE(ch_baseline)
 
-    // ---- baseline score: coverage precheck + independent adversarial review ----
-    ch_base_cov = SDRF_COVERAGE_BASELINE(ch_refined.map { r -> tuple(r.pxd, r.baseline_sdrf, r.baseline_manifest) })
-    ch_base_rev_in = ch_refined
-        .map { r -> tuple(r.pxd, r) }
-        .join(ch_base_cov.map { pxd, cov, _s, _m -> tuple(pxd, cov) }, remainder: true)
-        .map { pxd, r, cov -> record(pxd: pxd, sdrf: r.baseline_sdrf, manifest: r.baseline_manifest, coverage: cov) }
-    ch_base_rev = SDRF_REVIEW_BASELINE(ch_base_rev_in)
-
-    // ---- refined score (initial) ----
-    ch_ref_cov = SDRF_COVERAGE_REFINED(ch_refined.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })
-    ch_ref_rev_in = ch_refined
-        .map { r -> tuple(r.pxd, r) }
-        .join(ch_ref_cov.map { pxd, cov, _s, _m -> tuple(pxd, cov) }, remainder: true)
-        .map { pxd, r, cov -> record(pxd: pxd, sdrf: r.sdrf, manifest: r.manifest, coverage: cov) }
-    ch_ref_rev = SDRF_REVIEW_REFINED(ch_ref_rev_in)
+    // ---- baseline and refined score: coverage precheck + independent adversarial review ----
+    ch_base_rev = SCORE_BASELINE(ch_refined.map { r -> record(pxd: r.pxd, sdrf: r.baseline_sdrf, manifest: r.baseline_manifest) }).review
+    ch_ref_rev = SCORE_REFINED(ch_refined).review
 
     // ---- optional revise of the refined version if its review fails ----
     ch_ref_pass = ch_ref_rev.filter { r -> verdictOf(r.review) == 'PASS' }
@@ -92,12 +77,7 @@ workflow SDRF_REFINE_AGENT {
     ch_final_rev = channel.empty()
     if (params.revise) {
         ch_rev = SDRF_REVISE(ch_ref_fail.map { r -> record(pxd: r.pxd, sdrf: r.sdrf, manifest: r.manifest, review: r.review) })
-        ch_rev_cov = SDRF_COVERAGE_REFV2(ch_rev.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })
-        ch_rev_in = ch_rev
-            .map { r -> tuple(r.pxd, r) }
-            .join(ch_rev_cov.map { pxd, cov, _s, _m -> tuple(pxd, cov) }, remainder: true)
-            .map { pxd, r, cov -> record(pxd: pxd, sdrf: r.sdrf, manifest: r.manifest, coverage: cov) }
-        ch_rev_view = SDRF_REVIEW_REFV2(ch_rev_in)
+        ch_rev_view = SCORE_REVISED(ch_rev).review
         ch_final_rev = ch_ref_pass.mix(ch_rev_view)
     }
     else {
