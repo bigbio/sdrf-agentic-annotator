@@ -72,6 +72,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `SDRF_ANNOTATE` and `SDRF_REVISE` name the external-review hand-off and the status `REVIEW_PENDING_EXTERNAL` in their requests ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - The review and coverage helpers are functions of the utils subworkflow, shared by both workflows ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - `SCORE_SDRF` runs the coverage precheck and the review for both workflows. In refine mode, the reviewer of a revised SDRF now also gets its validation output ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
+- `REVISE_SDRF` runs one revise round and `REVIEW_REVISE` runs the review and up to two revise rounds. `--max_revise` takes 0 to 2; the schema rejects other values ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 
 ### `Fixed`
 

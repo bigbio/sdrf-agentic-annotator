@@ -62,6 +62,8 @@
                 "max_revise": {
                     "type": "integer",
                     "default": 1,
+                    "minimum": 0,
+                    "maximum": 2,
                     "description": "Maximum number of revise -> re-review rounds a dataset may go through (bounded escalation).",
                     "fa_icon": "fas fa-redo"
                 },
