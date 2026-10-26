@@ -49,7 +49,8 @@ agent SDRF_ANNOTATE {
 
     prompt:
     """
-    Annotate ${pxd}. Work through the sdrf-annotate steps up to and including Step 9 (validation).
+    Annotate ${pxd}. Existing annotation: reannotate.
+    Work through the sdrf-annotate steps up to and including Step 9 (validation).
     Then write exactly these files in the working directory:
       - ${pxd}.sdrf.tsv       the validated SDRF
       - ${pxd}.evidence.json  the evidence manifest, in the schema of
