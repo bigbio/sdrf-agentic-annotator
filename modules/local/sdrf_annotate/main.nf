@@ -30,6 +30,7 @@ agent SDRF_ANNOTATE {
     """
     Annotate ${pxd}. Existing annotation: reannotate.
     Do not ask questions.
-    An external reviewer runs `sdrf-adversarial-review` in a separate pipeline task.
+    External reviewer: a separate pipeline task runs `sdrf-adversarial-review` in a fresh context.
+    Hand the Step 9.5 review off to it and give the status REVIEW_PENDING_EXTERNAL.
     """
 }
