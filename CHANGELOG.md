@@ -15,9 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `docker` and `test` profiles.
 - GitHub Actions for linting, the runner image and the pipeline test.
 - `SDRF_COVERAGE`: a deterministic, non-agent precheck that compares every
-  `comment[data file]` in an SDRF against the PRIDE deposit file list and reports
-  matched/missing files and the fraction of the deposit represented. Runs before
-  every review (including each revise round) and is published as `PXD.coverage.json`.
+  `comment[data file]` in an SDRF with the deposited runs. Runs before every review
+  (including each revise round) and is published as `PXD.coverage.json`.
 - `confidence` (0..1) and `coverage` columns in `summary.tsv`, plus a
   `--confidence_gate` to flag low-confidence PASSes as `LOW_CONF` (still accepted).
 - `--models_json` to add an OpenAI-compatible gateway as a pi provider.
@@ -43,17 +42,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Runner image relocated from `ghcr.io/jonasscheid/nf-agent-sdrf:dev` to
   `ghcr.io/bigbio/sdrf-agentic-annotator:dev`; CI publishes the new path on merge
   (`.github/workflows/docker.yml` pushes to `ghcr.io/<repo>`).
-- The runner image clones bigbio/sdrf-skills at a fixed commit and no longer needs a copy of the bundle in the repo.
+- The runner image copies the bigbio/sdrf-skills bundle from `ghcr.io/bigbio/sdrf-skills:sha-5f5966b`
+  instead of cloning it, and installs `sdrf-tools` and `parse_sdrf` at that image's package versions.
+  It sets `SDRF_SKILLS_ROOT` and ships the `parse_sdrf` ontology cache for offline, non-root runs
+  ([#11](https://github.com/bigbio/sdrf-agentic-annotator/pull/11)).
 - Workflow outputs are copied, not linked, to `--outdir`.
 - bigbio/sdrf-skills `ebf95fb` in the runner image and the module skills, with curated uveal-melanoma cell lines.
+- Refine mode reuses the sdrf-skills tools: `SDRF_FETCH_BASELINE` is a plain process that runs
+  `sdrf-tools curated` instead of an agent, and fails when the PXD has no curated SDRF.
+  `SDRF_REFINE` requests `existing annotation: fix` from the `sdrf-annotate` skill and links the
+  skill of `SDRF_ANNOTATE` instead of a copy ([#8](https://github.com/bigbio/sdrf-agentic-annotator/pull/8)).
+- An empty `ref_sdrf` in the refine samplesheet no longer stops the run with `file()` on an empty path.
 - The pipeline needs Nextflow 26.10.3 or later. In 26.10.0, `-preview` does not stop when the script has workflow outputs.
 - The reviewer now receives the coverage report and must record a `confidence` and
   fold the coverage/subset gate into its verdict (see the review contract).
 - A final review `FAIL` is treated as a content outcome, not an infrastructure
   error: the pipeline publishes outputs, warns and completes normally unless
   `--exit_on_review_fail` is set. Genuine task/infra errors still auto-retry.
+- `SDRF_ANNOTATE`, `SDRF_REVIEW` and `SDRF_REVISE` use the unattended mode, external-review hand-off and output contract of bigbio/sdrf-skills `5f5966b` instead of their own overrides. The reviewer receives `<PXD>.validation.txt` and `evidence/`; the revise agent edits `samples.tsv` and `technical.tsv` ([#9](https://github.com/bigbio/sdrf-agentic-annotator/pull/9)).
 - `--revise` now takes a bounded `--max_revise` (default 1 preserves the current
   single-revise behaviour); additional revise rounds are statically unrolled.
+- `SDRF_COVERAGE` runs `sdrf-tools fetch` and `sdrf-tools audit-existing --json` from
+  `ghcr.io/bigbio/sdrf-skills:sha-1ea3d2f` instead of its own PRIDE query. `<PXD>.coverage.json` is the
+  `coverage` block of that report. Its `fraction` counts deposited runs only, and Bruker `.d`/`.d.zip`
+  names match ([#14](https://github.com/bigbio/sdrf-agentic-annotator/pull/14)).
 - New parameters `--coverage_min`, `--subset_mode`, `--confidence_gate`,
   `--max_revise`, `--max_parallel` and `--exit_on_review_fail`.
 
@@ -61,17 +73,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 Audit findings from [#12](https://github.com/bigbio/sdrf-agentic-annotator/issues/12):
 
-- A samplesheet without a `ref_sdrf` column, or with an empty `ref_sdrf`, failed at startup
-  with ``Argument of `file()` function cannot be empty``. This broke annotate mode and the
-  `test` profile.
 - Refine mode crashed when it published `<PXD>.refine_verdict.json`.
 - `--max_revise 2` took the round-1 verdict as final and then crashed before writing `summary.tsv`.
 - `--revise false`, `--refine false` and `--exit_on_review_fail false` given on the command line
   arrived as the string `'false'` and acted as `true`.
-- `SDRF_COVERAGE` counted search, result and peak-list files in the deposit, so a complete SDRF
-  scored below 1 (0.317 on PXD058436). It now counts RAW files, or peak lists if there are no RAW
-  files. Its fallback skipped PRIDE's first page of files, and a PRIDE outage was reported as
-  `not_verifiable` without a retry.
 - `--max_parallel` did not limit the agents, which only read the `agent` config scope.
 - A review report the pipeline could not parse, such as JSON in a markdown code fence, crashed
   the run; a lower-case `pass` counted as FAIL. A PASS without a confidence escaped `--confidence_gate`.
@@ -82,10 +87,5 @@ Audit findings from [#12](https://github.com/bigbio/sdrf-agentic-annotator/issue
 - Revised files were published in `<PXD>/revised/revised/`, and a kept refine baseline as
   `<PXD>/baseline/<PXD>.baseline.sdrf.tsv`. Revise round 2 now goes to `<PXD>/revised_2/`, and refine
   mode publishes the chosen SDRF's evidence manifest, review and coverage report next to it.
-- New key-free CI job with nf-test unit tests and tests for `bin/sdrf_coverage.py`.
+- New key-free CI job with nf-test unit tests for samplesheet parsing, the summary and the refine gate.
 
-### `Added` (coverage module internals)
-
-- `SDRF_COVERAGE` prefers the PRIDE `/files/all` endpoint (single call) and falls
-  back to the paginated `/files` (<=100/page); multi-file SDRF cells are split on
-  commas before matching. The check lives in `bin/sdrf_coverage.py`.

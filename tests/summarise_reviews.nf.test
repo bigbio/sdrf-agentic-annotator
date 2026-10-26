@@ -20,7 +20,7 @@ nextflow_workflow {
                 input[0] = channel.of(
                     view.call('PXD000001', 'review_fail.json', 'coverage_half.json'),
                     view.call('PXD000002', 'review_pass.json', 'coverage_half.json'),
-                    view.call('PXD000003', 'review_pass_no_confidence.json', 'coverage_not_verifiable.json'),
+                    view.call('PXD000003', 'review_pass_no_confidence.json', 'coverage_error.json'),
                     view.call('PXD000004', 'review_not_json.json', 'coverage_half.json'),
                 )
                 input[1] = channel.of(

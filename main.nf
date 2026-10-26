@@ -60,7 +60,11 @@ output {
         path { r ->
             r.sdrf >> "${r.pxd}/${r.sdrf.name}"
             r.manifest >> "${r.pxd}/${r.manifest.name}"
+            r.validation >> "${r.pxd}/${r.validation.name}"
             r.report >> "${r.pxd}/${r.report.name}"
+            r.samples >> "${r.pxd}/${r.samples.name}"
+            r.technical >> "${r.pxd}/${r.technical.name}"
+            r.evidence >> "${r.pxd}/${r.evidence.name}"
         }
     }
     reviewed {
@@ -74,7 +78,10 @@ output {
         path { r ->
             r.sdrf >> "${r.pxd}/${r.dir}/${r.sdrf.name}"
             r.manifest >> "${r.pxd}/${r.dir}/${r.manifest.name}"
+            r.validation >> "${r.pxd}/${r.dir}/${r.validation.name}"
             r.report >> "${r.pxd}/${r.dir}/${r.report.name}"
+            r.samples >> "${r.pxd}/${r.dir}/${r.samples.name}"
+            r.technical >> "${r.pxd}/${r.dir}/${r.technical.name}"
         }
     }
     revised_review {

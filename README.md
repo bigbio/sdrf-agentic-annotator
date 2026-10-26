@@ -61,8 +61,8 @@ To test the pipeline with one PXD, use `-profile test,docker`.
 [bigbio/sdrf-annotated-datasets](https://github.com/bigbio/sdrf-annotated-datasets) and only
 accepts the refined version if it is strictly better annotated (same independent review, scored
 on verdict/confidence + coverage, with coverage not worse). The samplesheet can give a
-`ref_sdrf` path per PXD, or the pipeline fetches the existing SDRF from `sdrf-annotated-datasets`
-by PXD.
+`ref_sdrf` path per PXD, or the pipeline downloads the existing SDRF from `sdrf-annotated-datasets`
+with `sdrf-tools curated`.
 
 ```bash
 nextflow run bigbio/sdrf-agentic-annotator -profile docker \
@@ -81,9 +81,7 @@ See [docs/usage.md](docs/usage.md) for all options and [docs/output.md](docs/out
 bigbio/sdrf-agentic-annotator was originally written by Jonas Scheid (as
 jonasscheid/nf-agent-sdrf) and is maintained in the bigbio organisation. The annotation and
 review logic comes from [bigbio/sdrf-skills](https://github.com/bigbio/sdrf-skills). The skills
-in `modules/local/*/skills/` are copies of bigbio/sdrf-skills at commit `ebf95fb`, under the
-MIT licence in the `LICENSE` file next to them. One file differs from upstream:
-`sdrf_review/skills/sdrf-adversarial-review/references/review-contract.md` adds the `confidence`
-and `coverage` sections this pipeline relies on, so keep them when you sync the skills.
+in `modules/local/*/skills/` are copies of bigbio/sdrf-skills (`sdrf_annotate` and `sdrf_review`
+at commit `5f5966b`), under the MIT licence in the `LICENSE` file next to them.
 
 The pipeline structure follows the [nf-core](https://nf-co.re) guidelines, but it is not an nf-core pipeline.

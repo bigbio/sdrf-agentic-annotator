@@ -8,15 +8,22 @@ The pipeline writes all files to `--outdir`.
 └── <PXD>/
     ├── <PXD>.sdrf.tsv
     ├── <PXD>.evidence.json
+    ├── <PXD>.validation.txt
     ├── <PXD>.report.md
-    ├── <PXD>.coverage.json
     ├── <PXD>.review.json
+    ├── <PXD>.coverage.json
+    ├── samples.tsv
+    ├── technical.tsv
+    ├── evidence/
     ├── revised/            only if the first review failed and --revise is true
     │   ├── <PXD>.sdrf.tsv
     │   ├── <PXD>.evidence.json
+    │   ├── <PXD>.validation.txt
     │   ├── <PXD>.revision.md
     │   ├── <PXD>.coverage.json
-    │   └── <PXD>.review.json
+    │   ├── <PXD>.review.json
+    │   ├── samples.tsv
+    │   └── technical.tsv
     └── revised_2/          only with --max_revise 2, if the review in revised/ failed too
         └── ...             the same files as revised/
 ```
@@ -26,8 +33,11 @@ The pipeline writes all files to `--outdir`.
 | `summary.tsv` | One row per PXD: `initial_verdict`, `final_verdict` (`PASS`, `LOW_CONF` or `FAIL`), `revised` (`true` or `false`), the final review's `confidence` (`-1.0` if it gave none) and `coverage` (a fraction, `unverifiable` if PRIDE could not be reached, or `n/a`). |
 | `<PXD>.sdrf.tsv` | The validated SDRF. |
 | `<PXD>.evidence.json` | The evidence manifest: a source for each value. |
-| `<PXD>.report.md` | What the agent annotated, the validation commands with their exit codes, and the values it could not verify. |
-| `<PXD>.coverage.json` | The deterministic coverage precheck: SDRF data files found and missing in the PRIDE deposit, and the fraction of the deposit's RAW files (or peak lists, if there are no RAW files) the SDRF covers. |
+| `<PXD>.validation.txt` | Each validation command, its output and its exit code. The reviewer receives this file. |
+| `<PXD>.report.md` | What the agent annotated, the review status (`REVIEW_PENDING_EXTERNAL`) and the open items. |
+| `<PXD>.coverage.json` | The `coverage` block of `sdrf-tools audit-existing --json`: `deposited_runs`, `annotated_runs`, `matched_runs`, `fraction`, `missing` and `invented`. If PRIDE cannot be read, it has `fraction: null` and an `error`. |
+| `samples.tsv`, `technical.tsv` | The tables that `sdrf-tools build` turns into the SDRF. The revise agent edits these, not the SDRF. |
+| `evidence/` | The project record from `sdrf-tools fetch` that the evidence manifest cites. |
 | `<PXD>.review.json` | The independent review report, in the schema of the `sdrf-adversarial-review` review contract. |
 | `revised/<PXD>.revision.md` | Each review finding, and what the revise agent changed for it or why it did not. |
 

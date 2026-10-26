@@ -1,1 +1,1 @@
-{"status": "ok", "coverage": 0.5}
+{"deposited_runs": 2, "annotated_runs": 1, "matched_runs": 1, "fraction": 0.5, "missing": ["b.raw"], "invented": []}

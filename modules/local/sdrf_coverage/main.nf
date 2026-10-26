@@ -1,25 +1,12 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SDRF_COVERAGE - deterministic coverage + file-existence precheck
+SDRF_COVERAGE - deterministic run coverage of an SDRF against the PRIDE deposit
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-A plain (non-agent) process that runs before the adversarial review. For one PRIDE
-dataset, bin/sdrf_coverage.py:
-
-1. Reads every `comment[data file]` value from the SDRF (basenames).
-2. Fetches the PRIDE deposit file list for the PXD via the archive REST API.
-3. Computes:
-- matched     : SDRF data files whose basename exists in the deposit
-- missing     : SDRF data files whose basename is NOT in the deposit
-(a file-mapping hallucination, e.g. a reference to a .raw that
-does not exist -> improvement 3)
-- deposit_data: deposit RAW files (or peak lists when there are no RAW files);
-search and result files are not counted
-- coverage    : fraction of those deposit files that the SDRF represents
-4. Writes a coverage.json that the reviewer MUST incorporate into its verdict.
-
-This is cheap and deterministic, so the expensive adversarial pass only needs to
-re-verify on top of it, and the coverage/subset gate (improvement 1) has a solid
-numeric basis instead of an LLM guess.
+A plain (non-agent) process that runs before each review. `sdrf-tools fetch` writes the
+deposit's run list to evidence/files.json. `sdrf-tools audit-existing --json` compares it with
+the SDRF's `comment[data file]` values. <pxd>.coverage.json is the `coverage` block of that
+report: deposited_runs, annotated_runs, matched_runs, fraction, missing and invented.
+If the deposit cannot be read, the file has `fraction: null` and an `error`.
 ----------------------------------------------------------------------------------------
  */
 
@@ -32,9 +19,8 @@ process SDRF_COVERAGE {
     cpus 1
     memory '2 GB'
 
-    // Network is required to fetch the PRIDE file list. The script retries PRIDE itself and
-    // writes a not_verifiable report if it stays unreachable; this retries anything else.
-    errorStrategy 'retry'
+    // Exit 2 is a failed PRIDE lookup; after three retries the task writes an `error` instead.
+    errorStrategy { task.exitStatus == 2 ? 'retry' : 'terminate' }
     maxRetries 3
 
     input:
@@ -45,6 +31,16 @@ process SDRF_COVERAGE {
 
     script:
     """
-    sdrf_coverage.py --pxd ${pxd} --sdrf ${sdrf} --out ${pxd}.coverage.json
+    if ! sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
+        cat fetch.log >&2
+        [ ${task.attempt} -gt 3 ] || exit 2
+        jq -n --rawfile log fetch.log '{fraction: null, error: \$log}' > ${pxd}.coverage.json
+        exit 0
+    fi
+
+    # Exit 1 only means the audit has blockers; the coverage block is still complete.
+    sdrf-tools audit-existing ${sdrf} --runs evidence/files.json --json > audit.json || [ \$? -eq 1 ]
+    jq '.coverage // {fraction: null, error: ([.findings[] | select(.code | IN("empty", "no_data_file_column")) | .summary] | join("; "))}' \\
+        audit.json > ${pxd}.coverage.json
     """
 }

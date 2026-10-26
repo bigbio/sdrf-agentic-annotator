@@ -11,6 +11,8 @@ If a **PXD accession** is provided:
 ### 1.1 Get PRIDE project metadata
 
 > **Offline mode (Step 0):** skip this step — the PRIDE record is already in `evidence/pride.json`; read that instead.
+>
+> **No MCP tools:** `sdrf-tools fetch PXD######` writes that record, the file list and the paper into `evidence/`.
 
 ```text
 Tool: get_project_details(project_accession="PXD######")
@@ -64,7 +66,8 @@ Extract: raw_file_names (for comment[data file]), rawfile_count,
          aspera_root_url (use for high-throughput bulk transfer)
 ```
 
-If MCP access is unavailable or incomplete, prefer the PRIDE Archive REST fallback:
+If MCP access is unavailable, `sdrf-tools fetch` (Step 0) already wrote this list to
+`evidence/files.json`. If MCP access is incomplete, prefer the PRIDE Archive REST fallback:
 ```text
 GET https://www.ebi.ac.uk/pride/ws/archive/v3/projects/PXD######/files/all
 ```
@@ -89,6 +92,46 @@ attachments. In practice these often contain the curator key you need for TMT
 channel-to-sample mapping, pooled-reference channels, blanks, longitudinal
 timepoints, or cohort aliases that are not recoverable from PRIDE metadata
 alone.
+
+For iProX-backed datasets, use the helper in this repo to recover the deposited
+file list from the iProX project API (the project page's own endpoints, not the
+full browse tree):
+
+```bash
+sdrf-tools iprox-files IPX0000000000 --mode raw
+sdrf-tools iprox-files PXD047633 --format json
+```
+
+The helper resolves a PXD through ProteomeCentral when the dataset is released;
+unreleased iProX datasets are absent from ProteomeCentral, so pass the IPX
+project id shown on the dataset page instead. iProX marks vendor raw files with
+`fileType == "RAW"` — Bruker `.d` folders are usually deposited as renamed
+`.zip`/`.rar` archives, Thermo `.raw` files are bare — and search outputs / PX XML
+files are `SEARCH` / `XML` / `PRIDEXML`, which `--mode raw` excludes. A subproject
+id works too (10-digit IPX ids are ambiguous between project and subproject, so the
+helper falls back to a single-subproject lookup). The file lists are per
+subproject; iProX datasets commonly split one paper into several subprojects (e.g.
+proteome / phosphoproteome / TMT / PRM), so check every subproject's title before
+deciding the annotation scope.
+
+Multi-subproject annotations get three more flags:
+
+```bash
+sdrf-tools iprox-files IPX0000000000 --subproject IPX...001 --mode raw   # one SDRF per subproject
+sdrf-tools iprox-files IPX0000000000 --record evidence/record.json       # reconcile-compatible record
+sdrf-tools iprox-files IPX0000000000 --px-xml auto --format json         # species/instruments + orphan entries
+```
+
+`--record` writes the PRIDE-`/projects/{acc}`-shaped prose record (title,
+description, the subprojects' sample/data-processing protocols, and their titles as
+quantificationMethods) so `sdrf-tools reconcile` can check the SDRF against the
+iProX deposit. `--px-xml auto` fetches the project PX XML plus every subproject XML:
+the species/instrument lists come back in `px_xml`, and file entries the API list
+does not know (an original acquisition name the deposit renamed, like a Bruker
+`YS20220223_..._Slot...d.zip` listed beside the renamed archive) are reported as
+`orphan_entries` with their same-size deposited candidates — hints, not claims:
+DIA deposits contain distinct files of identical size, so a size-based rename is
+never assumed.
 
 ### 1.3 Find and read the publication
 
@@ -148,6 +191,10 @@ do NOT search for a paper. Stop and ask the user:
 > fetch the article automatically. Could you provide a PMID, PMCID, DOI, or
 > paste the Methods section so I can continue? Otherwise I will proceed with
 > PRIDE metadata only and mark affected columns as `not available`."
+
+In unattended mode (SKILL.md Step 0), do not stop: take the second branch (PRIDE metadata
+only) and record the missing paper under `limitations`. Write `not available` only where the term
+allows it (TERMS.tsv `allow_not_available`); list any other affected column under `limitations`.
 
 Rule: whenever Europe PMC full text XML would otherwise be requested, always use
 `scripts/europepmc_fulltext.py` to normalize the article first. Do not pass raw

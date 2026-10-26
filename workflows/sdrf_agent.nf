@@ -27,11 +27,12 @@ workflow SDRF_AGENT {
 
     main:
     ch_annotated = SDRF_ANNOTATE(ch_pxds)
+    ch_evidence = ch_annotated.map { r -> tuple(r.pxd, r.evidence) }
 
     // ---- deterministic coverage precheck (improvement 1 + file-existence, improvement 3) ----
     // Runs the SDRF's data files against the PRIDE deposit file list BEFORE the adversarial pass.
     ch_initial_cov = SDRF_COVERAGE(ch_annotated.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })
-    // The reviewer gets the SDRF, the evidence manifest, and the coverage report (not the producer report)
+    // The reviewer gets the original request and the hand-off files, never the producer report
     ch_reviewed = SDRF_REVIEW(withCoverage(ch_annotated, ch_initial_cov))
 
     // ---- bounded revise / escalation loop (improvement 3) ----
@@ -45,18 +46,18 @@ workflow SDRF_AGENT {
     ch_revised_review = channel.empty()
     if (isTrue(params.revise) && (params.max_revise as Integer) >= 1) {
         // ---- round 1 ----
-        ch_rev1 = SDRF_REVISE(failedReviews(ch_reviewed))
+        ch_rev1 = withEvidence(SDRF_REVISE(failedReviews(ch_reviewed, ch_annotated)), ch_evidence)
         ch_rev1_view = SDRF_REVIEW_REVISED(withCoverage(ch_rev1, SDRF_COVERAGE_REV1(ch_rev1.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })))
 
-        ch_revised_all = ch_revised_all.mix(ch_rev1.map { r -> record(pxd: r.pxd, sdrf: r.sdrf, manifest: r.manifest, report: r.report, dir: 'revised') })
+        ch_revised_all = ch_revised_all.mix(ch_rev1.map { r -> revisedOutputs(r, 'revised') })
         ch_revised_review = ch_revised_review.mix(ch_rev1_view.map { r -> record(pxd: r.pxd, review: r.review, coverage: r.coverage, dir: 'revised') })
 
         // ---- round 2 (only if max_revise >= 2) ----
         if ((params.max_revise as Integer) >= 2) {
-            ch_rev2 = SDRF_REVISE_REV2(failedReviews(ch_rev1_view))
+            ch_rev2 = withEvidence(SDRF_REVISE_REV2(failedReviews(ch_rev1_view, ch_rev1)), ch_evidence)
             ch_rev2_view = SDRF_REVIEW_REVISED_REV2(withCoverage(ch_rev2, SDRF_COVERAGE_REV2(ch_rev2.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })))
 
-            ch_revised_all = ch_revised_all.mix(ch_rev2.map { r -> record(pxd: r.pxd, sdrf: r.sdrf, manifest: r.manifest, report: r.report, dir: 'revised_2') })
+            ch_revised_all = ch_revised_all.mix(ch_rev2.map { r -> revisedOutputs(r, 'revised_2') })
             ch_revised_review = ch_revised_review.mix(ch_rev2_view.map { r -> record(pxd: r.pxd, review: r.review, coverage: r.coverage, dir: 'revised_2') })
         }
     }
@@ -75,9 +76,25 @@ workflow SDRF_AGENT {
     summary = SUMMARISE_REVIEWS.out.summary
 }
 
-// Revise input records for every review that did not PASS
-def failedReviews(ch_views) {
+// Revise input records for every review that did not PASS, with the tables and evidence of the
+// SDRF that was reviewed
+def failedReviews(ch_views, ch_sources) {
     return ch_views
         .filter { r -> readReview(r.review).verdict != 'PASS' }
-        .map { r -> record(pxd: r.pxd, sdrf: r.sdrf, manifest: r.manifest, review: r.review) }
+        .map { r -> tuple(r.pxd, r) }
+        .join(ch_sources.map { r -> tuple(r.pxd, r) })
+        .map { pxd, view, src -> record(pxd: pxd, sdrf: src.sdrf, manifest: src.manifest, review: view.review, samples: src.samples, technical: src.technical, evidence: src.evidence) }
+}
+
+// Revised records with the annotate task's evidence/, which the revise agent reads but does not output
+def withEvidence(ch_revised, ch_evidence) {
+    return ch_revised
+        .map { r -> tuple(r.pxd, r) }
+        .join(ch_evidence)
+        .map { pxd, r, evidence -> record(pxd: pxd, sdrf: r.sdrf, manifest: r.manifest, validation: r.validation, report: r.report, samples: r.samples, technical: r.technical, evidence: evidence) }
+}
+
+// The files of one revise round to publish in <pxd>/<dir>/
+def revisedOutputs(r, dir) {
+    return record(pxd: r.pxd, sdrf: r.sdrf, manifest: r.manifest, validation: r.validation, report: r.report, samples: r.samples, technical: r.technical, dir: dir)
 }

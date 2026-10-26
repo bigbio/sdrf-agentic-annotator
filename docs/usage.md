@@ -29,8 +29,10 @@ PXD074155,/data/PXD074155.sdrf.tsv
 PXD058436,
 ```
 
-When `ref_sdrf` is empty, a fetch agent downloads the existing SDRF from
-`bigbio/sdrf-annotated-datasets` by PXD (the `ref_sdrf` path wins when both are given).
+When `ref_sdrf` is empty, `SDRF_FETCH_BASELINE` runs `sdrf-tools curated <PXD>` and downloads
+`<PXD>.sdrf.tsv` from `bigbio/sdrf-annotated-datasets`. If the PXD has only one SDRF with another
+name, it takes that file. The task fails when the PXD has no curated SDRF, or has several and none
+is `<PXD>.sdrf.tsv`. Set `ref_sdrf` to choose the file in these cases.
 
 Run it exactly like annotate mode, with `--refine`:
 
@@ -44,9 +46,9 @@ How refine mode works:
 
 1. **Baseline acquisition** — each row's baseline SDRF comes from `ref_sdrf`, or is fetched from
    `sdrf-annotated-datasets` by PXD.
-2. **Seeded re-annotation** — the `SDRF_REFINE` agent treats the existing SDRF as the baseline to
-   beat. It re-annotates from fresh evidence (PRIDE, Europe PMC, Cellosaurus, OLS), filling gaps
-   and fixing values only when a source supports it, and validates the result. It also writes a
+2. **Refinement** — the `SDRF_REFINE` agent runs the `sdrf-annotate` skill with
+   `existing annotation: fix`. The skill audits the baseline and fixes its defects. The agent also
+   fills omitted values that a source supports, and validates the result. It also writes a
    baseline evidence manifest that traces the *existing* SDRF's values to sources (or lists them
    under limitations), so the baseline is scored on the same terms as the refined version.
 3. **Same review for both** — the pipeline runs the deterministic `SDRF_COVERAGE` precheck and the
@@ -156,17 +158,15 @@ The agents read the `Content-Length` of a remote file before they download it. T
 
 ### Coverage / subset gate
 
-A deterministic `SDRF_COVERAGE` step runs before every review. It compares each
-`comment[data file]` in the SDRF against the PRIDE deposit file list and writes a
-`PXDXXX.coverage.json` reporting matched/missing files and the fraction of the
-deposit the SDRF represents. That fraction counts the deposit's RAW files, or its peak lists
-(mzML, MGF, ...) if it has no RAW files; search and result files are not counted. If PRIDE
-cannot be reached after a few attempts, the report is `not_verifiable`. The reviewer must
-fold this into its verdict:
+A deterministic `SDRF_COVERAGE` step runs before every review. It runs `sdrf-tools fetch` and
+`sdrf-tools audit-existing --json`, which compare each `comment[data file]` in the SDRF with the
+deposited runs. `PXDXXX.coverage.json` is the `coverage` block of that report: `deposited_runs`,
+`annotated_runs`, `matched_runs`, `fraction`, `missing` and `invented`. The reviewer must fold
+this into its verdict:
 
 | Parameter | Default | Description |
 |---|---|---|
-| `--coverage_min` | `0.0` | If an SDRF represents less than this fraction (0..1) of the deposit's data files, the reviewer must treat it as an important finding unless the artifact honestly declares itself a subset. `0.0` = informational only (backward compatible). |
+| `--coverage_min` | `0.0` | If an SDRF annotates less than this fraction (0..1) of the deposited runs, the reviewer must treat it as an important finding unless the artifact honestly declares itself a subset. `0.0` = informational only (backward compatible). |
 | `--subset_mode` | `false` | Permit a clearly-declared representative subset (e.g. a huge DIA deposit) to be accepted instead of failing on under-representation. |
 
 ### Confidence gating
@@ -225,10 +225,14 @@ Pick exactly one container profile (`docker`, `singularity` or `apptainer`), plu
 
 ## Runner image
 
-[docker/Dockerfile](../docker/Dockerfile) builds the runner image. It adds `sdrf-tools`,
-`parse_sdrf` and the sdrf-skills bundle at a fixed commit to the pi runner image. GitHub
-Actions builds and pushes the image to `ghcr.io/bigbio/sdrf-agentic-annotator`. To build it
-locally:
+[docker/Dockerfile](../docker/Dockerfile) builds the runner image on the pi runner image. It
+copies the sdrf-skills bundle and the `parse_sdrf` ontology cache from the published
+`ghcr.io/bigbio/sdrf-skills` image (`SDRF_SKILLS_IMAGE`, pinned to a commit tag). It then installs
+`sdrf-tools` and `parse_sdrf` at the package versions of that image into a venv on a uv-managed
+Python of the same version. The interpreter is not copied, because it needs a newer glibc than
+the pi image has.
+`SDRF_SKILLS_ROOT` and `CLAUDE_PLUGIN_ROOT` both point to `/opt/sdrf-skills`. GitHub Actions
+builds and pushes the image to `ghcr.io/bigbio/sdrf-agentic-annotator`. To build it locally:
 
 ```bash
 docker build -t ghcr.io/bigbio/sdrf-agentic-annotator:dev docker/
@@ -245,12 +249,22 @@ singularity build sdrf-agentic-annotator.sif docker://ghcr.io/bigbio/sdrf-agenti
 
 and point the profile at it, or add the cached pull into the shared cache directory.
 
-The skills in `modules/local/*/skills/` must have the same commit as `SDRF_SKILLS_REF` in the
-Dockerfile. Nextflow cannot load them from bigbio/sdrf-skills yet (see
-[jonasscheid/nf-agent-sdrf#1](https://github.com/jonasscheid/nf-agent-sdrf/issues/1)). The one
-local change is the `confidence` and `coverage` sections in
-`sdrf_review/skills/sdrf-adversarial-review/references/review-contract.md`; keep them when you
-sync the skills.
+The skills in `modules/local/*/skills/` must have the same commit as the `SDRF_SKILLS_IMAGE` tag
+in the Dockerfile. Nextflow cannot load them from bigbio/sdrf-skills yet (see
+[jonasscheid/nf-agent-sdrf#1](https://github.com/jonasscheid/nf-agent-sdrf/issues/1)).
+
+## Agent requests
+
+The agents follow the bigbio/sdrf-skills workflow without overrides. The pipeline only adds what
+the skills cannot know:
+
+- Each request says not to ask questions, so the skills run in unattended mode.
+- `SDRF_ANNOTATE` and `SDRF_REVISE` choose `Existing annotation: reannotate`.
+- Their requests name `SDRF_REVIEW` as the external reviewer, so they write `<PXD>.validation.txt`
+  and do not review their own SDRF.
+- The runner has no MCP tools. The agents use `sdrf-tools fetch` and `sdrf-tools ols` instead.
+- The reviewer receives the original request, the SDRF, the evidence manifest, the validation
+  output, `evidence/` and the coverage precheck. It records `confidence` and `coverage`.
 
 ## Agent traces
 

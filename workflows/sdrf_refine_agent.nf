@@ -37,7 +37,7 @@ workflow SDRF_REFINE_AGENT {
     ch_no_ref = ch_rows
         .filter { r -> !r.ref_sdrf }
         .map { r -> r.pxd }
-    ch_fetched = SDRF_FETCH_BASELINE(ch_no_ref).map { r -> record(pxd: r.pxd, baseline: r.baseline) }
+    ch_fetched = SDRF_FETCH_BASELINE(ch_no_ref).map { pxd, baseline -> record(pxd: pxd, baseline: baseline) }
     ch_baseline = ch_has_ref.mix(ch_fetched)
 
     // ---- refine agent: seeded re-annotation + baseline evidence manifest ----

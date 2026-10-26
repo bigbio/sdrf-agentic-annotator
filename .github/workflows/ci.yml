@@ -34,7 +34,7 @@ jobs:
           nextflow lint -format .
           git diff --exit-code
       - name: Check the config
-        # -preview does not end for agent pipelines (#15), so only parse the config here
+        # -preview does not end with a workflow output block
         # `test,x` parses each container profile (docker, singularity, apptainer) without
         # needing the engine itself, so the new Singularity/Apptainer profiles are validated.
         run: |
@@ -45,7 +45,7 @@ jobs:
 
   unit:
     name: Unit tests
-    # Samplesheet parsing, the summary and refine-gate channel logic, and the coverage script.
+    # Samplesheet parsing and the summary and refine-gate channel logic.
     # No agents run, so no API key is needed.
     runs-on: ubuntu-latest
     steps:
@@ -58,8 +58,6 @@ jobs:
         with:
           version: ${{ env.NXF_VER }}
       - uses: nf-core/setup-nf-test@v1
-      - name: Coverage script tests
-        run: python3 -m unittest discover -s tests/python -v
       - name: Run nf-test unit tests
         run: |
           nextflow secrets set LLM_KEY dummy

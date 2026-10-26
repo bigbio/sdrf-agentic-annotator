@@ -23,7 +23,7 @@ nextflow_workflow {
                 input[1] = channel.of(
                     reviewed.call('PXD000001', 'refined.sdrf.tsv', 'review_pass.json', 'coverage_full.json'),
                     reviewed.call('PXD000002', 'refined.sdrf.tsv', 'review_pass_fenced.json', 'coverage_full.json'),
-                    reviewed.call('PXD000003', 'refined.sdrf.tsv', 'review_pass.json', 'coverage_not_verifiable.json'),
+                    reviewed.call('PXD000003', 'refined.sdrf.tsv', 'review_pass.json', 'coverage_error.json'),
                 )
                 """
             }

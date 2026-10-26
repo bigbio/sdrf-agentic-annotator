@@ -222,12 +222,13 @@ HELPERS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-// Review input records (a channel helper): each SDRF with its evidence manifest and its coverage report
+// Review input records (a channel helper): each SDRF with its evidence manifest, its coverage report
+// and, where the producer wrote them, its validation output and evidence/ directory
 def withCoverage(ch_sdrfs, ch_cov) {
     return ch_sdrfs
         .map { r -> tuple(r.pxd, r) }
         .join(ch_cov.map { pxd, cov, _sdrf, _manifest -> tuple(pxd, cov) })
-        .map { pxd, r, cov -> record(pxd: pxd, sdrf: r.sdrf, manifest: r.manifest, coverage: cov) }
+        .map { pxd, r, cov -> record(pxd: pxd, sdrf: r.sdrf, manifest: r.manifest, coverage: cov, validation: r.validation, evidence: r.evidence) }
 }
 
 // Verdict and confidence of a review report written by an agent. A report the pipeline cannot
@@ -274,33 +275,34 @@ def gateVerdict(verdict, confidence, gate) {
     return verdict
 }
 
-// Status and coverage fraction (or null) of a SDRF_COVERAGE report
+// Fraction of the deposited runs that the SDRF annotates (or null) and the error, if any, of a
+// SDRF_COVERAGE report (the `coverage` block of `sdrf-tools audit-existing --json`)
 def readCoverage(coverage) {
     if (!coverage) {
-        return [status: 'missing', coverage: null]
+        return [fraction: null, error: null]
     }
     try {
         def json = new groovy.json.JsonSlurper().parse(coverage.toFile())
-        def fraction = (json.status == 'ok' && json.coverage != null) ? (json.coverage as String).toDouble() : null
-        return [status: json.status ?: 'unknown', coverage: fraction]
+        def fraction = json.fraction != null ? (json.fraction as String).toDouble() : null
+        return [fraction: fraction, error: json.error ?: null]
     }
     catch (_e: Exception) {
-        return [status: 'unreadable', coverage: null]
+        return [fraction: null, error: null]
     }
 }
 
-// Coverage column of summary.tsv: the fraction, `unverifiable` when PRIDE could not be checked, else `n/a`
+// Coverage column of summary.tsv: `unverifiable` when the deposit could not be read, else the fraction or `n/a`
 def coverageLabel(coverage) {
-    if (coverage.coverage != null) {
-        return coverage.coverage as String
+    if (coverage.error) {
+        return 'unverifiable'
     }
-    return coverage.status == 'not_verifiable' ? 'unverifiable' : 'n/a'
+    return coverage.fraction != null ? coverage.fraction as String : 'n/a'
 }
 
 // Verdict, confidence and coverage of one reviewed SDRF, as compared by the refine gate
 def scoreOf(reviewed) {
     def review = readReview(reviewed.review)
-    return [verdict: review.verdict, confidence: review.confidence, coverage: readCoverage(reviewed.coverage).coverage]
+    return [verdict: review.verdict, confidence: review.confidence, coverage: readCoverage(reviewed.coverage).fraction]
 }
 
 // Accept the refined SDRF only if it is strictly better than the baseline:
