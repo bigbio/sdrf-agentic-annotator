@@ -57,8 +57,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New parameters `--coverage_min`, `--subset_mode`, `--confidence_gate`,
   `--max_revise`, `--max_parallel` and `--exit_on_review_fail`.
 
+### `Fixed`
+
+Audit findings from [#12](https://github.com/bigbio/sdrf-agentic-annotator/issues/12):
+
+- A samplesheet without a `ref_sdrf` column, or with an empty `ref_sdrf`, failed at startup
+  with ``Argument of `file()` function cannot be empty``. This broke annotate mode and the
+  `test` profile.
+- Refine mode crashed when it published `<PXD>.refine_verdict.json`.
+- `--max_revise 2` took the round-1 verdict as final and then crashed before writing `summary.tsv`.
+- `--revise false`, `--refine false` and `--exit_on_review_fail false` given on the command line
+  arrived as the string `'false'` and acted as `true`.
+- `SDRF_COVERAGE` counted search, result and peak-list files in the deposit, so a complete SDRF
+  scored below 1 (0.317 on PXD058436). It now counts RAW files, or peak lists if there are no RAW
+  files. Its fallback skipped PRIDE's first page of files, and a PRIDE outage was reported as
+  `not_verifiable` without a retry.
+- `--max_parallel` did not limit the agents, which only read the `agent` config scope.
+- A review report the pipeline could not parse, such as JSON in a markdown code fence, crashed
+  the run; a lower-case `pass` counted as FAIL. A PASS without a confidence escaped `--confidence_gate`.
+- Refine mode reviewed and published the agent's copy of the baseline instead of the input file,
+  passed no evidence manifest to `SDRF_REVISE`, dropped a failed refined review when revise was
+  off, and read `refined_verdict` as the final verdict for warnings and `--exit_on_review_fail`.
+  `refine_summary.tsv` has a new `final_verdict` column.
+- Revised files were published in `<PXD>/revised/revised/`, and a kept refine baseline as
+  `<PXD>/baseline/<PXD>.baseline.sdrf.tsv`. Revise round 2 now goes to `<PXD>/revised_2/`, and refine
+  mode publishes the chosen SDRF's evidence manifest, review and coverage report next to it.
+- New key-free CI job with nf-test unit tests and tests for `bin/sdrf_coverage.py`.
+
 ### `Added` (coverage module internals)
 
 - `SDRF_COVERAGE` prefers the PRIDE `/files/all` endpoint (single call) and falls
   back to the paginated `/files` (<=100/page); multi-file SDRF cells are split on
-  commas before matching.
+  commas before matching. The check lives in `bin/sdrf_coverage.py`.

@@ -50,7 +50,8 @@ How refine mode works:
    baseline evidence manifest that traces the *existing* SDRF's values to sources (or lists them
    under limitations), so the baseline is scored on the same terms as the refined version.
 3. **Same review for both** — the pipeline runs the deterministic `SDRF_COVERAGE` precheck and the
-   independent `SDRF_REVIEW` on the baseline and on the refined SDRF.
+   independent `SDRF_REVIEW` on the baseline and on the refined SDRF. The baseline reviewed is the
+   input file itself, not a copy made by the agent.
 4. **Acceptance gate** — a refined SDRF is accepted only when all of these hold:
    - the refined review verdict is `PASS`,
    - the refined coverage is measurable and not worse than the baseline's, and
@@ -61,7 +62,8 @@ How refine mode works:
    [docs/output.md](docs/output.md)).
 
 The `--revise` option applies to the refined version: if its first review fails, `SDRF_REVISE`
-fixes it once and it is re-reviewed before the gate, exactly as in annotate mode.
+fixes it and it is re-reviewed before the gate, as in annotate mode. Refine mode revises at most
+once, whatever `--max_revise` is (unless it is `0`).
 
 ## API keys and providers
 
@@ -157,7 +159,10 @@ The agents read the `Content-Length` of a remote file before they download it. T
 A deterministic `SDRF_COVERAGE` step runs before every review. It compares each
 `comment[data file]` in the SDRF against the PRIDE deposit file list and writes a
 `PXDXXX.coverage.json` reporting matched/missing files and the fraction of the
-deposit the SDRF represents. The reviewer must fold this into its verdict:
+deposit the SDRF represents. That fraction counts the deposit's RAW files, or its peak lists
+(mzML, MGF, ...) if it has no RAW files; search and result files are not counted. If PRIDE
+cannot be reached after a few attempts, the report is `not_verifiable`. The reviewer must
+fold this into its verdict:
 
 | Parameter | Default | Description |
 |---|---|---|
@@ -166,9 +171,9 @@ deposit the SDRF represents. The reviewer must fold this into its verdict:
 
 ### Confidence gating
 
-Every review records a `confidence` (0..1). A PASS below the following gate is
-still accepted and passed on, but flagged `LOW_CONF` in `summary.tsv` so you can
-revisit it:
+Every review records a `confidence` (0..1). A PASS below the following gate, or
+without a confidence, is still accepted and passed on, but flagged `LOW_CONF` in
+`summary.tsv` so you can revisit it:
 
 | Parameter | Default | Description |
 |---|---|---|
@@ -185,6 +190,14 @@ tasks (which auto-retry via `conf/base.config`):
 |---|---|---|
 | `--exit_on_review_fail` | `false` | `true` makes the run exit non-zero when any dataset's final verdict is FAIL. |
 
+### Revise rounds and parallelism
+
+| Parameter | Default | Description |
+|---|---|---|
+| `--revise` | `true` | Revise an SDRF whose review fails, then review it again. `--revise false` skips this. |
+| `--max_revise` | `1` | Number of revise rounds, `0` to `2`. A second round only runs for SDRFs whose first revision fails its review too. |
+| `--max_parallel` | `0` | Maximum number of concurrent tasks of each process (each agent, such as `SDRF_ANNOTATE`, and `SDRF_COVERAGE`). `0` keeps the default of 10. Lower it to stay within provider rate limits or on a small machine. |
+
 ### Gemini free tier
 
 The free tier is enough to test one PXD. It is not enough for batches. Limits seen in October 2026:
@@ -193,7 +206,7 @@ The free tier is enough to test one PXD. It is not enough for batches. Limits se
 |---|---|---|
 | Requests per day, `gemini-3.5-flash` | 20 | One annotation uses more than 20 requests. Use `gemini-3.5-flash-lite`. |
 | Requests per minute, `gemini-3.5-flash` | 5 | 429 after about 10 tool calls. |
-| Input tokens per minute, `gemini-3.5-flash-lite` | 250,000 | 429 during long agent runs. pi does not retry Gemini 429s, so the task fails and Nextflow starts the agent again from the beginning (see [#3](https://github.com/jonasscheid/nf-agent-sdrf/issues/3)). |
+| Input tokens per minute, `gemini-3.5-flash-lite` | 250,000 | 429 during long agent runs. pi does not retry Gemini 429s, so the task fails and Nextflow starts the agent again from the beginning (see [jonasscheid/nf-agent-sdrf#3](https://github.com/jonasscheid/nf-agent-sdrf/issues/3)). |
 | Overloaded models | 503 | pi retries without output, up to the retry settings in [conf/base.config](../conf/base.config). |
 
 Quotas are per model, so a different model has its own quota. Keys that start with `AQ.` can fail with `401 ACCESS_TOKEN_TYPE_UNSUPPORTED`. If that happens, create a new key.
@@ -234,7 +247,10 @@ and point the profile at it, or add the cached pull into the shared cache direct
 
 The skills in `modules/local/*/skills/` must have the same commit as `SDRF_SKILLS_REF` in the
 Dockerfile. Nextflow cannot load them from bigbio/sdrf-skills yet (see
-[#1](https://github.com/jonasscheid/nf-agent-sdrf/issues/1)).
+[jonasscheid/nf-agent-sdrf#1](https://github.com/jonasscheid/nf-agent-sdrf/issues/1)). The one
+local change is the `confidence` and `coverage` sections in
+`sdrf_review/skills/sdrf-adversarial-review/references/review-contract.md`; keep them when you
+sync the skills.
 
 ## Agent traces
 

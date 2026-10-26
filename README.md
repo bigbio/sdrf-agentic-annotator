@@ -8,14 +8,15 @@
 **bigbio/sdrf-agentic-annotator** annotates PRIDE datasets with [SDRF](https://github.com/bigbio/proteomics-sample-metadata). It runs the [bigbio/sdrf-skills](https://github.com/bigbio/sdrf-skills) workflow in Nextflow `agent` tasks.
 
 ```
-PXD ──► SDRF_ANNOTATE ──► SDRF_REVIEW ──► PASS ──────────────────────────────────► <outdir>/<PXD>/
-                                     └──► FAIL ──► SDRF_REVISE ──► SDRF_REVIEW ──► <outdir>/<PXD>/revised/
+PXD ──► SDRF_ANNOTATE ──► SDRF_COVERAGE ──► SDRF_REVIEW ──► PASS ──────────────────────────────────────────────────► <outdir>/<PXD>/
+                                                       └──► FAIL ──► SDRF_REVISE ──► SDRF_COVERAGE ──► SDRF_REVIEW ──► <outdir>/<PXD>/revised/
 ```
 
 1. `SDRF_ANNOTATE` creates and validates the SDRF and an evidence manifest. It uses the skill `sdrf-annotate`.
-2. `SDRF_REVIEW` reviews the SDRF in a fresh context. It uses the skill `sdrf-adversarial-review`.
-3. If the review fails, `SDRF_REVISE` fixes the findings once, and `SDRF_REVIEW` reviews the revised SDRF again. Use `--revise false` to skip this step.
-4. `summary.tsv` lists the initial and final verdict of each PXD.
+2. `SDRF_COVERAGE` checks every data file in the SDRF against the PRIDE deposit and measures how much of the deposit the SDRF covers.
+3. `SDRF_REVIEW` reviews the SDRF in a fresh context, with the coverage report. It uses the skill `sdrf-adversarial-review`.
+4. If the review fails, `SDRF_REVISE` fixes the findings, and `SDRF_REVIEW` reviews the revised SDRF again. This happens once by default and up to twice with `--max_revise 2`. Use `--revise false` to skip this step.
+5. `summary.tsv` lists the initial and final verdict, confidence and coverage of each PXD.
 
 > [!WARNING]
 > Nextflow agents are a preview feature. The syntax and behavior can change in future Nextflow releases.
@@ -24,7 +25,9 @@ PXD ──► SDRF_ANNOTATE ──► SDRF_REVIEW ──► PASS ─────
 
 This pipeline runs its LLM agents inside a container image, so you must pick a container
 profile: `docker` for a local machine or CI, or `singularity`/`apptainer` on an HPC cluster
-without root (see [docs/usage.md](docs/usage.md) for the differences).1. Make a samplesheet with one PXD accession per row:
+without root (see [docs/usage.md](docs/usage.md) for the differences).
+
+1. Make a samplesheet with one PXD accession per row:
 
    ```csv
    pxd
@@ -66,7 +69,8 @@ nextflow run bigbio/sdrf-agentic-annotator -profile docker \
     --input refine.csv --outdir <OUTDIR> --refine
 ```
 
-The chosen SDRF (refined if accepted, otherwise the existing one) is published per PXD, with a
+The chosen SDRF (refined if accepted, otherwise the existing one) is published per PXD as
+`<PXD>.sdrf.tsv`, with its evidence manifest, review and coverage report, and a
 `<PXD>.refine_verdict.json` explaining the decision. See [docs/usage.md](docs/usage.md) (§ Refine
 mode) and [docs/output.md](docs/output.md).
 
@@ -78,6 +82,8 @@ bigbio/sdrf-agentic-annotator was originally written by Jonas Scheid (as
 jonasscheid/nf-agent-sdrf) and is maintained in the bigbio organisation. The annotation and
 review logic comes from [bigbio/sdrf-skills](https://github.com/bigbio/sdrf-skills). The skills
 in `modules/local/*/skills/` are copies of bigbio/sdrf-skills at commit `ebf95fb`, under the
-MIT licence in the `LICENSE` file next to them.
+MIT licence in the `LICENSE` file next to them. One file differs from upstream:
+`sdrf_review/skills/sdrf-adversarial-review/references/review-contract.md` adds the `confidence`
+and `coverage` sections this pipeline relies on, so keep them when you sync the skills.
 
 The pipeline structure follows the [nf-core](https://nf-co.re) guidelines, but it is not an nf-core pipeline.
