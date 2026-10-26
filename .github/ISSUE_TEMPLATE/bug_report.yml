@@ -1,0 +1,41 @@
+name: Bug report
+description: Report something that is broken or incorrect
+labels: bug
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of the bug
+      description: What is broken, and what did you expect?
+    validations:
+      required: true
+
+  - type: textarea
+    id: command_used
+    attributes:
+      label: Command used and terminal output
+      description: The command that you used to start the pipeline, and the terminal output.
+      render: console
+      placeholder: |
+        $ nextflow run bigbio/sdrf-agentic-annotator ...
+
+        Output where something broke
+
+  - type: textarea
+    id: files
+    attributes:
+      label: Relevant files
+      description: |
+        Attach the relevant files, for example `.nextflow.log`, `summary.tsv` or a review report.
+        Remove API keys and gateway tokens before you attach a config file.
+
+  - type: textarea
+    id: system
+    attributes:
+      label: System information
+      description: |
+        * Nextflow version _(eg. 26.10.3)_
+        * Model and provider _(eg. google/gemini-3.5-flash-lite)_
+        * Executor _(eg. local, slurm)_
+        * Container engine _(eg. Docker, Singularity, Apptainer)_
+        * Version of bigbio/sdrf-agentic-annotator _(eg. 0.1.0)_

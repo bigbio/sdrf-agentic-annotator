@@ -1,0 +1,7 @@
+.nextflow*
+work/
+results/
+.nf-test/
+null/
+modules/local/*/skills/
+tests/data/

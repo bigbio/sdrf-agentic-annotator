@@ -1,0 +1,11 @@
+name: Feature request
+description: Suggest a new feature for bigbio/sdrf-agentic-annotator
+labels: enhancement
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description of feature
+      description: Describe the feature, and the problem or use case that it solves.
+    validations:
+      required: true

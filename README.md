@@ -1,7 +1,9 @@
 # bigbio/sdrf-agentic-annotator
 
 [![CI](https://github.com/bigbio/sdrf-agentic-annotator/actions/workflows/ci.yml/badge.svg)](https://github.com/bigbio/sdrf-agentic-annotator/actions/workflows/ci.yml)
-[![Nextflow](https://img.shields.io/badge/nextflow-%E2%89%A526.10.3-23aa62.svg)](https://www.nextflow.io/)
+[![Nextflow](https://img.shields.io/badge/version-%E2%89%A526.10.3-green?style=flat&logo=nextflow&logoColor=white&color=%230DC09D&link=https%3A%2F%2Fnextflow.io)](https://www.nextflow.io/)
+[![run with docker](https://img.shields.io/badge/run%20with-docker-0db7ed?labelColor=000000&logo=docker)](https://www.docker.com/)
+[![run with singularity](https://img.shields.io/badge/run%20with-singularity-1d355c.svg?labelColor=000000)](https://sylabs.io/docs/)
 
 ## Introduction
 
@@ -24,7 +26,9 @@ PXD ──► SDRF_ANNOTATE ──► SDRF_REVIEW ──► PASS ─────
 
 This pipeline runs its LLM agents inside a container image, so you must pick a container
 profile: `docker` for a local machine or CI, or `singularity`/`apptainer` on an HPC cluster
-without root (see [docs/usage.md](docs/usage.md) for the differences).1. Make a samplesheet with one PXD accession per row:
+without root (see [docs/usage.md](docs/usage.md) for the differences).
+
+1. Make a samplesheet with one PXD accession per row:
 
    ```csv
    pxd
@@ -81,3 +85,11 @@ in `modules/local/*/skills/` are copies of bigbio/sdrf-skills (`sdrf_annotate` a
 at commit `5f5966b`), under the MIT licence in the `LICENSE` file next to them.
 
 The pipeline structure follows the [nf-core](https://nf-co.re) guidelines, but it is not an nf-core pipeline.
+
+## Contributions and support
+
+See the [contributing guidelines](docs/CONTRIBUTING.md). Report bugs and ask for features in the [GitHub issues](https://github.com/bigbio/sdrf-agentic-annotator/issues).
+
+## Citations
+
+[CITATIONS.md](CITATIONS.md) lists the tools and resources that the pipeline uses.
