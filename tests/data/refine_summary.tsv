@@ -1,3 +1,0 @@
-pxd	baseline_verdict	refined_verdict	chosen	baseline_coverage	refined_coverage	baseline_confidence	refined_confidence
-PXD000001	PASS	n/a	baseline	1.0	null	0.8	null
-PXD000002	FAIL	PASS	refined	0.5	1.0	0.4	0.9

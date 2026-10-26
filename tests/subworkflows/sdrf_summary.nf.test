@@ -31,7 +31,8 @@ nextflow_workflow {
                     'pxd\tinitial_verdict\tfinal_verdict\trevised\tconfidence\tcoverage',
                     'PXD000001\tFAIL\tPASS\ttrue\t0.9\t1.0',
                     'PXD000002\tPASS\tPASS\tfalse\t0.9\t1.0',
-                ] }
+                ] },
+                { assert workflow.out.verdicts.collectEntries { r -> [(r.pxd): r.verdict] } == [PXD000001: 'PASS', PXD000002: 'PASS'] }
             )
         }
     }

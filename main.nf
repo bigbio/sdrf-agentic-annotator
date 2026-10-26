@@ -15,7 +15,7 @@ workflow {
     main:
     PIPELINE_INITIALISATION(params.input)
     SDRF_AGENTIC_ANNOTATOR(PIPELINE_INITIALISATION.out.samplesheet)
-    PIPELINE_COMPLETION(SDRF_AGENTIC_ANNOTATOR.out.summary)
+    PIPELINE_COMPLETION(SDRF_AGENTIC_ANNOTATOR.out.summary, SDRF_AGENTIC_ANNOTATOR.out.verdicts)
 
     publish:
     summary = SDRF_AGENTIC_ANNOTATOR.out.summary

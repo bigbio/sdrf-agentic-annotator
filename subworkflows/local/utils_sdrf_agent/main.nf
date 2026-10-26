@@ -35,40 +35,36 @@ SUBWORKFLOW FOR PIPELINE COMPLETION
 
 workflow PIPELINE_COMPLETION {
     take:
-    summary // path: summary.tsv
+    summary // path: summary.tsv or refine_summary.tsv
+    verdicts // records: pxd, verdict (the final verdict of each PXD)
 
     main:
-    summary.subscribe { tsv ->
-        def lines = tsv.readLines().findAll { line -> line.trim() }
-        def header = lines[0].split('\t') as List
-        def verdicts = lines
-            .drop(1)
-            .collectEntries { line ->
-                def row = [header, line.split('\t', -1) as List].transpose().collectEntries()
-                // refine_summary.tsv has no final_verdict: the verdict of the chosen SDRF is the final one
-                def verdict = row.containsKey('final_verdict')
-                    ? row.final_verdict
-                    : (row.chosen == 'refined' ? row.refined_verdict : row.baseline_verdict)
-                [(row.pxd): verdict]
+    // A final FAIL is a content outcome, not an infrastructure error: warn, and stop only on request.
+    // Wait for the summary, so that it is published before a stop.
+    verdicts
+        .toList()
+        .map { rows -> record(rows: rows) }
+        .combine(summary)
+        .subscribe { all, _tsv ->
+            def rows = all.rows
+            def notPass = rows.findAll { r -> r.verdict != 'PASS' && r.verdict != 'LOW_CONF' }.collect { r -> r.pxd }.sort()
+            def lowConf = rows.findAll { r -> r.verdict == 'LOW_CONF' }.collect { r -> r.pxd }.sort()
+            if (notPass) {
+                log.warn(
+                    "Final review did not pass for ${notPass.size()} PXD(s): ${notPass.join(', ')}. " + "This is a content outcome, not an infrastructure error. See summary.tsv and review reports."
+                )
             }
-        def notPass = verdicts.findAll { _pxd, v -> v != 'PASS' && v != 'LOW_CONF' }.keySet() as List
-        def lowConf = verdicts.findAll { _pxd, v -> v == 'LOW_CONF' }.keySet() as List
-        if (notPass) {
-            log.warn(
-                "Final review did not pass for ${notPass.size()} PXD(s): ${notPass.join(', ')}. " + "This is a content outcome, not an infrastructure error. See summary.tsv and review reports."
-            )
+            if (lowConf) {
+                log.warn(
+                    "Final verdict is LOW_CONF for ${lowConf.size()} PXD(s): ${lowConf.join(', ')}. " + "Accepted and passed on; revisit if you want a stronger annotation."
+                )
+            }
+            if (params.exit_on_review_fail && notPass) {
+                error(
+                    "exit_on_review_fail requested and ${notPass.size()} PXD(s) have a non-PASS final verdict: ${notPass.join(', ')}. " + "This is an intentional exit-on-content-fail; infra errors are handled separately by task retries."
+                )
+            }
         }
-        if (lowConf) {
-            log.warn(
-                "Final verdict is LOW_CONF for ${lowConf.size()} PXD(s): ${lowConf.join(', ')}. " + "Accepted and passed on; revisit if you want a stronger annotation."
-            )
-        }
-        if (params.exit_on_review_fail && notPass) {
-            error(
-                "exit_on_review_fail requested and ${notPass.size()} PXD(s) have a non-PASS final verdict: ${notPass.join(', ')}. " + "This is an intentional exit-on-content-fail; infra errors are handled separately by task retries."
-            )
-        }
-    }
 }
 
 /*

@@ -5,7 +5,7 @@ nextflow_workflow {
     workflow "PIPELINE_COMPLETION"
     tag "unit"
 
-    test("refine mode: a kept baseline that passes is a final PASS") {
+    test("PASS and LOW_CONF do not stop the run with --exit_on_review_fail") {
 
         when {
             params {
@@ -13,7 +13,8 @@ nextflow_workflow {
             }
             workflow {
                 """
-                input[0] = channel.of(file("${projectDir}/tests/data/refine_summary.tsv"))
+                input[0] = channel.of(file("${projectDir}/tests/data/coverage.json"))
+                input[1] = channel.of(record(pxd: 'PXD000001', verdict: 'PASS'), record(pxd: 'PXD000002', verdict: 'LOW_CONF'))
                 """
             }
         }
@@ -23,7 +24,7 @@ nextflow_workflow {
         }
     }
 
-    test("annotate mode: a final FAIL stops the run with --exit_on_review_fail") {
+    test("a final FAIL stops the run with --exit_on_review_fail") {
 
         when {
             params {
@@ -31,7 +32,8 @@ nextflow_workflow {
             }
             workflow {
                 """
-                input[0] = channel.of(file("${projectDir}/tests/data/summary_fail.tsv"))
+                input[0] = channel.of(file("${projectDir}/tests/data/coverage.json"))
+                input[1] = channel.of(record(pxd: 'PXD000001', verdict: 'FAIL'), record(pxd: 'PXD000002', verdict: 'PASS'))
                 """
             }
         }
@@ -39,7 +41,7 @@ nextflow_workflow {
         then {
             assertAll(
                 { assert workflow.failed },
-                { assert workflow.stdout.any { line -> line.contains('PXD000001') } }
+                { assert workflow.stdout.any { line -> line.contains('non-PASS final verdict: PXD000001') } }
             )
         }
     }

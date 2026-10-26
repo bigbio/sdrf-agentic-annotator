@@ -58,11 +58,14 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         ch_refined_review = REVIEW_REVISE.out.last_review.filter { r -> params.revise || verdictOf(r.review) == 'PASS' }
         REFINE_GATE(ch_baseline_review, ch_refined_review)
         ch_summary = REFINE_GATE.out.summary
+        ch_verdicts = REFINE_GATE.out.verdicts
         ch_refine_decision = REFINE_GATE.out.decision
         ch_refine_verdict = REFINE_GATE.out.verdict
     }
     else {
-        ch_summary = SDRF_SUMMARY(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.revised_review).summary
+        SDRF_SUMMARY(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.revised_review)
+        ch_summary = SDRF_SUMMARY.out.summary
+        ch_verdicts = SDRF_SUMMARY.out.verdicts
         ch_annotated = ch_sdrf
         ch_reviewed = REVIEW_REVISE.out.reviewed
         ch_revised = REVIEW_REVISE.out.revised
@@ -72,6 +75,7 @@ workflow SDRF_AGENTIC_ANNOTATOR {
 
     emit:
     summary = ch_summary // path: summary.tsv, or refine_summary.tsv in refine mode
+    verdicts = ch_verdicts // records: pxd, verdict (the final verdict of each PXD)
     annotated = ch_annotated
     reviewed = ch_reviewed
     revised = ch_revised

@@ -74,4 +74,5 @@ workflow REFINE_GATE {
     decision = ch_decision // records: pxd, verdicts, confidences, coverages, chosen, chosen_sdrf, json
     verdict = ch_verdict // records: pxd, verdict (<pxd>.refine_verdict.json)
     summary = ch_summary // path: refine_summary.tsv
+    verdicts = ch_decision.map { d -> record(pxd: d.pxd, verdict: d.chosen == 'refined' ? d.refined_verdict : d.baseline_verdict) } // records: pxd, verdict of the chosen SDRF
 }

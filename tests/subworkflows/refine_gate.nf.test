@@ -25,6 +25,7 @@ nextflow_workflow {
         then {
             def rows = path(workflow.out.summary[0]).readLines()
             def verdicts = workflow.out.verdict.collectEntries { r -> [(r.pxd): path(r.verdict).json] }
+            def finals = workflow.out.verdicts.collectEntries { r -> [(r.pxd): r.verdict] }
             def decisions = workflow.out.decision.collectEntries { r -> [(r.pxd): r.chosen_sdrf.toString()] }
             assertAll(
                 { assert workflow.success },
@@ -36,6 +37,7 @@ nextflow_workflow {
                 { assert verdicts.PXD000001.chosen == 'refined' },
                 { assert verdicts.PXD000002.chosen == 'baseline' },
                 { assert verdicts.PXD000002.refined == null },
+                { assert finals == [PXD000001: 'PASS', PXD000002: 'PASS'] },
                 { assert decisions.PXD000001.endsWith('refined.sdrf.tsv') },
                 { assert decisions.PXD000002.endsWith('baseline.sdrf.tsv') }
             )
