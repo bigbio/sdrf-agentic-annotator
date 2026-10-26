@@ -1,0 +1,3 @@
+pxd	initial_verdict	final_verdict	revised	confidence	coverage
+PXD000001	FAIL	FAIL	true	0.4	1.0
+PXD000002	PASS	PASS	false	0.9	1.0

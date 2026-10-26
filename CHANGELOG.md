@@ -73,3 +73,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 ### `Fixed`
 
 - With `--max_revise 2`, `summary.tsv` takes the final verdict from the last revise round. Before, a PXD with two revise rounds stopped the run ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
+- In refine mode, the completion check reads the verdict of the chosen SDRF. Before, it read `refined_verdict`, so a kept baseline gave a wrong warning and `--exit_on_review_fail` could stop the run ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).

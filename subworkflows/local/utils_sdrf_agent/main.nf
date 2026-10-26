@@ -64,9 +64,20 @@ workflow PIPELINE_COMPLETION {
 
     main:
     summary.subscribe { tsv ->
-        def rows = tsv.readLines().drop(1).findAll { line -> line.trim() }
-        def notPass = rows.findAll { line -> line.split('\t')[2] != 'PASS' && line.split('\t')[2] != 'LOW_CONF' }.collect { line -> line.split('\t')[0] }
-        def lowConf = rows.findAll { line -> line.split('\t')[2] == 'LOW_CONF' }.collect { line -> line.split('\t')[0] }
+        def lines = tsv.readLines().findAll { line -> line.trim() }
+        def header = lines[0].split('\t') as List
+        def verdicts = lines
+            .drop(1)
+            .collectEntries { line ->
+                def row = [header, line.split('\t', -1) as List].transpose().collectEntries()
+                // refine_summary.tsv has no final_verdict: the verdict of the chosen SDRF is the final one
+                def verdict = row.containsKey('final_verdict')
+                    ? row.final_verdict
+                    : (row.chosen == 'refined' ? row.refined_verdict : row.baseline_verdict)
+                [(row.pxd): verdict]
+            }
+        def notPass = verdicts.findAll { _pxd, v -> v != 'PASS' && v != 'LOW_CONF' }.keySet() as List
+        def lowConf = verdicts.findAll { _pxd, v -> v == 'LOW_CONF' }.keySet() as List
         if (notPass) {
             log.warn(
                 "Final review did not pass for ${notPass.size()} PXD(s): ${notPass.join(', ')}. " + "This is a content outcome, not an infrastructure error. See summary.tsv and review reports."
