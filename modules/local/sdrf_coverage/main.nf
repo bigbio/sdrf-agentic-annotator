@@ -16,10 +16,7 @@ process SDRF_COVERAGE {
 
     tag "${pxd}"
 
-    container 'ghcr.io/bigbio/sdrf-agentic-annotator:dev'
-
-    cpus 1
-    memory 2.GB
+    label 'process_single'
 
     // Exit 2 is a failed PRIDE lookup; after three retries the task writes an `error` instead.
     errorStrategy task.exitStatus == 2 ? 'retry' : 'terminate'

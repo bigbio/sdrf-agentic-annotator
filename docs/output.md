@@ -38,7 +38,7 @@ The pipeline writes all files to `--outdir`.
 | `<PXD>.review.json` | The independent review report, in the schema of the `sdrf-adversarial-review` review contract. |
 | `revised/<PXD>.revision.md` | Each review finding, and what the revise agent changed for it or why it did not. |
 
-Use the SDRF in `revised/` when it exists. The pipeline logs a warning for each PXD whose final verdict is not `PASS`.
+Use the SDRF in `revised/` when it exists. The pipeline logs one warning that lists the PXDs whose final verdict is not `PASS`.
 
 ### Refine mode
 
@@ -62,3 +62,8 @@ The refined and baseline SDRFs, their evidence manifests, the per-version covera
 review reports are always produced inside the run's work directory; only the chosen outcome is
 published. `chosen: baseline` means the existing SDRF was kept because the refined version was
 not strictly better.
+
+### Pipeline information
+
+`<outdir>/pipeline_info/` holds the Nextflow execution report, timeline, trace and DAG of each
+run. The trace and the report show the run time of each agent task.

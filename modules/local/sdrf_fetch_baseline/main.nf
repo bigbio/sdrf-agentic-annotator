@@ -15,10 +15,7 @@ process SDRF_FETCH_BASELINE {
 
     tag "${pxd}"
 
-    container 'ghcr.io/bigbio/sdrf-agentic-annotator:dev'
-
-    cpus 1
-    memory 2.GB
+    label 'process_single'
 
     // Exit 2 is a failed lookup or download (network); any other failure is final.
     errorStrategy task.exitStatus == 2 && task.attempt <= 3 ? 'retry' : 'terminate'

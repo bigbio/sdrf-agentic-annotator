@@ -31,6 +31,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   otherwise it keeps the original. Adds `SDRF_REFINE`, `SDRF_FETCH_BASELINE` and `REFINE_VERDICT`,
   `refine_summary.tsv` and `<PXD>.refine_verdict.json`.
 - `nextflow_function` and `nextflow_workflow` nf-tests for the summary, completion and refine helpers. A CI job runs them on every pull request; they need no API key. A refine-mode pipeline test runs on dispatch ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
+- Execution report, timeline, trace and DAG in `<outdir>/pipeline_info/`, and the nf-core institutional profiles ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 
 ### `Changed`
 
@@ -78,6 +79,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - One workflow, `SDRF_AGENTIC_ANNOTATOR` in `workflows/sdrf_agentic_annotator.nf`, and one `PIPELINE_INITIALISATION` run both modes; `--refine` selects the start and the end. Task names change, so `-resume` runs the agents again once ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - `SDRF_COVERAGE` and `SDRF_FETCH_BASELINE` are typed processes with record I/O ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - The summary rows stay records until `collectFile`. `PIPELINE_COMPLETION` reads the final verdict of each PXD from these records instead of the TSV, and the run no longer warns twice about a final FAIL ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
+- `--max_parallel` sets `agent.maxForks`, so it limits the agent tasks; 0 means no limit. Before, it set `process.maxForks`, with a limit of 10 for 0 ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
+- The runner image is pinned by digest in `conf/base.config` instead of the mutable `:dev` tag in four places. The plain processes take their resources from the `process_single` label, under `resourceLimits` ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 
 ### `Fixed`
 

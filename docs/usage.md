@@ -222,10 +222,23 @@ copies the sdrf-skills bundle and the `parse_sdrf` ontology cache from the publi
 Python of the same version. The interpreter is not copied, because it needs a newer glibc than
 the pi image has.
 `SDRF_SKILLS_ROOT` and `CLAUDE_PLUGIN_ROOT` both point to `/opt/sdrf-skills`. GitHub Actions
-builds and pushes the image to `ghcr.io/bigbio/sdrf-agentic-annotator`. To build it locally:
+builds and pushes the image to `ghcr.io/bigbio/sdrf-agentic-annotator`. The pipeline pins the image
+by digest in [conf/base.config](../conf/base.config). Update the digest there when the image changes.
+To build the image locally:
 
 ```bash
 docker build -t ghcr.io/bigbio/sdrf-agentic-annotator:dev docker/
+```
+
+To use the local build, override the pinned image in a custom config (`-c local.config`):
+
+```groovy
+process {
+    withLabel: process_single {
+        container = 'ghcr.io/bigbio/sdrf-agentic-annotator:dev'
+    }
+}
+agent.container = 'ghcr.io/bigbio/sdrf-agentic-annotator:dev'
 ```
 
 The image is an OCI/Docker image. Under the `singularity`/`apptainer` profiles, the first use

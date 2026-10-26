@@ -8,10 +8,7 @@ REFINE_VERDICT - write the baseline-vs-refined decision of a PXD as <pxd>.refine
 
 process REFINE_VERDICT {
     tag "${pxd}"
-    container 'ghcr.io/bigbio/sdrf-agentic-annotator:dev'
-
-    cpus 1
-    memory 2.GB
+    label 'process_single'
 
     input:
     record(
