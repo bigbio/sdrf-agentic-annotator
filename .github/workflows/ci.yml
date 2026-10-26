@@ -64,8 +64,8 @@ jobs:
           nf-core pipelines lint --dir .
 
   unit:
-    name: Unit tests
-    # Tests of helpers and channel logic that run no agent, so they need no API key
+    name: Unit and stub tests
+    # Unit tests and -stub pipeline runs call no agent, so they need no API key
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -80,7 +80,7 @@ jobs:
       - name: Run nf-test
         run: |
           nextflow secrets set LLM_KEY dummy
-          nf-test test --tag unit --verbose
+          nf-test test --tag unit,stub --verbose
 
   test:
     name: Pipeline test

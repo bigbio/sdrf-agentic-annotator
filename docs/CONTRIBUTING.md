@@ -16,12 +16,13 @@ Run these commands with Nextflow 26.10.3 or later:
 
 ```bash
 nextflow lint -format .
-nf-test test --tag unit
+nf-test test --tag unit,stub
 nf-core pipelines lint
 ```
 
 - `nextflow lint` must report no errors, and `-format` must not change files.
 - The `unit` tests check the helpers and the channel logic. They run no agent and need no API key.
+- The `stub` tests run the pipeline with `-stub` in annotate mode (one and two revise rounds) and in refine mode. They check `summary.tsv`, `refine_summary.tsv` and the output paths. They need no API key.
 - The `pipeline` tests run the agents. They need the `LLM_KEY` secret and cost money, so CI runs them only on manual dispatch:
 
   ```bash
@@ -32,5 +33,5 @@ nf-core pipelines lint
 
 - `workflows/sdrf_agentic_annotator.nf` holds the main workflow. `--refine` selects the start (annotate, or fetch and refine) and the end (`summary.tsv`, or the refine acceptance gate).
 - `subworkflows/local/` holds the shared parts: `SCORE_SDRF` (coverage and review), `REVISE_SDRF` (one revise round), `REVIEW_REVISE` (review and up to two revise rounds), `SDRF_SUMMARY` and `REFINE_GATE`.
-- `modules/local/` holds the agents and the plain processes. Agents cannot have a `stub:` block, so there is no `-stub` test.
+- `modules/local/` holds the agents and the plain processes. Agents cannot have a `stub:` block. So each agent module also has a `<NAME>_STUB` process with the same inputs and outputs, and the workflow calls it instead of the agent in `-stub` runs. Keep its outputs in line with the agent.
 - Do not change the names of the output files or the columns of `summary.tsv` without a changelog entry: other tools read them.

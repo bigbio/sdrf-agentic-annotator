@@ -1,3 +1,5 @@
+nextflow.enable.types = true
+
 agent SDRF_REVISE {
     maxIterations 200
     skills 'sdrf-annotate'
@@ -45,5 +47,46 @@ agent SDRF_REVISE {
     Hand the Step 9.5 review off to it and give the status REVIEW_PENDING_EXTERNAL.
     Write the outputs to `revised/` with the default names. Name the report ${pxd}.revision.md: for
     each finding, say what you changed or why you did not.
+    """
+}
+
+// Stand-in for SDRF_REVISE in `-stub` runs
+process SDRF_REVISE_STUB {
+    tag "${pxd}"
+
+    input:
+    record(
+        pxd: String,
+        sdrf: Path,
+        manifest: Path,
+        review: Path,
+        samples: Path?,
+        technical: Path?,
+        evidence: Path?
+    )
+
+    output:
+    record(
+        pxd: pxd,
+        sdrf: file("revised/${pxd}.sdrf.tsv"),
+        manifest: file("revised/${pxd}.evidence.json"),
+        validation: file("revised/${pxd}.validation.txt"),
+        report: file("revised/${pxd}.revision.md"),
+        samples: file("revised/samples.tsv"),
+        technical: file("revised/technical.tsv"),
+    )
+
+    script:
+    """
+    echo "SDRF_REVISE_STUB only runs with -stub; SDRF_REVISE is the agent" >&2
+    exit 1
+    """
+
+    stub:
+    """
+    mkdir -p revised
+    { cat ${sdrf}; echo '# revised'; } > revised/${pxd}.sdrf.tsv
+    echo '{}' > revised/${pxd}.evidence.json
+    touch revised/${pxd}.validation.txt revised/${pxd}.revision.md revised/samples.tsv revised/technical.tsv
     """
 }

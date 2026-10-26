@@ -1,3 +1,5 @@
+nextflow.enable.types = true
+
 agent SDRF_REVIEW {
     maxIterations 200
     skills 'sdrf-adversarial-review'
@@ -41,5 +43,41 @@ agent SDRF_REVIEW {
     Write the report to ${pxd}.review.json. Add `confidence` (0 to 1). Copy the precheck into
     `coverage` unless it has an `error`.
     Do not ask questions.
+    """
+}
+
+// Stand-in for SDRF_REVIEW in `-stub` runs: an SDRF passes after --max_revise revise rounds
+process SDRF_REVIEW_STUB {
+    tag "${pxd}"
+
+    input:
+    record(
+        pxd: String,
+        sdrf: Path,
+        manifest: Path,
+        coverage: Path,
+        validation: Path?,
+        evidence: Path?
+    )
+
+    output:
+    record(
+        pxd: pxd,
+        sdrf: sdrf,
+        coverage: coverage,
+        review: file("${pxd}.review.json"),
+    )
+
+    script:
+    """
+    echo "SDRF_REVIEW_STUB only runs with -stub; SDRF_REVIEW is the agent" >&2
+    exit 1
+    """
+
+    stub:
+    """
+    verdict=FAIL
+    [ "\$(grep -c '^# revised' ${sdrf})" -ge ${params.max_revise} ] && verdict=PASS
+    printf '{"verdict": "%s", "confidence": 0.9}\n' "\$verdict" > ${pxd}.review.json
     """
 }

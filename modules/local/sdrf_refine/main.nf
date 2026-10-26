@@ -1,3 +1,5 @@
+nextflow.enable.types = true
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SDRF_REFINE - seeded re-annotation of an already-published SDRF (refine mode)
@@ -81,5 +83,42 @@ agent SDRF_REFINE {
       - baseline/${pxd}.baseline.sdrf.tsv  a verbatim copy of ${baseline}
       - baseline/${pxd}.baseline.evidence.json
                                            the evidence manifest for the baseline SDRF
+    """
+}
+
+// Stand-in for SDRF_REFINE in `-stub` runs
+process SDRF_REFINE_STUB {
+    tag "${pxd}"
+
+    input:
+    record(
+        pxd: String,
+        baseline: Path
+    )
+
+    output:
+    record(
+        pxd: pxd,
+        sdrf: file("refined/${pxd}.sdrf.tsv"),
+        manifest: file("refined/${pxd}.evidence.json"),
+        report: file("refined/${pxd}.refine.md"),
+        baseline_sdrf: file("baseline/${pxd}.baseline.sdrf.tsv"),
+        baseline_manifest: file("baseline/${pxd}.baseline.evidence.json"),
+    )
+
+    script:
+    """
+    echo "SDRF_REFINE_STUB only runs with -stub; SDRF_REFINE is the agent" >&2
+    exit 1
+    """
+
+    stub:
+    """
+    mkdir -p refined baseline
+    cp ${baseline} refined/${pxd}.sdrf.tsv
+    cp ${baseline} baseline/${pxd}.baseline.sdrf.tsv
+    echo '{}' > refined/${pxd}.evidence.json
+    echo '{}' > baseline/${pxd}.baseline.evidence.json
+    touch refined/${pxd}.refine.md
     """
 }

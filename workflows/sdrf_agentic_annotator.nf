@@ -4,9 +4,9 @@ IMPORT MODULES AND SUBWORKFLOWS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-include { SDRF_ANNOTATE } from '../modules/local/sdrf_annotate'
+include { SDRF_ANNOTATE ; SDRF_ANNOTATE_STUB } from '../modules/local/sdrf_annotate'
 include { SDRF_FETCH_BASELINE } from '../modules/local/sdrf_fetch_baseline'
-include { SDRF_REFINE } from '../modules/local/sdrf_refine'
+include { SDRF_REFINE ; SDRF_REFINE_STUB } from '../modules/local/sdrf_refine'
 include { SCORE_SDRF as SCORE_BASELINE } from '../subworkflows/local/score_sdrf'
 include { REVIEW_REVISE } from '../subworkflows/local/review_revise'
 include { SDRF_SUMMARY } from '../subworkflows/local/sdrf_summary'
@@ -36,17 +36,20 @@ workflow SDRF_AGENTIC_ANNOTATOR {
     ch_refine_decision = channel.empty()
     ch_refine_verdict = channel.empty()
 
+    // Agents cannot have a stub block, so `-stub` runs use a stand-in process for each agent
     if (params.refine) {
         // The existing SDRF is the samplesheet's ref_sdrf, else the one in bigbio/sdrf-annotated-datasets
         ch_has_ref = ch_samplesheet
             .filter { r -> r.ref_sdrf }
             .map { r -> record(pxd: r.pxd, baseline: file(r.ref_sdrf as String)) }
         ch_fetched = SDRF_FETCH_BASELINE(ch_samplesheet.filter { r -> !r.ref_sdrf }.map { r -> r.pxd })
-        ch_sdrf = SDRF_REFINE(ch_has_ref.mix(ch_fetched))
+        ch_baseline = ch_has_ref.mix(ch_fetched)
+        ch_sdrf = workflow.stubRun ? SDRF_REFINE_STUB(ch_baseline) : SDRF_REFINE(ch_baseline)
         max_rounds = params.revise ? 1 : 0
     }
     else {
-        ch_sdrf = SDRF_ANNOTATE(ch_samplesheet.map { r -> r.pxd })
+        ch_pxds = ch_samplesheet.map { r -> r.pxd }
+        ch_sdrf = workflow.stubRun ? SDRF_ANNOTATE_STUB(ch_pxds) : SDRF_ANNOTATE(ch_pxds)
         max_rounds = params.revise ? params.max_revise : 0
     }
 
