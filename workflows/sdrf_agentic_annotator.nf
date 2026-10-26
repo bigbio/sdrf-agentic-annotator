@@ -41,7 +41,7 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         ch_has_ref = ch_samplesheet
             .filter { r -> r.ref_sdrf }
             .map { r -> record(pxd: r.pxd, baseline: file(r.ref_sdrf as String)) }
-        ch_fetched = SDRF_FETCH_BASELINE(ch_samplesheet.filter { r -> !r.ref_sdrf }.map { r -> r.pxd }).map { pxd, baseline -> record(pxd: pxd, baseline: baseline) }
+        ch_fetched = SDRF_FETCH_BASELINE(ch_samplesheet.filter { r -> !r.ref_sdrf }.map { r -> r.pxd })
         ch_sdrf = SDRF_REFINE(ch_has_ref.mix(ch_fetched))
         max_rounds = params.revise ? 1 : 0
     }

@@ -1,3 +1,5 @@
+nextflow.enable.types = true
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SDRF_COVERAGE - deterministic run coverage of an SDRF against the PRIDE deposit
@@ -17,17 +19,23 @@ process SDRF_COVERAGE {
     container 'ghcr.io/bigbio/sdrf-agentic-annotator:dev'
 
     cpus 1
-    memory '2 GB'
+    memory 2.GB
 
     // Exit 2 is a failed PRIDE lookup; after three retries the task writes an `error` instead.
-    errorStrategy { task.exitStatus == 2 ? 'retry' : 'terminate' }
+    errorStrategy task.exitStatus == 2 ? 'retry' : 'terminate'
     maxRetries 3
 
     input:
-    tuple val(pxd), path(sdrf), path(manifest)
+    record(
+        pxd: String,
+        sdrf: Path
+    )
 
     output:
-    tuple val(pxd), path("${pxd}.coverage.json"), path(sdrf), path(manifest)
+    record(
+        pxd: pxd,
+        coverage: file("${pxd}.coverage.json"),
+    )
 
     script:
     """

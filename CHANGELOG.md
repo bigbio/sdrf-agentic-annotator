@@ -76,6 +76,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Refine mode scores the refined SDRF with `SCORE_SDRF` and revises it with `REVIEW_REVISE` ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - `REFINE_GATE` holds the acceptance gate, `REFINE_VERDICT` (now a module with record I/O) and `refine_summary.tsv` ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - One workflow, `SDRF_AGENTIC_ANNOTATOR` in `workflows/sdrf_agentic_annotator.nf`, and one `PIPELINE_INITIALISATION` run both modes; `--refine` selects the start and the end. Task names change, so `-resume` runs the agents again once ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
+- `SDRF_COVERAGE` and `SDRF_FETCH_BASELINE` are typed processes with record I/O ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 
 ### `Fixed`
 

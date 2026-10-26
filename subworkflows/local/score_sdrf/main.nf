@@ -12,16 +12,14 @@ workflow SCORE_SDRF {
     ch_sdrf // records: pxd, sdrf, manifest, validation (optional), evidence (optional)
 
     main:
-    ch_coverage = SDRF_COVERAGE(ch_sdrf.map { r -> tuple(r.pxd, r.sdrf, r.manifest) })
+    ch_coverage = SDRF_COVERAGE(ch_sdrf)
 
     // The reviewer gets the original request and the hand-off files, never the producer report
-    ch_review_in = ch_sdrf
-        .map { r -> tuple(r.pxd, r) }
-        .join(ch_coverage.map { pxd, cov, _sdrf, _manifest -> tuple(pxd, cov) }, failOnDuplicate: true)
-        .map { pxd, r, cov -> record(pxd: pxd, sdrf: r.sdrf, manifest: r.manifest, coverage: cov, validation: r.validation, evidence: r.evidence) }
-    ch_review = SDRF_REVIEW(ch_review_in)
+    ch_review = SDRF_REVIEW(
+        ch_sdrf.map { r -> record(pxd: r.pxd, sdrf: r.sdrf, manifest: r.manifest, validation: r.validation, evidence: r.evidence) }.join(ch_coverage, by: 'pxd')
+    )
 
     emit:
     review = ch_review // records: pxd, sdrf, coverage, review
-    coverage = ch_coverage.map { pxd, cov, _sdrf, _manifest -> record(pxd: pxd, coverage: cov) }
+    coverage = ch_coverage // records: pxd, coverage
 }
