@@ -1,0 +1,38 @@
+nextflow_workflow {
+
+    name "Test workflow SDRF_SUMMARY"
+    script "workflows/sdrf_agent.nf"
+    workflow "SDRF_SUMMARY"
+    tag "unit"
+
+    test("two revise rounds: the last review gives the final verdict") {
+
+        when {
+            workflow {
+                """
+                def data = "${projectDir}/tests/data"
+                input[0] = channel.of(
+                    record(pxd: 'PXD000001', coverage: file("\${data}/coverage.json"), review: file("\${data}/review_fail.json")),
+                    record(pxd: 'PXD000002', coverage: file("\${data}/coverage.json"), review: file("\${data}/review_pass.json")),
+                )
+                input[1] = channel.of(
+                    record(pxd: 'PXD000001', coverage: file("\${data}/coverage.json"), review: file("\${data}/review_fail.json")),
+                    record(pxd: 'PXD000001', coverage: file("\${data}/coverage.json"), review: file("\${data}/review_pass.json")),
+                )
+                """
+            }
+        }
+
+        then {
+            def rows = path(workflow.out.summary[0]).readLines()
+            assertAll(
+                { assert workflow.success },
+                { assert rows == [
+                    'pxd\tinitial_verdict\tfinal_verdict\trevised\tconfidence\tcoverage',
+                    'PXD000001\tFAIL\tPASS\ttrue\t0.9\t1.0',
+                    'PXD000002\tPASS\tPASS\tfalse\t0.9\t1.0',
+                ] }
+            )
+        }
+    }
+}

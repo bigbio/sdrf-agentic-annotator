@@ -87,10 +87,38 @@ workflow SDRF_AGENT {
         }
     }
 
-    // ---- summary with coverage + confidence + content-vs-infra classification ----
+    ch_summary = SDRF_SUMMARY(ch_reviewed, ch_revised_review).summary
+
+    emit:
+    annotated = ch_annotated
+    reviewed = ch_reviewed
+    revised = ch_revised_all
+    revised_review = ch_revised_review
+    coverage = ch_initial_cov.map { pxd, cov, _sdrf, _manifest -> record(pxd: pxd, coverage: cov) }
+    summary = ch_summary
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUMMARY - one summary.tsv row per PXD with the initial and final verdict
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+workflow SDRF_SUMMARY {
+    take:
+    ch_reviewed // records: pxd, coverage, review of the first review
+    ch_revised_review // records: pxd, coverage, review of each revise round
+
+    main:
+    // A revise round starts only after the previous review, so the last review of a PXD is its final one
+    ch_last_review = ch_revised_review
+        .map { r -> tuple(r.pxd, r) }
+        .groupTuple()
+        .map { pxd, reviews -> tuple(pxd, reviews.last()) }
+
     ch_final = ch_reviewed
         .map { r -> tuple(r.pxd, r) }
-        .join(ch_revised_review.map { r -> tuple(r.pxd, r) }, remainder: true)
+        .join(ch_last_review, remainder: true, failOnDuplicate: true)
         .map { pxd, ini, rev ->
             record(
                 pxd: pxd,
@@ -138,11 +166,6 @@ workflow SDRF_AGENT {
     }
 
     emit:
-    annotated = ch_annotated
-    reviewed = ch_reviewed
-    revised = ch_revised_all
-    revised_review = ch_revised_review
-    coverage = ch_initial_cov.map { pxd, cov, _sdrf, _manifest -> record(pxd: pxd, coverage: cov) }
     summary = ch_summary
 }
 
