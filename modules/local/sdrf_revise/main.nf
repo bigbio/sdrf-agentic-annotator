@@ -23,7 +23,14 @@ agent SDRF_REVISE {
 
         Before you finish, `parse_sdrf validate-sdrf` and `sdrf-tools check` must pass on the revised
         SDRF, as in Step 9 of the skill. Do not review your own SDRF and do not run the review gate.
-        '''.stripIndent()
+        '''.stripIndent() + """
+
+        Remote-fetch policy (set by the pipeline): before downloading a remote file, read its Content-Length
+        first (`curl -sI <url> | grep -i content-length`) and skip any single file larger than
+        ${params.max_fetch_bytes} bytes. For MaxQuant (and other DDA) PRIDE datasets prefer the small derived
+        files (mqpar.xml, peptides.txt, modificationSpecificPeptides.txt, evidence.txt) over the full
+        msms.txt / raw spectral files.
+        """
 
     input:
     record(

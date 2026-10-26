@@ -58,6 +58,22 @@
                     "default": true,
                     "description": "Revise an SDRF once when its review fails, then review it again.",
                     "fa_icon": "fas fa-redo"
+                },
+                "models_json": {
+                    "type": "string",
+                    "format": "file-path",
+                    "exists": true,
+                    "pattern": "^/\\S+\\.json$",
+                    "description": "Absolute path to a pi `models.json` that adds an OpenAI-compatible gateway as a provider.",
+                    "help_text": "The `docker` profile mounts the file at `/opt/pi-config/models.json` in the agent container. Do not put the API key in the file. See the usage docs.",
+                    "fa_icon": "fas fa-network-wired"
+                },
+                "max_fetch_bytes": {
+                    "type": "integer",
+                    "default": 524288000,
+                    "minimum": 1,
+                    "description": "The agents do not download a remote file larger than this number of bytes.",
+                    "fa_icon": "fas fa-download"
                 }
             }
         }
