@@ -5,6 +5,9 @@ agent SDRF_REVISE {
 
     instruction """\
         Follow the `sdrf-annotate` skill. There are no MCP tools: look terms up with `sdrf-tools ols`.
+        The sdrf-skills bundle is at `/opt/sdrf-skills` (the `SDRF_SKILLS_ROOT` environment variable): resolve
+        skill paths such as `spec/sdrf-proteomics/TERMS.tsv` or `skills/sdrf-annotate/references/gather-context.md`
+        against it. Never search the whole filesystem (`find /`): on a cluster it hangs for tens of minutes.
         `evidence/`, if present, holds the record from `sdrf-tools fetch`. You have network access, so
         this is not offline mode.
         The input files are read-only links. Copy `samples.tsv` and `technical.tsv` to `revised/` and fix
