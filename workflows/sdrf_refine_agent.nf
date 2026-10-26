@@ -59,13 +59,12 @@ workflow SDRF_REFINE_AGENT {
 
     // ---- baseline acquisition: local path if given, else fetch from sdrf-annotated-datasets ----
     ch_has_ref = ch_rows
-        .filter { it.ref_sdrf }
-        .map { record(pxd: it.pxd, baseline: file(it.ref_sdrf as String)) }
+        .filter { r -> r.ref_sdrf }
+        .map { r -> record(pxd: r.pxd, baseline: file(r.ref_sdrf as String)) }
     ch_no_ref = ch_rows
-        .filter { !it.ref_sdrf }
-        .map { it.pxd }
-    ch_fetched = SDRF_FETCH_BASELINE(ch_no_ref)
-        .map { record(pxd: it.pxd, baseline: it.baseline) }
+        .filter { r -> !r.ref_sdrf }
+        .map { r -> r.pxd }
+    ch_fetched = SDRF_FETCH_BASELINE(ch_no_ref).map { r -> record(pxd: r.pxd, baseline: r.baseline) }
     ch_baseline = ch_has_ref.mix(ch_fetched)
 
     // ---- refine agent: seeded re-annotation + baseline evidence manifest ----
@@ -140,7 +139,8 @@ workflow SDRF_REFINE_AGENT {
                         refined: [verdict: fv.verdict, confidence: fv.conf, coverage: fc],
                     ]).toString(),
                 )
-            } else {
+            }
+            else {
                 record(
                     pxd: pxd,
                     baseline_verdict: bv.verdict,
@@ -177,7 +177,8 @@ workflow SDRF_REFINE_AGENT {
     ch_decision.subscribe { d ->
         if (d.chosen == 'baseline') {
             log.info("Refine: ${d.pxd} kept existing SDRF (baseline=${d.baseline_verdict}, refined=${d.refined_verdict})")
-        } else {
+        }
+        else {
             log.info("Refine: ${d.pxd} accepted refined SDRF (baseline=${d.baseline_verdict} -> refined=${d.refined_verdict})")
         }
     }
@@ -204,11 +205,14 @@ def parseReview(review) {
 }
 
 def parseCoverage(coverage) {
-    if (!coverage) return null
+    if (!coverage) {
+        return null
+    }
     try {
         def j = new groovy.json.JsonSlurper().parse(coverage.toFile())
         return (j.coverage != null) ? (j.coverage as Float) : null
-    } catch (Exception _e) {
+    }
+    catch (_e: Exception) {
         return null
     }
 }
@@ -222,9 +226,17 @@ def verdictOf(review) {
 //   - refined coverage must be measurable and not worse than baseline,
 //   - and either the baseline did not PASS (FAIL -> PASS) or the refined confidence is higher.
 def isBetter(bv, fv, bc, fc) {
-    if (fv.verdict != 'PASS') return false
-    if (fc == null) return false
-    if (bc != null && fc < bc) return false
-    if (bv.verdict != 'PASS') return true
+    if (fv.verdict != 'PASS') {
+        return false
+    }
+    if (fc == null) {
+        return false
+    }
+    if (bc != null && fc < bc) {
+        return false
+    }
+    if (bv.verdict != 'PASS') {
+        return true
+    }
     return fv.conf > bv.conf
 }

@@ -16,14 +16,14 @@ workflow {
     main:
     // Unified publish channel placeholders: each is populated by the branch that produces it and
     // stays empty in the other mode, so the publish/output blocks below stay flat (no if/else).
-    ch_summary = Channel.empty()
-    ch_annotated = Channel.empty()
-    ch_reviewed = Channel.empty()
-    ch_revised = Channel.empty()
-    ch_revised_review = Channel.empty()
-    ch_coverage = Channel.empty()
-    ch_refine_decision = Channel.empty()
-    ch_refine_verdict = Channel.empty()
+    ch_summary = channel.empty()
+    ch_annotated = channel.empty()
+    ch_reviewed = channel.empty()
+    ch_revised = channel.empty()
+    ch_revised_review = channel.empty()
+    ch_coverage = channel.empty()
+    ch_refine_decision = channel.empty()
+    ch_refine_verdict = channel.empty()
 
     if (params.refine) {
         PIPELINE_REFINE_INITIALISATION(params.input)

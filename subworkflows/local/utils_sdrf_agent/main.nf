@@ -61,6 +61,7 @@ SUBWORKFLOW FOR PIPELINE COMPLETION
 workflow PIPELINE_COMPLETION {
     take:
     summary // path: summary.tsv
+
     main:
     summary.subscribe { tsv ->
         def rows = tsv.readLines().drop(1).findAll { line -> line.trim() }

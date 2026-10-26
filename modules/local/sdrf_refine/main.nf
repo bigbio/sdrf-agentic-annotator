@@ -5,13 +5,13 @@ SDRF_REFINE - seeded re-annotation of an already-published SDRF (refine mode)
 The existing, published SDRF for a PXD is the baseline to beat. This agent re-annotates the
 dataset from fresh evidence, seeded by (and improving on) that baseline, and writes:
 
-  refined/<pxd>.sdrf.tsv          the improved, validated SDRF
-  refined/<pxd>.evidence.json     evidence manifest for the improved SDRF
-  refined/<pxd>.refine.md         how it improves on the baseline + validation commands
-  baseline/<pxd>.baseline.sdrf.tsv      verbatim copy of the existing SDRF (read-only input)
-  baseline/<pxd>.baseline.evidence.json evidence manifest for the EXISTING SDRF, so the
-                                        independent reviewer can score the baseline on the
-                                        same terms as the refined version.
+refined/<pxd>.sdrf.tsv          the improved, validated SDRF
+refined/<pxd>.evidence.json     evidence manifest for the improved SDRF
+refined/<pxd>.refine.md         how it improves on the baseline + validation commands
+baseline/<pxd>.baseline.sdrf.tsv      verbatim copy of the existing SDRF (read-only input)
+baseline/<pxd>.baseline.evidence.json evidence manifest for the EXISTING SDRF, so the
+independent reviewer can score the baseline on the
+same terms as the refined version.
 
 The pipeline then runs the same SDRF_COVERAGE + SDRF_REVIEW on both and only accepts the
 refined SDRF if it is strictly better (see workflows/sdrf_refine_agent.nf).
@@ -69,7 +69,7 @@ agent SDRF_REFINE {
     input:
     record(
         pxd: String,
-        baseline: Path,
+        baseline: Path
     )
 
     output:
