@@ -166,7 +166,7 @@ def coverageOf(coverage) {
     }
     try {
         def c = new groovy.json.JsonSlurper().parse(coverage.toFile())
-        return c.status == 'ok' ? (c.coverage != null ? c.coverage as String : 'n/a') : 'unverifiable'
+        return c.error ? 'unverifiable' : (c.fraction != null ? c.fraction as String : 'n/a')
     }
     catch (_e: Exception) {
         return 'n/a'

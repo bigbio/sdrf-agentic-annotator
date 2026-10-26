@@ -32,7 +32,7 @@ The pipeline writes all files to `--outdir`.
 | `<PXD>.evidence.json` | The evidence manifest: a source for each value. |
 | `<PXD>.validation.txt` | Each validation command, its output and its exit code. The reviewer receives this file. |
 | `<PXD>.report.md` | What the agent annotated, the review status (`REVIEW_PENDING_EXTERNAL`) and the open items. |
-| `<PXD>.coverage.json` | The deterministic coverage precheck: SDRF data files matched against the deposit. |
+| `<PXD>.coverage.json` | The `coverage` block of `sdrf-tools audit-existing --json`: `deposited_runs`, `annotated_runs`, `matched_runs`, `fraction`, `missing` and `invented`. If PRIDE cannot be read, it has `fraction: null` and an `error`. |
 | `samples.tsv`, `technical.tsv` | The tables that `sdrf-tools build` turns into the SDRF. The revise agent edits these, not the SDRF. |
 | `evidence/` | The project record from `sdrf-tools fetch` that the evidence manifest cites. |
 | `<PXD>.review.json` | The independent review report, in the schema of the `sdrf-adversarial-review` review contract. |

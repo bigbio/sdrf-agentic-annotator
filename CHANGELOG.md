@@ -15,9 +15,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `docker` and `test` profiles.
 - GitHub Actions for linting, the runner image and the pipeline test.
 - `SDRF_COVERAGE`: a deterministic, non-agent precheck that compares every
-  `comment[data file]` in an SDRF against the PRIDE deposit file list and reports
-  matched/missing files and the fraction of the deposit represented. Runs before
-  every review (including each revise round) and is published as `PXD.coverage.json`.
+  `comment[data file]` in an SDRF with the deposited runs. Runs before every review
+  (including each revise round) and is published as `PXD.coverage.json`.
 - `confidence` (0..1) and `coverage` columns in `summary.tsv`, plus a
   `--confidence_gate` to flag low-confidence PASSes as `LOW_CONF` (still accepted).
 - `--models_json` to add an OpenAI-compatible gateway as a pi provider.
@@ -63,11 +62,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `SDRF_ANNOTATE`, `SDRF_REVIEW` and `SDRF_REVISE` use the unattended mode, external-review hand-off and output contract of bigbio/sdrf-skills `5f5966b` instead of their own overrides. The reviewer receives `<PXD>.validation.txt` and `evidence/`; the revise agent edits `samples.tsv` and `technical.tsv` ([#9](https://github.com/bigbio/sdrf-agentic-annotator/pull/9)).
 - `--revise` now takes a bounded `--max_revise` (default 1 preserves the current
   single-revise behaviour); additional revise rounds are statically unrolled.
+- `SDRF_COVERAGE` runs `sdrf-tools fetch` and `sdrf-tools audit-existing --json` from
+  `ghcr.io/bigbio/sdrf-skills:sha-1ea3d2f` instead of its own PRIDE query. `<PXD>.coverage.json` is the
+  `coverage` block of that report. Its `fraction` counts deposited runs only, and Bruker `.d`/`.d.zip`
+  names match ([#14](https://github.com/bigbio/sdrf-agentic-annotator/pull/14)).
 - New parameters `--coverage_min`, `--subset_mode`, `--confidence_gate`,
   `--max_revise`, `--max_parallel` and `--exit_on_review_fail`.
-
-### `Added` (coverage module internals)
-
-- `SDRF_COVERAGE` prefers the PRIDE `/files/all` endpoint (single call) and falls
-  back to the paginated `/files` (<=100/page); multi-file SDRF cells are split on
-  commas before matching.
