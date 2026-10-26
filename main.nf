@@ -26,6 +26,7 @@ workflow {
     coverage = SDRF_AGENTIC_ANNOTATOR.out.coverage
     refine_decision = SDRF_AGENTIC_ANNOTATOR.out.refine_decision
     refine_verdict = SDRF_AGENTIC_ANNOTATOR.out.refine_verdict
+    versions = SDRF_AGENTIC_ANNOTATOR.out.versions
 }
 output {
     annotated {
@@ -51,5 +52,8 @@ output {
     }
     refine_verdict {
         path { r -> r.pxd }
+    }
+    versions {
+        path 'pipeline_info'
     }
 }

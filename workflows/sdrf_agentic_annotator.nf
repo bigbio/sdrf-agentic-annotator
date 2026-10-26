@@ -11,7 +11,7 @@ include { SCORE_SDRF as SCORE_BASELINE } from '../subworkflows/local/score_sdrf'
 include { REVIEW_REVISE } from '../subworkflows/local/review_revise'
 include { SDRF_SUMMARY } from '../subworkflows/local/sdrf_summary'
 include { REFINE_GATE } from '../subworkflows/local/refine_gate'
-include { verdictOf } from '../subworkflows/local/utils_sdrf_agent'
+include { verdictOf ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -73,6 +73,12 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         ch_coverage = REVIEW_REVISE.out.coverage
     }
 
+    ch_versions = channel.topic('versions')
+        .unique()
+        .toList()
+        .map { rows -> softwareVersionsToYAML(rows) }
+        .collectFile(name: 'software_versions.yml')
+
     emit:
     summary = ch_summary // path: summary.tsv, or refine_summary.tsv in refine mode
     verdicts = ch_verdicts // records: pxd, verdict (the final verdict of each PXD)
@@ -83,4 +89,5 @@ workflow SDRF_AGENTIC_ANNOTATOR {
     coverage = ch_coverage
     refine_decision = ch_refine_decision
     refine_verdict = ch_refine_verdict
+    versions = ch_versions // path: software_versions.yml
 }

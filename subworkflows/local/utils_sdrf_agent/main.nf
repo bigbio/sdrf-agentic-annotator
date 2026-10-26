@@ -137,3 +137,19 @@ def isBetter(bv, fv, bc, fc) {
     }
     return fv.conf > bv.conf
 }
+
+// software_versions.yml: the tool versions from the `versions` topic, plus the agent model and runner image
+def softwareVersionsToYAML(rows) {
+    def versions = rows
+        .groupBy { r -> r[0].tokenize(':').last() }
+        .collectEntries { process, entries -> [(process): entries.collectEntries { r -> [(r[1]): r[2]] }] }
+    def agent = workflow.session.config.agent ?: [:]
+    versions['Workflow'] = [
+        (workflow.manifest.name): workflow.manifest.version,
+        Nextflow: workflow.nextflow.version.toString(),
+        agent_model: agent.model,
+        agent_api_provider: agent.apiProvider,
+        agent_container: agent.container,
+    ]
+    return new org.yaml.snakeyaml.Yaml().dumpAsMap(versions)
+}

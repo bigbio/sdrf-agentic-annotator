@@ -34,6 +34,11 @@ process SDRF_COVERAGE {
         coverage: file("${pxd}.coverage.json"),
     )
 
+    topic:
+    tuple(task.process, 'sdrf-skills-tools', eval('python -c "import importlib.metadata as m; print(m.version(\'sdrf-skills-tools\'))"')) >> 'versions'
+    tuple(task.process, 'sdrf-pipelines', eval('python -c "import importlib.metadata as m; print(m.version(\'sdrf-pipelines\'))"')) >> 'versions'
+    tuple(task.process, 'container', task.container) >> 'versions'
+
     script:
     """
     if ! sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then

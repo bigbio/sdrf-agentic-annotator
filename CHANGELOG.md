@@ -33,6 +33,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `nextflow_function` and `nextflow_workflow` nf-tests for the summary, completion and refine helpers. A CI job runs them on every pull request; they need no API key. A refine-mode pipeline test runs on dispatch ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - Execution report, timeline, trace and DAG in `<outdir>/pipeline_info/`, and the nf-core institutional profiles ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 - nf-core community files (`.nf-core.yml`, `CITATIONS.md`, `CODE_OF_CONDUCT.md`, contributing guide, issue and PR templates, prettier and pre-commit config) and a CI job that runs `nf-core pipelines lint` ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
+- `pipeline_info/software_versions.yml` from a `versions` topic, with the agent model and the runner image digest ([#NNN](https://github.com/bigbio/sdrf-agentic-annotator/pull/NNN)).
 
 ### `Changed`
 

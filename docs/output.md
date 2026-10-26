@@ -66,4 +66,6 @@ not strictly better.
 ### Pipeline information
 
 `<outdir>/pipeline_info/` holds the Nextflow execution report, timeline, trace and DAG of each
-run. The trace and the report show the run time of each agent task.
+run. The trace and the report show the run time of each agent task. `software_versions.yml`
+records the versions of `sdrf-skills-tools` and `sdrf-pipelines`, the runner image digest, the
+agent model and provider, and the Nextflow and pipeline versions.
