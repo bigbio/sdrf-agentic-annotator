@@ -24,9 +24,7 @@ PXD ──► SDRF_ANNOTATE ──► SDRF_REVIEW ──► PASS ─────
 
 This pipeline runs its LLM agents inside a container image, so you must pick a container
 profile: `docker` for a local machine or CI, or `singularity`/`apptainer` on an HPC cluster
-without root (see [docs/usage.md](docs/usage.md) for the differences).
-
-1. Make a samplesheet with one PXD accession per row:
+without root (see [docs/usage.md](docs/usage.md) for the differences).1. Make a samplesheet with one PXD accession per row:
 
    ```csv
    pxd
@@ -53,6 +51,24 @@ without root (see [docs/usage.md](docs/usage.md) for the differences).
    On an HPC node, use `-profile singularity` (or `-profile apptainer`) instead of `docker`.
 
 To test the pipeline with one PXD, use `-profile test,docker`.
+
+### Refine mode
+
+`--refine` refines an SDRF that already exists in
+[bigbio/sdrf-annotated-datasets](https://github.com/bigbio/sdrf-annotated-datasets) and only
+accepts the refined version if it is strictly better annotated (same independent review, scored
+on verdict/confidence + coverage, with coverage not worse). The samplesheet can give a
+`ref_sdrf` path per PXD, or the pipeline fetches the existing SDRF from `sdrf-annotated-datasets`
+by PXD.
+
+```bash
+nextflow run bigbio/sdrf-agentic-annotator -profile docker \
+    --input refine.csv --outdir <OUTDIR> --refine
+```
+
+The chosen SDRF (refined if accepted, otherwise the existing one) is published per PXD, with a
+`<PXD>.refine_verdict.json` explaining the decision. See [docs/usage.md](docs/usage.md) (§ Refine
+mode) and [docs/output.md](docs/output.md).
 
 See [docs/usage.md](docs/usage.md) for all options and [docs/output.md](docs/output.md) for the output files.
 

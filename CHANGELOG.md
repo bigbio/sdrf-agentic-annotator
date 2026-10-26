@@ -25,6 +25,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `singularity` and `apptainer` profiles: run the pi agent runner image under
   Singularity/Apptainer on an HPC cluster without root, with the same `--models_json`
   bind-mounting (`-B`) as the `docker` profile.
+- `--refine` refine mode: takes the existing SDRF for each PXD (from an optional `ref_sdrf`
+  path in the samplesheet, or fetched from bigbio/sdrf-annotated-datasets), re-annotates it
+  seeded on that baseline, runs the same coverage + adversarial review on both, and only accepts
+  the refined version if it is strictly better (verdict/confidence + coverage not worse);
+  otherwise it keeps the original. Adds `SDRF_REFINE`, `SDRF_FETCH_BASELINE` and `REFINE_VERDICT`,
+  `refine_summary.tsv` and `<PXD>.refine_verdict.json`.
 
 ### `Changed`
 

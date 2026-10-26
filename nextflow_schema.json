@@ -22,8 +22,8 @@
                     "schema": "assets/schema_input.json",
                     "mimetype": "text/csv",
                     "pattern": "^\\S+\\.(csv|tsv)$",
-                    "description": "Path to a samplesheet with one PXD accession per row.",
-                    "help_text": "The samplesheet has one column with the header `pxd`. See the usage docs.",
+                    "description": "Path to a samplesheet with one PXD accession per row (annotate) or, in refine mode, PXD plus an optional `ref_sdrf` path column.",
+                    "help_text": "Annotate mode: one column with the header `pxd`. Refine mode (`--refine`): columns `pxd` and an optional `ref_sdrf` (absolute path to the existing SDRF to refine; if empty it is fetched from bigbio/sdrf-annotated-datasets). Sample: pxd,ref_sdrf\\nPXD074155,/data/PXD074155.sdrf.tsv. See the usage docs.",
                     "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {
@@ -112,6 +112,20 @@
                     "fa_icon": "fas fa-download"
                 }
             }
+        },
+        "refine_options": {
+            "title": "Refine options",
+            "type": "object",
+            "fa_icon": "fas fa-edit",
+            "description": "Options for refine mode: refine an already-published SDRF and accept the refined version only if it is strictly better annotated.",
+            "properties": {
+                "refine": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Run in refine mode: take the existing SDRF for each PXD (from the optional `ref_sdrf` path in the samplesheet, or fetched from bigbio/sdrf-annotated-datasets), refine it by seeded re-annotation, and only accept the refined version if it scores strictly better (verdict/confidence + coverage) on the same independent review. Otherwise keep the original.",
+                    "fa_icon": "fas fa-edit"
+                }
+            }
         }
     },
     "allOf": [
@@ -120,6 +134,9 @@
         },
         {
             "$ref": "#/$defs/agent_options"
+        },
+        {
+            "$ref": "#/$defs/refine_options"
         }
     ]
 }

@@ -12,6 +12,57 @@ PXD058436
 
 Each accession must be unique. The pipeline validates the file against [assets/schema_input.json](../assets/schema_input.json) before it starts.
 
+## Refine mode
+
+Refine mode (`--refine`) takes an SDRF that already exists in
+[bigbio/sdrf-annotated-datasets](https://github.com/bigbio/sdrf-annotated-datasets) and tries to
+produce a better-annotated version — but it only accepts the refined SDRF if, scored by the same
+independent adversarial review as the baseline, it is strictly better. Otherwise it keeps the
+original.
+
+The refine samplesheet carries the same `pxd` column plus an optional `ref_sdrf` column (an
+absolute path to the existing SDRF for that PXD):
+
+```csv
+pxd,ref_sdrf
+PXD074155,/data/PXD074155.sdrf.tsv
+PXD058436,
+```
+
+When `ref_sdrf` is empty, a fetch agent downloads the existing SDRF from
+`bigbio/sdrf-annotated-datasets` by PXD (the `ref_sdrf` path wins when both are given).
+
+Run it exactly like annotate mode, with `--refine`:
+
+```bash
+nextflow run bigbio/sdrf-agentic-annotator -profile docker \
+    --input refine.csv --outdir <OUTDIR> --refine \
+    --api_provider google --model google/gemini-3.5-flash-lite
+```
+
+How refine mode works:
+
+1. **Baseline acquisition** — each row's baseline SDRF comes from `ref_sdrf`, or is fetched from
+   `sdrf-annotated-datasets` by PXD.
+2. **Seeded re-annotation** — the `SDRF_REFINE` agent treats the existing SDRF as the baseline to
+   beat. It re-annotates from fresh evidence (PRIDE, Europe PMC, Cellosaurus, OLS), filling gaps
+   and fixing values only when a source supports it, and validates the result. It also writes a
+   baseline evidence manifest that traces the *existing* SDRF's values to sources (or lists them
+   under limitations), so the baseline is scored on the same terms as the refined version.
+3. **Same review for both** — the pipeline runs the deterministic `SDRF_COVERAGE` precheck and the
+   independent `SDRF_REVIEW` on the baseline and on the refined SDRF.
+4. **Acceptance gate** — a refined SDRF is accepted only when all of these hold:
+   - the refined review verdict is `PASS`,
+   - the refined coverage is measurable and not worse than the baseline's, and
+   - either the baseline did not `PASS` (FAIL → PASS) or the refined confidence is strictly
+     higher.
+   Otherwise the existing SDRF is kept. The per-PXD decision is written to
+   `<PXD>.refine_verdict.json` and summarised in `refine_summary.tsv` (see
+   [docs/output.md](docs/output.md)).
+
+The `--revise` option applies to the refined version: if its first review fails, `SDRF_REVISE`
+fixes it once and it is re-reviewed before the gate, exactly as in annotate mode.
+
 ## API keys and providers
 
 The agents talk to a language model through Nextflow's `pi` runner, which runs inside the
