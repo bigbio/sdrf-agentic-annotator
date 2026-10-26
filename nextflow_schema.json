@@ -59,6 +59,42 @@
                     "description": "Revise an SDRF once when its review fails, then review it again.",
                     "fa_icon": "fas fa-redo"
                 },
+                "max_revise": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Maximum number of revise -> re-review rounds a dataset may go through (bounded escalation).",
+                    "fa_icon": "fas fa-redo"
+                },
+                "max_parallel": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "Maximum number of agent tasks that run concurrently across the batch; 0 = unlimited.",
+                    "fa_icon": "fas fa-tasks"
+                },
+                "coverage_min": {
+                    "type": "number",
+                    "default": 0.0,
+                    "description": "If an SDRF represents less than this fraction (0..1) of the deposit's data files, the reviewer must treat it as an important finding unless the artifact honestly declares itself a subset. 0.0 = informational only.",
+                    "fa_icon": "fas fa-chart-pie"
+                },
+                "subset_mode": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Permit a clearly-declared representative subset (e.g. a huge DIA deposit) to be accepted instead of failing on under-representation.",
+                    "fa_icon": "fas fa-cut"
+                },
+                "confidence_gate": {
+                    "type": "number",
+                    "default": 0.0,
+                    "description": "Flag PASSes with confidence below this threshold (0..1) as LOW_CONF. 0.0 = no gating.",
+                    "fa_icon": "fas fa-tachometer-alt"
+                },
+                "exit_on_review_fail": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Make the run exit non-zero when any dataset's final verdict is FAIL.",
+                    "fa_icon": "fas fa-exclamation-triangle"
+                },
                 "models_json": {
                     "type": "string",
                     "format": "file-path",

@@ -28,7 +28,9 @@ Nextflow keeps secrets in `~/.nextflow/secrets`, outside the project folder. To 
 |---|---|---|
 | `--model` | `google/gemini-3.5-flash-lite` | Model as `<provider>/<model>`. |
 | `--api_provider` | `google` | Provider of the key in `LLM_KEY`. |
-| `--revise` | `true` | Revise an SDRF once when its review fails, then review it again. |
+| `--revise` | `true` | Revise an SDRF when its review fails, then review it again. |
+| `--max_revise` | `1` | Maximum revise -> re-review rounds a dataset may go through (bounded escalation). |
+| `--max_parallel` | `0` | Max agent tasks that run concurrently across the batch; `0` = unlimited. Lower it to reduce resource contention. |
 | `--models_json` | none | Absolute path to a pi `models.json` that adds an OpenAI-compatible gateway as a provider. Works with the `docker` profile only. |
 | `--max_fetch_bytes` | `524288000` | The agents do not download a remote file larger than this number of bytes. |
 
@@ -66,6 +68,39 @@ The `docker` profile mounts the file read-only at `/opt/pi-config/models.json` i
 ### Large remote files
 
 The agents read the `Content-Length` of a remote file before they download it. They do not download a file larger than `--max_fetch_bytes`. For MaxQuant datasets, they use the small result files, such as `mqpar.xml`, `peptides.txt` and `evidence.txt`. They do not use `msms.txt` or raw files, because these are often many GB. If the reviewer can only verify a value from a file above the limit, it reports the value as not fully verifiable.
+
+### Coverage / subset gate
+
+A deterministic `SDRF_COVERAGE` step runs before every review. It compares each
+`comment[data file]` in the SDRF against the PRIDE deposit file list and writes a
+`PXDXXX.coverage.json` reporting matched/missing files and the fraction of the
+deposit the SDRF represents. The reviewer must fold this into its verdict:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `--coverage_min` | `0.0` | If an SDRF represents less than this fraction (0..1) of the deposit's data files, the reviewer must treat it as an important finding unless the artifact honestly declares itself a subset. `0.0` = informational only (backward compatible). |
+| `--subset_mode` | `false` | Permit a clearly-declared representative subset (e.g. a huge DIA deposit) to be accepted instead of failing on under-representation. |
+
+### Confidence gating
+
+Every review records a `confidence` (0..1). A PASS below the following gate is
+still accepted and passed on, but flagged `LOW_CONF` in `summary.tsv` so you can
+revisit it:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `--confidence_gate` | `0.0` | Flag PASSes with confidence below this threshold as `LOW_CONF`. `0.0` = no gating. |
+
+### Content FAIL vs infrastructure FAIL
+
+A dataset whose final review is `FAIL` is a *content* outcome (the SDRF did not
+survive review), not an infrastructure error. By default the pipeline publishes the
+outputs, logs a warning and completes normally. Only genuine task/infra errors fail
+tasks (which auto-retry via `conf/base.config`):
+
+| Parameter | Default | Description |
+|---|---|---|
+| `--exit_on_review_fail` | `false` | `true` makes the run exit non-zero when any dataset's final verdict is FAIL. |
 
 ### Gemini free tier
 
