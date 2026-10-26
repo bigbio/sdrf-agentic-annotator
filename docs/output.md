@@ -60,9 +60,9 @@ With `--refine`, the output differs:
 
 | File | Content |
 |---|---|
-| `refine_summary.tsv` | One row per PXD: `baseline_verdict`, `refined_verdict` (`n/a` if no refined review was produced), `chosen` (`refined` or `baseline`), `final_verdict` (the verdict of the chosen SDRF), coverage and confidence for each version. |
+| `refine_summary.tsv` | One row per PXD: `baseline_verdict`, `refined_verdict` (`n/a` if no refined review was produced), `chosen` (`refined` or `baseline`), coverage (`unverifiable` if PRIDE could not be read) and confidence for each version, and `final_verdict` (the verdict of the chosen SDRF, `LOW_CONF` for a PASS below `--confidence_gate`). |
 | `<PXD>.refine_verdict.json` | The full decision: `chosen`, `reason`, and the `baseline`/`refined` `verdict`, `confidence` and `coverage`. |
-| `<PXD>.sdrf.tsv` | The chosen SDRF — the refined one if the gate accepted it (`chosen: refined`), otherwise the existing SDRF exactly as it was given or fetched (`chosen: baseline`). |
+| `<PXD>.sdrf.tsv` | The chosen SDRF — the refined one if the gate accepted it (`chosen: refined`), otherwise an unchanged copy of the existing SDRF as it was given or fetched (`chosen: baseline`). |
 | `<PXD>.evidence.json`, `<PXD>.review.json`, `<PXD>.coverage.json` | The evidence manifest, review report and coverage precheck of the chosen SDRF. For a kept baseline, the evidence manifest was written by the refine agent. |
 
 The version that was not chosen, with its manifest, coverage and review, stays in the run's

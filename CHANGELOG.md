@@ -80,10 +80,15 @@ Audit findings from [#12](https://github.com/bigbio/sdrf-agentic-annotator/issue
 - `--max_parallel` did not limit the agents, which only read the `agent` config scope.
 - A review report the pipeline could not parse, such as JSON in a markdown code fence, crashed
   the run; a lower-case `pass` counted as FAIL. A PASS without a confidence escaped `--confidence_gate`.
-- Refine mode reviewed and published the agent's copy of the baseline instead of the input file,
-  passed no evidence manifest to `SDRF_REVISE`, dropped a failed refined review when revise was
-  off, and read `refined_verdict` as the final verdict for warnings and `--exit_on_review_fail`.
-  `refine_summary.tsv` has a new `final_verdict` column.
+- Refine mode reviewed and published the agent's copy of the baseline, which the agent could
+  change, and gave the agent a link to a samplesheet `ref_sdrf`. The new `SDRF_FREEZE_BASELINE`
+  copies the baseline into the work directory: one copy is reviewed and published, the agent gets
+  another. Refine mode also passed no evidence manifest to `SDRF_REVISE`, dropped a failed refined
+  review when revise was off, and read `refined_verdict` as the final verdict for warnings and
+  `--exit_on_review_fail`. `refine_summary.tsv` has a new last column, `final_verdict`, which
+  applies `--confidence_gate`.
+- `--coverage_min` given on the command line failed every review task while its instruction was
+  built (`'0.8' > 0` compares a string with a number), and `--subset_mode false` acted as `true`.
 - Revised files were published in `<PXD>/revised/revised/`, and a kept refine baseline as
   `<PXD>/baseline/<PXD>.baseline.sdrf.tsv`. Revise round 2 now goes to `<PXD>/revised_2/`, and refine
   mode publishes the chosen SDRF's evidence manifest, review and coverage report next to it.

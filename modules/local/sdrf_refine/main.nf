@@ -12,8 +12,8 @@ baseline/<pxd>.baseline.evidence.json evidence manifest for the EXISTING SDRF, s
 independent reviewer can score the baseline on the
 same terms as the refined version.
 
-The input baseline is passed through unchanged. The pipeline then runs the same
-SDRF_COVERAGE + SDRF_REVIEW on the input baseline and the refined SDRF and only accepts the
+The agent gets its own copy of the baseline. The pipeline runs the same SDRF_COVERAGE +
+SDRF_REVIEW on its separate copy of the baseline and on the refined SDRF, and only accepts the
 refined SDRF if it is strictly better (see subworkflows/local/utils_sdrf_agent, REFINE_DECISION).
 ----------------------------------------------------------------------------------------
  */
@@ -32,7 +32,7 @@ agent SDRF_REFINE {
           - `sdrf-tools` and `parse_sdrf` are on PATH. There are no MCP tools.
           - The baseline SDRF is a read-only link to another task. Never edit it in place.
             Write only into ./refined/ and ./baseline/ and keep fetched evidence in ./evidence/.
-            Do not copy the baseline SDRF: the pipeline scores the input file itself.
+            Do not copy the baseline SDRF: the pipeline scores its own copy of it.
 
         Step 0.5 of the skill audits the baseline and fixes its defects. Also fill values that the
         baseline leaves empty or `not available` when a source supports them. Keep every other
@@ -66,7 +66,6 @@ agent SDRF_REFINE {
         sdrf: file("refined/${pxd}.sdrf.tsv"),
         manifest: file("refined/${pxd}.evidence.json"),
         report: file("refined/${pxd}.refine.md"),
-        baseline: baseline,
         baseline_manifest: file("baseline/${pxd}.baseline.evidence.json"),
     )
 

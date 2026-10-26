@@ -52,8 +52,9 @@ How refine mode works:
    baseline evidence manifest that traces the *existing* SDRF's values to sources (or lists them
    under limitations), so the baseline is scored on the same terms as the refined version.
 3. **Same review for both** — the pipeline runs the deterministic `SDRF_COVERAGE` precheck and the
-   independent `SDRF_REVIEW` on the baseline and on the refined SDRF. The baseline reviewed is the
-   input file itself, not a copy made by the agent.
+   independent `SDRF_REVIEW` on the baseline and on the refined SDRF. The pipeline copies the
+   baseline into the work directory first: the reviewed copy is never touched by the agent, which
+   works on a separate copy, and a `ref_sdrf` file on disk is never changed.
 4. **Acceptance gate** — a refined SDRF is accepted only when all of these hold:
    - the refined review verdict is `PASS`,
    - the refined coverage is measurable and not worse than the baseline's, and
@@ -196,7 +197,7 @@ tasks (which auto-retry via `conf/base.config`):
 |---|---|---|
 | `--revise` | `true` | Revise an SDRF whose review fails, then review it again. `--revise false` skips this. |
 | `--max_revise` | `1` | Number of revise rounds, `0` to `2`. A second round only runs for SDRFs whose first revision fails its review too. |
-| `--max_parallel` | `0` | Maximum number of concurrent tasks of each process (each agent, such as `SDRF_ANNOTATE`, and `SDRF_COVERAGE`). `0` keeps the default of 10. Lower it to stay within provider rate limits or on a small machine. |
+| `--max_parallel` | `0` | Maximum number of concurrent tasks of each process (each agent, such as `SDRF_ANNOTATE`, and `SDRF_COVERAGE`). `0` keeps the default of 10. The limit is per process, not per run: several agent processes (annotate, review, revise) can each run that many tasks at once, so lower it further to stay within a provider's rate limit. |
 
 ### Gemini free tier
 

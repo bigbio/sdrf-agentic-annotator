@@ -8,6 +8,10 @@ nextflow_workflow {
     test("the refined SDRF is chosen only when it is strictly better") {
 
         when {
+            params {
+                // flags every chosen PASS here (confidence 0.8 to 0.9) as LOW_CONF
+                confidence_gate = 0.95
+            }
             workflow {
                 """
                 def data = "${baseDir}/tests/data"
@@ -40,11 +44,11 @@ nextflow_workflow {
                 { assert verdicts.PXD000001.chosen == 'refined' },
                 { assert verdicts.PXD000004.refined == null },
                 { assert path(workflow.out.summary[0]).readLines() == [
-                    'pxd\tbaseline_verdict\trefined_verdict\tchosen\tfinal_verdict\tbaseline_coverage\trefined_coverage\tbaseline_confidence\trefined_confidence',
-                    'PXD000001\tFAIL\tPASS\trefined\tPASS\t0.5\t1.0\t0.4\t0.9',
-                    'PXD000002\tPASS\tPASS\tbaseline\tPASS\t0.5\t1.0\t0.9\t0.8',
-                    'PXD000003\tFAIL\tPASS\tbaseline\tFAIL\t0.5\tn/a\t0.4\t0.9',
-                    'PXD000004\tPASS\tn/a\tbaseline\tPASS\t0.5\tn/a\t0.9\tn/a',
+                    'pxd\tbaseline_verdict\trefined_verdict\tchosen\tbaseline_coverage\trefined_coverage\tbaseline_confidence\trefined_confidence\tfinal_verdict',
+                    'PXD000001\tFAIL\tPASS\trefined\t0.5\t1.0\t0.4\t0.9\tLOW_CONF',
+                    'PXD000002\tPASS\tPASS\tbaseline\t0.5\t1.0\t0.9\t0.8\tLOW_CONF',
+                    'PXD000003\tFAIL\tPASS\tbaseline\t0.5\tunverifiable\t0.4\t0.9\tFAIL',
+                    'PXD000004\tPASS\tn/a\tbaseline\t0.5\tn/a\t0.9\tn/a\tLOW_CONF',
                 ] }
             )
         }

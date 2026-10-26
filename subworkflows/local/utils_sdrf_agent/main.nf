@@ -39,10 +39,10 @@ workflow PIPELINE_REFINE_INITIALISATION {
     validateParameters()
     log.info(paramsSummaryLog(workflow))
 
-    // samplesheetToList returns one list per row in schema column order (pxd, ref_sdrf).
-    // An empty or absent ref_sdrf comes back as an empty list.
+    // samplesheetToList returns one list per row in schema column order (pxd, ref_sdrf), with
+    // ref_sdrf as a Path. An empty or absent ref_sdrf comes back as an empty list.
     ch_rows = channel.fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
-        .map { row -> record(pxd: row[0] as String, ref_sdrf: row[1] ? row[1] as String : null) }
+        .map { row -> record(pxd: row[0] as String, ref_sdrf: row[1] ?: null) }
 
     emit:
     rows = ch_rows
@@ -119,16 +119,13 @@ workflow REFINE_DECISION {
                     ? 'refined passes and is strictly better (verdict/confidence, coverage not worse)'
                     : 'refined not strictly better - kept existing SDRF'
             def pick = (chosen == 'refined') ? f : b
+            def picked = (chosen == 'refined') ? refined : base
             record(
                 pxd: pxd,
                 chosen: chosen,
-                final_verdict: (chosen == 'refined') ? refined.verdict : base.verdict,
-                baseline_verdict: base.verdict,
-                baseline_confidence: base.confidence,
-                baseline_coverage: base.coverage,
-                refined_verdict: refined ? refined.verdict : 'n/a',
-                refined_confidence: refined ? refined.confidence : null,
-                refined_coverage: refined ? refined.coverage : null,
+                final_verdict: gateVerdict(picked.verdict, picked.confidence, (params.confidence_gate as String).toDouble()),
+                baseline: base,
+                refined: refined,
                 sdrf: pick.sdrf,
                 manifest: pick.manifest,
                 review: pick.review,
@@ -143,37 +140,37 @@ workflow REFINE_DECISION {
             )
         }
 
-    ch_verdict = ch_decision
-        .collectFile { d -> ["${d.pxd}.refine_verdict.json", d.json + '\n'] }
-        .map { f -> record(pxd: f.name - '.refine_verdict.json', verdict: f) }
+    // One verdict file per PXD as soon as its decision is made
+    ch_verdict = REFINE_VERDICT(ch_decision.map { d -> tuple(d.pxd, d.json) }).map { pxd, verdict -> record(pxd: pxd, verdict: verdict) }
 
     ch_summary = ch_decision
         .map { d ->
             [
                 d.pxd,
-                d.baseline_verdict,
-                d.refined_verdict,
+                d.baseline.verdict,
+                d.refined ? d.refined.verdict : 'n/a',
                 d.chosen,
+                d.baseline.coverage_label,
+                d.refined ? d.refined.coverage_label : 'n/a',
+                d.baseline.confidence,
+                d.refined ? d.refined.confidence : 'n/a',
                 d.final_verdict,
-                orNa(d.baseline_coverage),
-                orNa(d.refined_coverage),
-                orNa(d.baseline_confidence),
-                orNa(d.refined_confidence),
             ].join('\t')
         }
         .collectFile(
             name: 'refine_summary.tsv',
-            seed: 'pxd\tbaseline_verdict\trefined_verdict\tchosen\tfinal_verdict\tbaseline_coverage\trefined_coverage\tbaseline_confidence\trefined_confidence',
+            seed: 'pxd\tbaseline_verdict\trefined_verdict\tchosen\tbaseline_coverage\trefined_coverage\tbaseline_confidence\trefined_confidence\tfinal_verdict',
             newLine: true,
             sort: true,
         )
 
     ch_decision.subscribe { d ->
+        def refined = d.refined ? d.refined.verdict : 'n/a'
         if (d.chosen == 'baseline') {
-            log.info("Refine: ${d.pxd} kept existing SDRF (baseline=${d.baseline_verdict}, refined=${d.refined_verdict})")
+            log.info("Refine: ${d.pxd} kept existing SDRF (baseline=${d.baseline.verdict}, refined=${refined})")
         }
         else {
-            log.info("Refine: ${d.pxd} accepted refined SDRF (baseline=${d.baseline_verdict} -> refined=${d.refined_verdict})")
+            log.info("Refine: ${d.pxd} accepted refined SDRF (baseline=${d.baseline.verdict} -> refined=${refined})")
         }
     }
 
@@ -181,6 +178,20 @@ workflow REFINE_DECISION {
     decision = ch_decision
     verdict = ch_verdict
     summary = ch_summary
+}
+
+// Writes <pxd>.refine_verdict.json in the task directory, without a container
+process REFINE_VERDICT {
+    tag "${pxd}"
+
+    input:
+    tuple val(pxd), val(json)
+
+    output:
+    tuple val(pxd), path("${pxd}.refine_verdict.json")
+
+    exec:
+    task.workDir.resolve("${pxd}.refine_verdict.json").text = json + '\n'
 }
 
 /*
@@ -237,10 +248,7 @@ def withCoverage(ch_sdrfs, ch_cov) {
 def readReview(review) {
     def text = review.text.trim()
     if (text.startsWith('```')) {
-        text = text.substring(text.indexOf('\n') + 1).trim()
-        if (text.endsWith('```')) {
-            text = text.substring(0, text.lastIndexOf('```'))
-        }
+        text = text.replaceFirst('^```[A-Za-z]*', '').replaceFirst('```$', '').trim()
     }
     def json = null
     try {
@@ -282,7 +290,7 @@ def readCoverage(coverage) {
         return [fraction: null, error: null]
     }
     try {
-        def json = new groovy.json.JsonSlurper().parse(coverage.toFile())
+        def json = new groovy.json.JsonSlurper().parseText(coverage.text)
         def fraction = json.fraction != null ? (json.fraction as String).toDouble() : null
         return [fraction: fraction, error: json.error ?: null]
     }
@@ -302,7 +310,8 @@ def coverageLabel(coverage) {
 // Verdict, confidence and coverage of one reviewed SDRF, as compared by the refine gate
 def scoreOf(reviewed) {
     def review = readReview(reviewed.review)
-    return [verdict: review.verdict, confidence: review.confidence, coverage: readCoverage(reviewed.coverage).fraction]
+    def coverage = readCoverage(reviewed.coverage)
+    return [verdict: review.verdict, confidence: review.confidence, coverage: coverage.fraction, coverage_label: coverageLabel(coverage)]
 }
 
 // Accept the refined SDRF only if it is strictly better than the baseline:
@@ -338,8 +347,4 @@ def readSummary(tsv) {
 // Boolean parameter value. On the command line, `--revise false` arrives as the string 'false'.
 def isTrue(value) {
     return (value instanceof Boolean) ? value : ((value as String)?.trim()?.toLowerCase() in ['true', 'yes', '1'])
-}
-
-def orNa(value) {
-    return value != null ? value as String : 'n/a'
 }
