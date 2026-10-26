@@ -1,5 +1,5 @@
 # pi runner image plus the sdrf-skills bundle and its command-line tools (sdrf-tools, parse_sdrf)
-ARG SDRF_SKILLS_IMAGE=ghcr.io/bigbio/sdrf-skills:sha-5f5966b
+ARG SDRF_SKILLS_IMAGE=ghcr.io/bigbio/sdrf-skills:sha-1ea3d2f
 ARG UV_IMAGE=ghcr.io/astral-sh/uv:0.13.0
 
 # The sdrf-skills Python needs glibc 2.38, but the pi image (bookworm) has 2.36. So take the bundle,

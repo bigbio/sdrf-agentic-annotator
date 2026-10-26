@@ -47,6 +47,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   instead of cloning it, and installs `sdrf-tools` and `parse_sdrf` at that image's package versions.
   It sets `SDRF_SKILLS_ROOT` and ships the `parse_sdrf` ontology cache for offline, non-root runs
   ([#11](https://github.com/bigbio/sdrf-agentic-annotator/pull/11)).
+- The runner image uses `ghcr.io/bigbio/sdrf-skills:sha-1ea3d2f` (bigbio/sdrf-skills #134, `--json` output
+  for `audit-existing`). The skill copies in `modules/local/*/skills/` are unchanged between `5f5966b` and
+  `1ea3d2f`, since #134 only touches the `sdrf-tools` CLI.
 - Workflow outputs are copied, not linked, to `--outdir`.
 - bigbio/sdrf-skills `ebf95fb` in the runner image and the module skills, with curated uveal-melanoma cell lines.
 - Refine mode reuses the sdrf-skills tools: `SDRF_FETCH_BASELINE` is a plain process that runs
