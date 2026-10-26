@@ -7,6 +7,9 @@ on:
 
 env:
   NXF_VER: "26.10.3"
+  # nf-test 0.9.3 (the setup action's default) wraps workflow tests in `WORKFLOW(*input)`,
+  # which the Nextflow 26.10 parser rejects
+  NFT_VER: "0.9.5"
   NXF_ANSI_LOG: false
 
 permissions:
@@ -58,6 +61,8 @@ jobs:
         with:
           version: ${{ env.NXF_VER }}
       - uses: nf-core/setup-nf-test@v1
+        with:
+          version: ${{ env.NFT_VER }}
       - name: Run nf-test unit tests
         run: |
           nextflow secrets set LLM_KEY dummy
@@ -79,6 +84,8 @@ jobs:
         with:
           version: ${{ env.NXF_VER }}
       - uses: nf-core/setup-nf-test@v1
+        with:
+          version: ${{ env.NFT_VER }}
       - name: Run nf-test
         env:
           LLM_KEY: ${{ secrets.LLM_KEY }}
