@@ -14,7 +14,7 @@ independent reviewer can score the baseline on the
 same terms as the refined version.
 
 The pipeline then runs the same SDRF_COVERAGE + SDRF_REVIEW on both and only accepts the
-refined SDRF if it is strictly better (see workflows/sdrf_refine_agent.nf).
+refined SDRF if it is strictly better (see subworkflows/local/refine_gate).
 ----------------------------------------------------------------------------------------
  */
 

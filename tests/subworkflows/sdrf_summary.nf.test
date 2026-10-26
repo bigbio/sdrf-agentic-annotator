@@ -1,7 +1,7 @@
 nextflow_workflow {
 
     name "Test workflow SDRF_SUMMARY"
-    script "workflows/sdrf_agent.nf"
+    script "subworkflows/local/sdrf_summary/main.nf"
     workflow "SDRF_SUMMARY"
     tag "unit"
 

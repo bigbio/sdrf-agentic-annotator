@@ -1,44 +1,10 @@
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-IMPORT MODULES
+SDRF_SUMMARY - one summary.tsv row per PXD with the initial and final verdict
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 
-include { SDRF_ANNOTATE } from '../modules/local/sdrf_annotate'
-include { REVIEW_REVISE } from '../subworkflows/local/review_revise'
-include { verdictOf ; confidenceOf ; coverageOf } from '../subworkflows/local/utils_sdrf_agent'
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-RUN MAIN WORKFLOW
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
-
-workflow SDRF_AGENT {
-    take:
-    ch_pxds // channel: PXD accessions
-
-    main:
-    ch_annotated = SDRF_ANNOTATE(ch_pxds)
-
-    REVIEW_REVISE(ch_annotated, params.revise ? params.max_revise : 0)
-
-    ch_summary = SDRF_SUMMARY(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.revised_review).summary
-
-    emit:
-    annotated = ch_annotated
-    reviewed = REVIEW_REVISE.out.reviewed
-    revised = REVIEW_REVISE.out.revised
-    revised_review = REVIEW_REVISE.out.revised_review
-    coverage = REVIEW_REVISE.out.coverage
-    summary = ch_summary
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUMMARY - one summary.tsv row per PXD with the initial and final verdict
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
+include { verdictOf ; confidenceOf ; coverageOf } from '../utils_sdrf_agent'
 
 workflow SDRF_SUMMARY {
     take:
