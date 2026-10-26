@@ -30,8 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   the refined version if it is strictly better (verdict/confidence + coverage not worse);
   otherwise it keeps the original. Adds `SDRF_REFINE`, `SDRF_FETCH_BASELINE` and `REFINE_VERDICT`,
   `refine_summary.tsv` and `<PXD>.refine_verdict.json`.
-- `nextflow_function` and `nextflow_workflow` nf-tests for the summary, completion and refine helpers. A CI job runs them on every pull request; they need no API key ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- `-stub` runs: each agent module has a `<NAME>_STUB` process that the workflow uses instead of the agent, and the plain processes have `stub:` blocks. nf-tests run the pipeline with `-stub` in annotate and refine mode on every pull request ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- `nextflow_function` and `nextflow_workflow` nf-tests for the summary, completion and refine helpers. A CI job runs them on every pull request; they need no API key. A refine-mode pipeline test runs on dispatch ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 - Execution report, timeline, trace and DAG in `<outdir>/pipeline_info/`, and the nf-core institutional profiles ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 - nf-core community files (`.nf-core.yml`, `CITATIONS.md`, `CODE_OF_CONDUCT.md`, contributing guide, issue and PR templates, prettier and pre-commit config) and a CI job that runs `nf-core pipelines lint` ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 - `pipeline_info/software_versions.yml` from a `versions` topic, with the agent model and the runner image digest ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).

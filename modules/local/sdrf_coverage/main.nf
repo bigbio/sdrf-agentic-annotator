@@ -35,8 +35,8 @@ process SDRF_COVERAGE {
     )
 
     topic:
-    tuple(task.process, 'sdrf-skills-tools', eval('python -c "import importlib.metadata as m; print(m.version(\'sdrf-skills-tools\'))" 2>/dev/null || echo n/a')) >> 'versions'
-    tuple(task.process, 'sdrf-pipelines', eval('python -c "import importlib.metadata as m; print(m.version(\'sdrf-pipelines\'))" 2>/dev/null || echo n/a')) >> 'versions'
+    tuple(task.process, 'sdrf-skills-tools', eval('python -c "import importlib.metadata as m; print(m.version(\'sdrf-skills-tools\'))"')) >> 'versions'
+    tuple(task.process, 'sdrf-pipelines', eval('python -c "import importlib.metadata as m; print(m.version(\'sdrf-pipelines\'))"')) >> 'versions'
     tuple(task.process, 'container', task.container) >> 'versions'
 
     script:
@@ -52,10 +52,5 @@ process SDRF_COVERAGE {
     sdrf-tools audit-existing ${sdrf} --runs evidence/files.json --json > audit.json || [ \$? -eq 1 ]
     jq '.coverage // {fraction: null, error: ([.findings[] | select(.code | IN("empty", "no_data_file_column")) | .summary] | join("; "))}' \\
         audit.json > ${pxd}.coverage.json
-    """
-
-    stub:
-    """
-    echo '{"deposited_runs": 1, "annotated_runs": 1, "matched_runs": 1, "fraction": 1.0, "missing": [], "invented": []}' > ${pxd}.coverage.json
     """
 }

@@ -58,9 +58,4 @@ process SDRF_FETCH_BASELINE {
         exit 2
     }
     """
-
-    stub:
-    """
-    printf 'source name\tcomment[data file]\n${pxd}-1\t${pxd}-1.raw\n' > ${pxd}.baseline.sdrf.tsv
-    """
 }
