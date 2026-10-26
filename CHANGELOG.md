@@ -46,6 +46,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - The runner image clones bigbio/sdrf-skills at a fixed commit and no longer needs a copy of the bundle in the repo.
 - Workflow outputs are copied, not linked, to `--outdir`.
 - bigbio/sdrf-skills `ebf95fb` in the runner image and the module skills, with curated uveal-melanoma cell lines.
+- Refine mode reuses the sdrf-skills tools: `SDRF_FETCH_BASELINE` is a plain process that runs
+  `sdrf-tools curated` instead of an agent, and fails when the PXD has no curated SDRF.
+  `SDRF_REFINE` requests `existing annotation: fix` from the `sdrf-annotate` skill and links the
+  skill of `SDRF_ANNOTATE` instead of a copy ([#7](https://github.com/bigbio/sdrf-agentic-annotator/pull/7)).
+- An empty `ref_sdrf` in the refine samplesheet no longer stops the run with `file()` on an empty path.
 - The pipeline needs Nextflow 26.10.3 or later. In 26.10.0, `-preview` does not stop when the script has workflow outputs.
 - The reviewer now receives the coverage report and must record a `confidence` and
   fold the coverage/subset gate into its verdict (see the review contract).

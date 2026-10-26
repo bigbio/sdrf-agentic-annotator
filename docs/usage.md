@@ -29,8 +29,10 @@ PXD074155,/data/PXD074155.sdrf.tsv
 PXD058436,
 ```
 
-When `ref_sdrf` is empty, a fetch agent downloads the existing SDRF from
-`bigbio/sdrf-annotated-datasets` by PXD (the `ref_sdrf` path wins when both are given).
+When `ref_sdrf` is empty, `SDRF_FETCH_BASELINE` runs `sdrf-tools curated <PXD>` and downloads
+`<PXD>.sdrf.tsv` from `bigbio/sdrf-annotated-datasets`. If the PXD has only one SDRF with another
+name, it takes that file. The task fails when the PXD has no curated SDRF, or has several and none
+is `<PXD>.sdrf.tsv`. Set `ref_sdrf` to choose the file in these cases.
 
 Run it exactly like annotate mode, with `--refine`:
 
@@ -44,9 +46,9 @@ How refine mode works:
 
 1. **Baseline acquisition** — each row's baseline SDRF comes from `ref_sdrf`, or is fetched from
    `sdrf-annotated-datasets` by PXD.
-2. **Seeded re-annotation** — the `SDRF_REFINE` agent treats the existing SDRF as the baseline to
-   beat. It re-annotates from fresh evidence (PRIDE, Europe PMC, Cellosaurus, OLS), filling gaps
-   and fixing values only when a source supports it, and validates the result. It also writes a
+2. **Refinement** — the `SDRF_REFINE` agent runs the `sdrf-annotate` skill with
+   `existing annotation: fix`. The skill audits the baseline and fixes its defects. The agent also
+   fills omitted values that a source supports, and validates the result. It also writes a
    baseline evidence manifest that traces the *existing* SDRF's values to sources (or lists them
    under limitations), so the baseline is scored on the same terms as the refined version.
 3. **Same review for both** — the pipeline runs the deterministic `SDRF_COVERAGE` precheck and the

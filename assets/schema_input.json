@@ -16,7 +16,6 @@
                 "type": "string",
                 "format": "file-path",
                 "exists": true,
-                "default": "",
                 "description": "Optional absolute path to an existing, already-published SDRF to refine (refine mode only). When empty, the pipeline fetches the existing SDRF from bigbio/sdrf-annotated-datasets by PXD.",
                 "errorMessage": "ref_sdrf, when provided, must be an existing absolute path to a .sdrf.tsv file"
             }
