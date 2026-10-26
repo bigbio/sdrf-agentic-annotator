@@ -212,10 +212,14 @@ Pick exactly one container profile (`docker`, `singularity` or `apptainer`), plu
 
 ## Runner image
 
-[docker/Dockerfile](../docker/Dockerfile) builds the runner image. It adds `sdrf-tools`,
-`parse_sdrf` and the sdrf-skills bundle at a fixed commit to the pi runner image. GitHub
-Actions builds and pushes the image to `ghcr.io/bigbio/sdrf-agentic-annotator`. To build it
-locally:
+[docker/Dockerfile](../docker/Dockerfile) builds the runner image on the pi runner image. It
+copies the sdrf-skills bundle and the `parse_sdrf` ontology cache from the published
+`ghcr.io/bigbio/sdrf-skills` image (`SDRF_SKILLS_IMAGE`, pinned to a commit tag). It then installs
+`sdrf-tools` and `parse_sdrf` at the package versions of that image into a venv on a uv-managed
+Python of the same version. The interpreter is not copied, because it needs a newer glibc than
+the pi image has.
+`SDRF_SKILLS_ROOT` and `CLAUDE_PLUGIN_ROOT` both point to `/opt/sdrf-skills`. GitHub Actions
+builds and pushes the image to `ghcr.io/bigbio/sdrf-agentic-annotator`. To build it locally:
 
 ```bash
 docker build -t ghcr.io/bigbio/sdrf-agentic-annotator:dev docker/
@@ -232,8 +236,8 @@ singularity build sdrf-agentic-annotator.sif docker://ghcr.io/bigbio/sdrf-agenti
 
 and point the profile at it, or add the cached pull into the shared cache directory.
 
-The skills in `modules/local/*/skills/` must have the same commit as `SDRF_SKILLS_REF` in the
-Dockerfile. Nextflow cannot load them from bigbio/sdrf-skills yet (see
+The skills in `modules/local/*/skills/` must have the same commit as the `SDRF_SKILLS_IMAGE` tag
+in the Dockerfile. Nextflow cannot load them from bigbio/sdrf-skills yet (see
 [#1](https://github.com/jonasscheid/nf-agent-sdrf/issues/1)).
 
 ## Agent traces
