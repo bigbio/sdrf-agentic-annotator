@@ -41,7 +41,7 @@ nextflow_workflow {
         then {
             assertAll(
                 { assert workflow.failed },
-                { assert workflow.stdout.any { line -> line.contains('non-PASS final verdict: PXD000001') } }
+                { assert workflow.errorMessage.contains('non-PASS final verdict: PXD000001') }
             )
         }
     }
