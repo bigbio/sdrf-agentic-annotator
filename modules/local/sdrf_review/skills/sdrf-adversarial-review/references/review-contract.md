@@ -3,7 +3,22 @@
 Use one JSON report per SDRF. Store temporary reports outside the worktree when
 possible; the gate copies the passing report into git-local state.
 
+The JSON Schemas in `tools/schemas/` (bundle root) define both files; this page
+explains them. Where the two disagree, the schema is right. Check a file before
+you hand it on:
+
+```bash
+sdrf-tools schema-check <PXD>.evidence.json   # also: every source_ids entry is in sources[].id
+sdrf-tools schema-check <report.json>         # a file with a verdict is a review report
+```
+
+`sdrf-tools schema-check --print-schema evidence-manifest` (or `review-report`)
+prints a schema when the bundle directory is not at hand.
+
 ## Evidence manifest
+
+Schema: `tools/schemas/evidence-manifest.schema.json`. The producer writes it
+next to the SDRF as `<PXD>.evidence.json`.
 
 ```json
 {
@@ -31,28 +46,24 @@ they support the stated granularity.
 
 ## Passing report
 
+Schema: `tools/schemas/review-report.schema.json`. `review-gate approve` also
+checks that `artifact` and `artifact_sha256` name the file on disk.
+
+Optional: `confidence` (0 to 1, when the caller asks) and `coverage` (copied from
+`sdrf-tools audit-existing --json`).
+
 ```json
 {
   "schema_version": 1,
   "artifact": "path/PXD000001.sdrf.tsv",
   "artifact_sha256": "sha256-of-the-content-you-reviewed",
   "verdict": "PASS",
-  "confidence": 0.97,
   "summary": "Independent review found no blocking or important issues.",
   "reviewer_context": {
     "independent": true,
     "context": "fresh hook agent without producer transcript"
   },
   "evidence_manifest": "path/PXD000001.evidence.json",
-  "coverage": {
-    "status": "ok",
-    "sdrf_files": 24,
-    "matched_count": 24,
-    "missing_count": 0,
-    "deposit_data_count": 24,
-    "coverage": 1.0,
-    "declared_subset": false
-  },
   "checks": {
     "spec_compliance": {"status": "pass", "evidence": "Template validator passed ..."},
     "ontology_integrity": {"status": "pass", "evidence": "Unique controlled terms resolved ..."},
@@ -80,7 +91,10 @@ it does not match the artifact on disk: that mismatch means the content changed
 after you read it, so the review no longer describes what would be approved.
 
 Allowed finding severities are `blocker`, `important`, and `minor`. A passing
-report may contain minor findings only. Every required check needs concrete
+report may contain minor findings only. A failing report, written when a caller
+ran the review directly, uses the same schema with `"verdict": "FAIL"`, status
+`fail` on each check that failed or could not run, and every blocking finding
+listed; the gate never accepts it. Every required check needs concrete
 evidence; `source_evidence`, `file_mapping`, and `design_consistency` may use
 `not_applicable` with an explanation. Specification compliance, ontology
 integrity, omission safety, and deterministic validation must pass.
@@ -89,30 +103,3 @@ integrity, omission safety, and deterministic validation must pass.
 for values that assert more than the cited evidence supports. If you could not
 perform that pass, the verdict is `FAIL`, not a passing report with the check
 left out.
-
-## Confidence
-
-Every report must include a `confidence` in `0..1` reflecting how strongly the
-reviewed evidence supports the verdict. It is the reviewer's calibrated estimate,
-not a synthetic score; a PASS backed only by a subset of the evidence or by
-best-effort reconstruction should be scored well below 1. The pipeline uses it for
-the optional `confidence_gate`: a PASS below the gate is accepted and passed on
-but flagged `LOW_CONF` in `summary.tsv` so the operator can revisit.
-
-## Coverage / subset gate
-
-A deterministic coverage precheck (the pipeline's `SDRF_COVERAGE` step) runs the
-SDRF's `comment[data file]` values against the PRIDE deposit file list before the
-adversarial review and emits `PXDXXX.coverage.json`. Report its numbers in the
-`coverage` section above. Coverage gate rules for the verdict:
-
-- `missing_count > 0`: the SDRF references deposit files that do not exist →
-  `file_mapping` is at least an important finding; a file-mapping hallucination
-  blocks approval.
-- Coverage below the configured `coverage_min` (a fraction of the deposit's data
-  files) with no honest subset declaration → an important finding (or blocker if
-  nothing in the artifact signals subsetting).
-- With `subset_mode` enabled, a clearly-declared representative subset may be
-  accepted; record `declared_subset: true` and mirror the precheck coverage.
-- A reproducible review `FAIL` is a content outcome, not an infrastructure error:
-  return `verdict: FAIL` with concrete findings and never crash the task.

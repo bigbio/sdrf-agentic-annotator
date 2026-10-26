@@ -3,9 +3,9 @@
 # SDRF Cell Line Annotation
 
 > **Bundle paths.** `spec/`, `tools/` and `data/` ship with this skill, not with your working
-> directory. Resolve every such path below against the bundle root — `$CLAUDE_PLUGIN_ROOT` under
-> Claude Code (`$CLAUDE_PLUGIN_ROOT/spec/sdrf-proteomics/TERMS.tsv`), or your sdrf-skills checkout
-> on other platforms. The helpers are the `sdrf-tools` command, installed by ``sdrf-tools doctor` (install notes: `setup.md`)`; no `PYTHONPATH` or plugin-root variable is needed to run them.
+> directory. Resolve every such path below against the bundle root (`SDRF_SKILLS_ROOT`, else
+> `CLAUDE_PLUGIN_ROOT`, else your sdrf-skills checkout): `${SDRF_SKILLS_ROOT:-${CLAUDE_PLUGIN_ROOT}}/spec/sdrf-proteomics/TERMS.tsv`.
+> The helpers are the `sdrf-tools` command (install notes: `setup.md`; check with `sdrf-tools doctor`); no `PYTHONPATH` or bundle-root variable is needed to run them.
 > Files the user is annotating stay relative to the working directory.
 
 You are translating cell line identity into the SDRF columns required by the
@@ -151,7 +151,9 @@ When Step 2 yields more than one candidate, pick in this order:
    them in the report so reviewers know the donor metadata semantics differ.
 6. **Multiple plausible canonical hits** → do not guess. Present the top 3 to
    the user with accession + species + disease and ask which one. Common
-   ambiguous queries: `293`, `SK`, `HCT`, `HEK`, `T-47`.
+   ambiguous queries: `293`, `SK`, `HCT`, `HEK`, `T-47`. In unattended mode
+   (SKILL.md Step 0), fill the row as for "nothing matches" below and record
+   the three candidates under `limitations`.
 
 If nothing matches:
 - Suggest the user check spelling, then offer ``format-rules.md` and `explaining.md` cell line "<name>"`
@@ -267,7 +269,9 @@ When the input is a `.sdrf.tsv` file:
 4. For each row, fill empty / `not available` Cellosaurus-derivable columns.
    **Do not overwrite** existing values that disagree with Cellosaurus —
    instead, surface them as conflicts and ask the user, exactly the way
-   `/sdrf-skills:sdrf-annotate <file.sdrf.tsv> (review mode)` does.
+   `/sdrf-skills:sdrf-annotate <file.sdrf.tsv> (review mode)` does. In
+   unattended mode (SKILL.md Step 0), keep the existing value and record the
+   conflict under `limitations`.
 5. If the SDRF lacks a needed column entirely (e.g.
    `characteristics[cellosaurus accession]`), insert it adjacent to
    `characteristics[cell line]` and re-emit the full TSV.
