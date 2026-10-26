@@ -76,7 +76,10 @@ jobs:
       - uses: nf-core/setup-nextflow@v2
         with:
           version: ${{ env.NXF_VER }}
+      # nf-test 0.9.3 calls functions as `f(*input)`, which the Nextflow 26 strict syntax rejects
       - uses: nf-core/setup-nf-test@v1
+        with:
+          version: 0.9.5
       - name: Run nf-test
         run: |
           nextflow secrets set LLM_KEY dummy
@@ -97,7 +100,10 @@ jobs:
       - uses: nf-core/setup-nextflow@v2
         with:
           version: ${{ env.NXF_VER }}
+      # nf-test 0.9.3 calls functions as `f(*input)`, which the Nextflow 26 strict syntax rejects
       - uses: nf-core/setup-nf-test@v1
+        with:
+          version: 0.9.5
       - name: Run nf-test
         env:
           LLM_KEY: ${{ secrets.LLM_KEY }}
