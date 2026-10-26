@@ -1,4 +1,4 @@
-# jonasscheid/nf-agent-sdrf: Changelog
+# bigbio/sdrf-agentic-annotator: Changelog
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -22,9 +22,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   `--confidence_gate` to flag low-confidence PASSes as `LOW_CONF` (still accepted).
 - `--models_json` to add an OpenAI-compatible gateway as a pi provider.
 - `--max_fetch_bytes`: the agents do not download remote files above this size.
+- `singularity` and `apptainer` profiles: run the pi agent runner image under
+  Singularity/Apptainer on an HPC cluster without root, with the same `--models_json`
+  bind-mounting (`-B`) as the `docker` profile.
+- `--refine` refine mode: takes the existing SDRF for each PXD (from an optional `ref_sdrf`
+  path in the samplesheet, or fetched from bigbio/sdrf-annotated-datasets), re-annotates it
+  seeded on that baseline, runs the same coverage + adversarial review on both, and only accepts
+  the refined version if it is strictly better (verdict/confidence + coverage not worse);
+  otherwise it keeps the original. Adds `SDRF_REFINE`, `SDRF_FETCH_BASELINE` and `REFINE_VERDICT`,
+  `refine_summary.tsv` and `<PXD>.refine_verdict.json`.
 
 ### `Changed`
 
+- Documentation rewritten to make per-provider API keys clear: one `LLM_KEY` secret is
+  delivered to the runner over RPC, and what its value must be depends on the provider type
+  (a built-in provider key such as Google, or an OpenAI-compatible gateway token such as the
+  EBI AI Gateway). Includes worked examples for both.
+- Repository and manifest renamed from `jonasscheid/nf-agent-sdrf` to
+  `bigbio/sdrf-agentic-annotator`.
+- Runner image relocated from `ghcr.io/jonasscheid/nf-agent-sdrf:dev` to
+  `ghcr.io/bigbio/sdrf-agentic-annotator:dev`; CI publishes the new path on merge
+  (`.github/workflows/docker.yml` pushes to `ghcr.io/<repo>`).
 - The runner image clones bigbio/sdrf-skills at a fixed commit and no longer needs a copy of the bundle in the repo.
 - Workflow outputs are copied, not linked, to `--outdir`.
 - bigbio/sdrf-skills `ebf95fb` in the runner image and the module skills, with curated uveal-melanoma cell lines.

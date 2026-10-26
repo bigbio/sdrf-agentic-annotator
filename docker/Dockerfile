@@ -27,6 +27,13 @@ ENV PATH=/opt/venv/bin:$PATH \
 WORKDIR /opt/nf-agent-pi
 ENTRYPOINT []
 
+# This image is published to ghcr.io/bigbio/sdrf-agentic-annotator by
+# .github/workflows/docker.yml (it pushes to ghcr.io/<repo>, i.e. this repo's
+# path). Any change under docker/ re-triggers that workflow on merge and
+# re-publishes the `dev` / semver tags there. Update this label if you move it.
+LABEL org.opencontainers.image.title="bigbio/sdrf-agentic-annotator runner image" \
+      org.opencontainers.image.source="https://github.com/bigbio/sdrf-agentic-annotator"
+
 # pi resolves extra OpenAI-compatible providers from $PI_CODING_AGENT_DIR/models.json.
 # The agent task runs as an arbitrary non-root uid (Nextflow `-u $(id -u):$(id -g)`), and the
 # image HOME (`/`) is not writable, so we provide a config dir and point PI_CODING_AGENT_DIR at it.

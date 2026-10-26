@@ -1,7 +1,7 @@
 {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "https://raw.githubusercontent.com/jonasscheid/nf-agent-sdrf/main/assets/schema_input.json",
-    "title": "jonasscheid/nf-agent-sdrf pipeline - params.input schema",
+    "$id": "https://raw.githubusercontent.com/bigbio/sdrf-agentic-annotator/main/assets/schema_input.json",
+    "title": "bigbio/sdrf-agentic-annotator pipeline - params.input schema",
     "description": "Schema for the file provided with params.input",
     "type": "array",
     "items": {
@@ -11,6 +11,14 @@
                 "type": "string",
                 "pattern": "^PXD\\d{6}$",
                 "errorMessage": "PXD accession must be 'PXD' followed by six digits, for example PXD074155"
+            },
+            "ref_sdrf": {
+                "type": "string",
+                "format": "file-path",
+                "exists": true,
+                "default": "",
+                "description": "Optional absolute path to an existing, already-published SDRF to refine (refine mode only). When empty, the pipeline fetches the existing SDRF from bigbio/sdrf-annotated-datasets by PXD.",
+                "errorMessage": "ref_sdrf, when provided, must be an existing absolute path to a .sdrf.tsv file"
             }
         },
         "required": ["pxd"]

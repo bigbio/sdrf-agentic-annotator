@@ -23,6 +23,37 @@ workflow PIPELINE_INITIALISATION {
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SUBWORKFLOW TO INITIALISE REFINE MODE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Samplesheet for `--refine` carries two columns: `pxd` (required) and `ref_sdrf` (optional
+absolute path to an existing, already-published SDRF to refine). When `ref_sdrf` is empty the
+pipeline fetches the existing SDRF from bigbio/sdrf-annotated-datasets instead.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+workflow PIPELINE_REFINE_INITIALISATION {
+    take:
+    input // string: path to the samplesheet
+
+    main:
+    validateParameters()
+    log.info(paramsSummaryLog(workflow))
+
+    ch_rows = channel.fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
+        .map { row ->
+            // nf-schema returns a Map per row (keyed by column); tolerate a bare list too.
+            def r = (row instanceof Map)
+                ? [pxd: row.pxd, ref_sdrf: row.ref_sdrf]
+                : [pxd: row[0], ref_sdrf: (row.size() >= 2 ? row[1] : null)]
+            record(pxd: r.pxd as String, ref_sdrf: (r.ref_sdrf ? r.ref_sdrf as String : null))
+        }
+
+    emit:
+    rows = ch_rows
+}
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SUBWORKFLOW FOR PIPELINE COMPLETION
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */

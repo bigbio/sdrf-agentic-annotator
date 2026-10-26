@@ -1,4 +1,4 @@
-# jonasscheid/nf-agent-sdrf: Usage
+# bigbio/sdrf-agentic-annotator: Usage
 
 ## Samplesheet input
 
@@ -12,37 +12,112 @@ PXD058436
 
 Each accession must be unique. The pipeline validates the file against [assets/schema_input.json](../assets/schema_input.json) before it starts.
 
-## API key
+## Refine mode
 
-The agents read the API key from the Nextflow secret `LLM_KEY`:
+Refine mode (`--refine`) takes an SDRF that already exists in
+[bigbio/sdrf-annotated-datasets](https://github.com/bigbio/sdrf-annotated-datasets) and tries to
+produce a better-annotated version — but it only accepts the refined SDRF if, scored by the same
+independent adversarial review as the baseline, it is strictly better. Otherwise it keeps the
+original.
+
+The refine samplesheet carries the same `pxd` column plus an optional `ref_sdrf` column (an
+absolute path to the existing SDRF for that PXD):
+
+```csv
+pxd,ref_sdrf
+PXD074155,/data/PXD074155.sdrf.tsv
+PXD058436,
+```
+
+When `ref_sdrf` is empty, a fetch agent downloads the existing SDRF from
+`bigbio/sdrf-annotated-datasets` by PXD (the `ref_sdrf` path wins when both are given).
+
+Run it exactly like annotate mode, with `--refine`:
+
+```bash
+nextflow run bigbio/sdrf-agentic-annotator -profile docker \
+    --input refine.csv --outdir <OUTDIR> --refine \
+    --api_provider google --model google/gemini-3.5-flash-lite
+```
+
+How refine mode works:
+
+1. **Baseline acquisition** — each row's baseline SDRF comes from `ref_sdrf`, or is fetched from
+   `sdrf-annotated-datasets` by PXD.
+2. **Seeded re-annotation** — the `SDRF_REFINE` agent treats the existing SDRF as the baseline to
+   beat. It re-annotates from fresh evidence (PRIDE, Europe PMC, Cellosaurus, OLS), filling gaps
+   and fixing values only when a source supports it, and validates the result. It also writes a
+   baseline evidence manifest that traces the *existing* SDRF's values to sources (or lists them
+   under limitations), so the baseline is scored on the same terms as the refined version.
+3. **Same review for both** — the pipeline runs the deterministic `SDRF_COVERAGE` precheck and the
+   independent `SDRF_REVIEW` on the baseline and on the refined SDRF.
+4. **Acceptance gate** — a refined SDRF is accepted only when all of these hold:
+   - the refined review verdict is `PASS`,
+   - the refined coverage is measurable and not worse than the baseline's, and
+   - either the baseline did not `PASS` (FAIL → PASS) or the refined confidence is strictly
+     higher.
+   Otherwise the existing SDRF is kept. The per-PXD decision is written to
+   `<PXD>.refine_verdict.json` and summarised in `refine_summary.tsv` (see
+   [docs/output.md](docs/output.md)).
+
+The `--revise` option applies to the refined version: if its first review fails, `SDRF_REVISE`
+fixes it once and it is re-reviewed before the gate, exactly as in annotate mode.
+
+## API keys and providers
+
+The agents talk to a language model through Nextflow's `pi` runner, which runs inside the
+container image. The API key never lands on disk, in the repository, or in the task
+environment: the Nextflow driver passes it to the runner over an RPC channel at run time.
+
+You register exactly one key, the Nextflow secret `LLM_KEY`, and tell the pipeline which
+provider it belongs to with `--api_provider`:
 
 ```bash
 nextflow secrets set LLM_KEY <your-api-key>
 ```
 
-Nextflow keeps secrets in `~/.nextflow/secrets`, outside the project folder. To keep the key out of your shell history, put a space before the command.
+Nextflow keeps secrets in `~/.nextflow/secrets`, outside the project folder. To keep the key
+out of your shell history, put a space before the command.
 
-## LLM provider and model
+### What your key actually is depends on the provider type
 
-| Parameter | Default | Description |
-|---|---|---|
-| `--model` | `google/gemini-3.5-flash-lite` | Model as `<provider>/<model>`. |
-| `--api_provider` | `google` | Provider of the key in `LLM_KEY`. |
-| `--revise` | `true` | Revise an SDRF when its review fails, then review it again. |
-| `--max_revise` | `1` | Maximum revise -> re-review rounds a dataset may go through (bounded escalation). |
-| `--max_parallel` | `0` | Max agent tasks that run concurrently across the batch; `0` = unlimited. Lower it to reduce resource contention. |
-| `--models_json` | none | Absolute path to a pi `models.json` that adds an OpenAI-compatible gateway as a provider. Works with the `docker` profile only. |
-| `--max_fetch_bytes` | `524288000` | The agents do not download a remote file larger than this number of bytes. |
+| Provider type | `--api_provider` | `LLM_KEY` value | `models.json` needed? |
+|---|---|---|---|
+| Built-in provider (Google, OpenAI, Anthropic, OpenRouter, ...) | the provider name, e.g. `google` | the key that provider issues you (e.g. a Google AI Studio API key) | No — pi ships their config |
+| OpenAI-compatible gateway (your org's gateway, e.g. the EBI AI Gateway) | the gateway name you register in `models.json`, e.g. `ebi` | the bearer/API token the gateway issues you | Yes — register the gateway once |
 
-### OpenAI-compatible gateway
+> [!NOTE]
+> `--model` is `<provider>/<model>`. The `<provider>` prefix must be the same value you pass
+> to `--api_provider` — for a built-in provider it is the built-in provider name, and for a
+> gateway it is the provider key from your `models.json`.
 
-To use a model on an OpenAI-compatible gateway, write a pi `models.json` file. Keep this file outside the repository, for example in `runtime/`. Git ignores `runtime/`.
+### Container profile: docker vs singularity
+
+The agents run in the runner image, so you need a container engine. On a machine with Docker
+use `-profile docker`; on an HPC cluster without root use `-profile singularity` (or
+`-profile apptainer`). The provider and key setup below is identical whatever profile you use.
+
+### Example A — Google Gemini (built-in provider)
+
+```bash
+nextflow secrets set LLM_KEY <google-ai-studio-api-key>
+nextflow run bigbio/sdrf-agentic-annotator -profile docker \
+    --input samplesheet.csv --outdir <OUTDIR> \
+    --api_provider google --model google/gemini-3.5-flash-lite
+```
+
+### Example B — EBI AI Gateway (OpenAI-compatible gateway)
+
+Many organisations (including the EBI) front several models behind one OpenAI-compatible
+gateway. You register that gateway once in a pi `models.json`, then point the pipeline at it.
+Keep the file outside the repository, for example in `runtime/` (git ignores `runtime/`). Do
+**not** put the API key in this file — it is delivered from the `LLM_KEY` secret at run time:
 
 ```json
 {
   "providers": {
-    "mygateway": {
-      "baseUrl": "https://gateway.example.org/v1",
+    "ebi": {
+      "baseUrl": "https://api.ebi.ac.uk/<your-gateway>/v1",
       "api": "openai-completions",
       "models": [
         { "id": "openai/DeepSeek-V4-Flash-0731" }
@@ -52,18 +127,26 @@ To use a model on an OpenAI-compatible gateway, write a pi `models.json` file. K
 }
 ```
 
-The key of the provider, here `mygateway`, is the provider name. The model `id` must be the model string that the gateway expects. Do not put the API key in this file. The agents get the key from the `LLM_KEY` secret.
-
-Give the file with `--models_json`. Use the provider name in `--model` and `--api_provider`:
+- The provider key (`ebi`) is the value you pass to `--api_provider` and to the `<provider>`
+  prefix of `--model`.
+- The model `id` is the literal string your gateway expects; it is exactly what is sent to the
+  base URL, so it must match your gateway's model name.
+- `LLM_KEY` is the token your gateway issues you.
 
 ```bash
-nextflow run jonasscheid/nf-agent-sdrf -profile docker --input samplesheet.csv --outdir <OUTDIR> \
+nextflow secrets set LLM_KEY <ebi-gateway-token>
+nextflow run bigbio/sdrf-agentic-annotator -profile docker \
+    --input samplesheet.csv --outdir <OUTDIR> \
     --models_json $PWD/runtime/models.json \
-    --model mygateway/openai/DeepSeek-V4-Flash-0731 \
-    --api_provider mygateway
+    --model ebi/openai/DeepSeek-V4-Flash-0731 \
+    --api_provider ebi
 ```
 
-The `docker` profile mounts the file read-only at `/opt/pi-config/models.json` in the agent container. Without `--models_json`, the image uses [docker/models.json](../docker/models.json). This file has no providers, so pi uses only its built-in models. For all `models.json` fields, see the [pi model documentation](https://pi.dev/docs/latest/models).
+Every profile that can run the agent container bind-mounts `--models_json` read-only at
+`/opt/pi-config/models.json` (docker uses `-v`, singularity/apptainer use `-B`). Without
+`--models_json`, the image uses [docker/models.json](../docker/models.json), which registers no
+providers, so pi uses only its built-in models. For all `models.json` fields, see the [pi model
+documentation](https://pi.dev/docs/latest/models).
 
 ### Large remote files
 
@@ -117,20 +200,41 @@ Quotas are per model, so a different model has its own quota. Keys that start wi
 
 ## Profiles
 
+Pick exactly one container profile (`docker`, `singularity` or `apptainer`), plus optionally
+`test`. The runners are the same in every case; only the container engine differs.
+
 | Profile | Description |
 |---|---|
-| `docker` | Runs the agents in the runner image `ghcr.io/jonasscheid/nf-agent-sdrf`. Required. |
-| `test` | Annotates one PXD from [assets/samplesheet.csv](../assets/samplesheet.csv). Needs `LLM_KEY`. |
+| `docker` | Run the agents in the runner image `ghcr.io/bigbio/sdrf-agentic-annotator` with Docker. Suitable for a local machine or CI. |
+| `singularity` | Run the same runner image with Singularity (no root, no daemon). For HPC clusters. Requires Singularity on the execution node. |
+| `apptainer` | Same as `singularity`, using Apptainer (the renamed Singularity). |
+| `test` | Annotates one PXD from [assets/samplesheet.csv](../assets/samplesheet.csv). Needs `LLM_KEY`. Combine with a container profile, e.g. `-profile test,docker`. |
 
 ## Runner image
 
-[docker/Dockerfile](../docker/Dockerfile) builds the runner image. It adds `sdrf-tools`, `parse_sdrf` and the sdrf-skills bundle at a fixed commit to the pi runner image. GitHub Actions builds and pushes the image to `ghcr.io/jonasscheid/nf-agent-sdrf`. To build it locally:
+[docker/Dockerfile](../docker/Dockerfile) builds the runner image. It adds `sdrf-tools`,
+`parse_sdrf` and the sdrf-skills bundle at a fixed commit to the pi runner image. GitHub
+Actions builds and pushes the image to `ghcr.io/bigbio/sdrf-agentic-annotator`. To build it
+locally:
 
 ```bash
-docker build -t ghcr.io/jonasscheid/nf-agent-sdrf:dev docker/
+docker build -t ghcr.io/bigbio/sdrf-agentic-annotator:dev docker/
 ```
 
-The skills in `modules/local/*/skills/` must have the same commit as `SDRF_SKILLS_REF` in the Dockerfile. Nextflow cannot load them from bigbio/sdrf-skills yet (see [#1](https://github.com/jonasscheid/nf-agent-sdrf/issues/1)).
+The image is an OCI/Docker image. Under the `singularity`/`apptainer` profiles, the first use
+pulls it from the registry and converts it to a SIF; set `NXF_SINGULARITY_CACHEDIR` (or
+`NXF_APPTAINER_CACHEDIR`) to a shared directory so every compute node reuses that pull. If your
+cluster cannot reach the registry, build a SIF once with
+
+```bash
+singularity build sdrf-agentic-annotator.sif docker://ghcr.io/bigbio/sdrf-agentic-annotator:dev
+```
+
+and point the profile at it, or add the cached pull into the shared cache directory.
+
+The skills in `modules/local/*/skills/` must have the same commit as `SDRF_SKILLS_REF` in the
+Dockerfile. Nextflow cannot load them from bigbio/sdrf-skills yet (see
+[#1](https://github.com/jonasscheid/nf-agent-sdrf/issues/1)).
 
 ## Agent traces
 

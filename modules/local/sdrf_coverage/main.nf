@@ -26,7 +26,7 @@ process SDRF_COVERAGE {
 
     tag "${pxd}"
 
-    container 'ghcr.io/jonasscheid/nf-agent-sdrf:dev'
+    container 'ghcr.io/bigbio/sdrf-agentic-annotator:dev'
 
     cpus 1
     memory '2 GB'

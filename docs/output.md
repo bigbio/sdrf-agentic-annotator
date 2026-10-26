@@ -1,4 +1,4 @@
-# jonasscheid/nf-agent-sdrf: Output
+# bigbio/sdrf-agentic-annotator: Output
 
 The pipeline writes all files to `--outdir`.
 
@@ -27,3 +27,26 @@ The pipeline writes all files to `--outdir`.
 | `revised/<PXD>.revision.md` | Each review finding, and what the revise agent changed for it or why it did not. |
 
 Use the SDRF in `revised/` when it exists. The pipeline logs a warning for each PXD whose final verdict is not `PASS`.
+
+### Refine mode
+
+With `--refine`, the output differs:
+
+```
+<outdir>/
+├── refine_summary.tsv
+└── <PXD>/
+    ├── <PXD>.refine_verdict.json     ← chosen SDRF, verdicts/confidence/coverage for both
+    └── <PXD>.sdrf.tsv                ← either the refined SDRF (accepted) or the existing one (kept)
+```
+
+| File | Content |
+|---|---|
+| `refine_summary.tsv` | One row per PXD: `baseline_verdict`, `refined_verdict`, `chosen` (`refined` or `baseline`), coverage and confidence for each version. |
+| `<PXD>.refine_verdict.json` | The full decision: `chosen`, `reason`, and the `baseline`/`refined` `verdict`, `confidence` and `coverage`. |
+| `<PXD>.sdrf.tsv` | The chosen SDRF — the refined one if the gate accepted it (`chosen: refined`), otherwise the existing SDRF (`chosen: baseline`). |
+
+The refined and baseline SDRFs, their evidence manifests, the per-version coverage and the two
+review reports are always produced inside the run's work directory; only the chosen outcome is
+published. `chosen: baseline` means the existing SDRF was kept because the refined version was
+not strictly better.
