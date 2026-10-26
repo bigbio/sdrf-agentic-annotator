@@ -45,7 +45,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   (`.github/workflows/docker.yml` pushes to `ghcr.io/<repo>`).
 - The runner image copies the bigbio/sdrf-skills bundle from `ghcr.io/bigbio/sdrf-skills:sha-5f5966b`
   instead of cloning it, and installs `sdrf-tools` and `parse_sdrf` at that image's package versions.
-  It sets `SDRF_SKILLS_ROOT` and ships the `parse_sdrf` ontology cache for offline, non-root runs.
+  It sets `SDRF_SKILLS_ROOT` and ships the `parse_sdrf` ontology cache for offline, non-root runs
+  ([#11](https://github.com/bigbio/sdrf-agentic-annotator/pull/11)).
 - Workflow outputs are copied, not linked, to `--outdir`.
 - bigbio/sdrf-skills `ebf95fb` in the runner image and the module skills, with curated uveal-melanoma cell lines.
 - The pipeline needs Nextflow 26.10.3 or later. In 26.10.0, `-preview` does not stop when the script has workflow outputs.
