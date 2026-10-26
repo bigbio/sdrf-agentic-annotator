@@ -6,10 +6,8 @@ IMPORT MODULES
 
 include { SDRF_FETCH_BASELINE } from '../modules/local/sdrf_fetch_baseline'
 include { SDRF_REFINE } from '../modules/local/sdrf_refine'
-include { SDRF_REVISE } from '../modules/local/sdrf_revise'
 include { SCORE_SDRF as SCORE_BASELINE } from '../subworkflows/local/score_sdrf'
-include { SCORE_SDRF as SCORE_REFINED } from '../subworkflows/local/score_sdrf'
-include { SCORE_SDRF as SCORE_REVISED } from '../subworkflows/local/score_sdrf'
+include { REVIEW_REVISE } from '../subworkflows/local/review_revise'
 include { verdictOf ; parseReview ; coverageFraction ; isBetter } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
@@ -68,21 +66,10 @@ workflow SDRF_REFINE_AGENT {
 
     // ---- baseline and refined score: coverage precheck + independent adversarial review ----
     ch_base_rev = SCORE_BASELINE(ch_refined.map { r -> record(pxd: r.pxd, sdrf: r.baseline_sdrf, manifest: r.baseline_manifest) }).review
-    ch_ref_rev = SCORE_REFINED(ch_refined).review
 
-    // ---- optional revise of the refined version if its review fails ----
-    ch_ref_pass = ch_ref_rev.filter { r -> verdictOf(r.review) == 'PASS' }
-    ch_ref_fail = ch_ref_rev.filter { r -> verdictOf(r.review) != 'PASS' }
-
-    ch_final_rev = channel.empty()
-    if (params.revise) {
-        ch_rev = SDRF_REVISE(ch_ref_fail.map { r -> record(pxd: r.pxd, sdrf: r.sdrf, manifest: r.manifest, review: r.review) })
-        ch_rev_view = SCORE_REVISED(ch_rev).review
-        ch_final_rev = ch_ref_pass.mix(ch_rev_view)
-    }
-    else {
-        ch_final_rev = ch_ref_pass
-    }
+    // The refined SDRF gets one revise round if its review fails. Without revise, only a PASS can compete.
+    REVIEW_REVISE(ch_refined, params.revise ? 1 : 0)
+    ch_final_rev = REVIEW_REVISE.out.last_review.filter { r -> params.revise || verdictOf(r.review) == 'PASS' }
 
     // ---- acceptance gate: accept refined only if strictly better ----
     ch_decision = ch_base_rev
