@@ -77,7 +77,7 @@ See [docs/usage.md](docs/usage.md) for all options and [docs/output.md](docs/out
 bigbio/sdrf-agentic-annotator was originally written by Jonas Scheid (as
 jonasscheid/nf-agent-sdrf) and is maintained in the bigbio organisation. The annotation and
 review logic comes from [bigbio/sdrf-skills](https://github.com/bigbio/sdrf-skills). The skills
-in `modules/local/*/skills/` are copies of bigbio/sdrf-skills at commit `ebf95fb`, under the
-MIT licence in the `LICENSE` file next to them.
+in `modules/local/*/skills/` are copies of bigbio/sdrf-skills (`sdrf_annotate` and `sdrf_review`
+at commit `5f5966b`), under the MIT licence in the `LICENSE` file next to them.
 
 The pipeline structure follows the [nf-core](https://nf-co.re) guidelines, but it is not an nf-core pipeline.

@@ -3,18 +3,19 @@
 # SDRF Setup Workflow
 
 > **Bundle paths.** `spec/`, `tools/` and `data/` ship with this skill, not with your working
-> directory. Resolve every such path below against the bundle root — `$CLAUDE_PLUGIN_ROOT` under
-> Claude Code (`$CLAUDE_PLUGIN_ROOT/spec/sdrf-proteomics/TERMS.tsv`), or your sdrf-skills checkout
-> on other platforms. The helpers are the `sdrf-tools` command, installed by ``sdrf-tools doctor` (install notes: `setup.md`)`; no `PYTHONPATH` or plugin-root variable is needed to run them.
+> directory. Resolve every such path below against the bundle root (`SDRF_SKILLS_ROOT`, else
+> `CLAUDE_PLUGIN_ROOT`, else your sdrf-skills checkout): `${SDRF_SKILLS_ROOT:-${CLAUDE_PLUGIN_ROOT}}/spec/sdrf-proteomics/TERMS.tsv`.
+> The helpers are the `sdrf-tools` command (install notes: `setup.md`; check with `sdrf-tools doctor`); no `PYTHONPATH` or bundle-root variable is needed to run them.
 > Files the user is annotating stay relative to the working directory.
 
 You are guiding the user through installing SDRF skills dependencies. Follow these steps.
 
-**In Cursor**: The user invokes this by asking "install SDRF dependencies" or similar (no ``sdrf-tools doctor` (install notes: `setup.md`)` slash command). Ensure `environment.yml` and `requirements.txt` exist at the workspace root; if not, suggest cloning the full sdrf-skills repo or copying those files.
+**In Cursor**: The user invokes this by asking "install SDRF dependencies" or similar (no ``sdrf-tools doctor` (install notes: `setup.md`)` slash command). Install from a full sdrf-skills checkout (`git clone --recurse-submodules https://github.com/bigbio/sdrf-skills`). Copying `environment.yml` or `requirements.txt` alone does not work, because both install the package from that checkout.
 
 ## Step 1: Detect Available Package Managers
 
-Check which package managers are available (run these in the terminal or ask the user):
+Check which package managers are available (run these in the terminal or ask the user;
+in unattended mode, SKILL.md Step 0, run them yourself):
 
 ```bash
 command -v conda && conda --version
@@ -37,7 +38,6 @@ Based on what's available, output the exact commands the user should run.
 # From the sdrf-skills project directory:
 conda env create -f environment.yml
 conda activate sdrf-skills
-pip install -e .            # the sdrf-tools console script (contract, build, check, fix, ...)
 ```
 
 If using **mamba** (faster):
@@ -52,9 +52,13 @@ conda activate sdrf-skills
 # From the sdrf-skills project directory:
 python -m venv .venv
 source .venv/bin/activate   # On Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-pip install -e .            # the sdrf-tools console script (contract, build, check, fix, ...)
+pip install -r requirements.txt   # the sdrf-tools console script + the bundled MCP server's deps
 ```
+
+`requirements.txt` installs the package with its `[mcp]` extra (`pip install -e '.[mcp]'`). Without
+the bundled MCP server, for example in a pipeline, `pip install -e .` installs only the core:
+`sdrf-tools`, `sdrf-pipelines` and their dependencies. Keep the install editable: the tools read
+`spec/` and `data/` from the checkout.
 
 Afterwards `sdrf-tools --help` must work from any directory; the skills call it that way, with no
 `PYTHONPATH` and no plugin-root variable.
@@ -71,14 +75,17 @@ uv pip install -r requirements.txt
 
 ## Step 3: Verify Installation
 
-After the user runs the commands, ask them to verify:
+After the user runs the commands, ask them to verify (in unattended mode, install nothing
+and do not wait: run the checks below yourself, report what is missing, and continue as
+SKILL.md Step 0 says):
 
 ```bash
+sdrf-tools --help
 parse_sdrf --version
 techsdrf --version
 ```
 
-If both succeed, setup is complete.
+If all three succeed, setup is complete.
 
 ## Step 4: Optional — Spec Submodule
 
@@ -100,10 +107,10 @@ not in the user's project. Resolve the directory first and show the user the rea
 ```bash
 echo "$CLAUDE_PLUGIN_ROOT"
 uv venv "$CLAUDE_PLUGIN_ROOT/.venv"
-uv pip install --python "$CLAUDE_PLUGIN_ROOT/.venv/bin/python" -r "$CLAUDE_PLUGIN_ROOT/requirements.txt"
+uv pip install --python "$CLAUDE_PLUGIN_ROOT/.venv/bin/python" -e "$CLAUDE_PLUGIN_ROOT[mcp]"
 ```
 
-(`python -m venv` + `pip install -r` works the same way if `uv` is unavailable.) Tell the user a
+(`python -m venv` + `pip install -e "$CLAUDE_PLUGIN_ROOT[mcp]"` works the same way if `uv` is unavailable.) Tell the user a
 plugin upgrade replaces that directory, so the venv has to be re-created afterwards. Without it the
 `sdrf-pride-pmc` server just fails to connect — the skills fall back to their other sources.
 
@@ -132,7 +139,7 @@ Provide a clear summary:
 
 ## If User Passes "check"
 
-When the user invokes ``sdrf-tools doctor` (install notes: `setup.md`) check`, run the verification step and report status:
+When the user invokes `sdrf-tools doctor`, run the verification step and report status:
 - parse_sdrf: ✓ or ✗
 - techsdrf: ✓ or ✗
 - spec/ submodule: present and init'd or not
