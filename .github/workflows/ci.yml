@@ -40,6 +40,25 @@ jobs:
           nextflow config -profile test,singularity . > /dev/null
           nextflow config -profile test,apptainer . > /dev/null
 
+  unit:
+    name: Unit tests
+    # Tests of helpers and channel logic that run no agent, so they need no API key
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: nf-core/setup-nextflow@v2
+        with:
+          version: ${{ env.NXF_VER }}
+      - uses: nf-core/setup-nf-test@v1
+      - name: Run nf-test
+        run: |
+          nextflow secrets set LLM_KEY dummy
+          nf-test test --tag unit --verbose
+
   test:
     name: Pipeline test
     # Runs the agents, so it needs a real API key in the repository secret LLM_KEY
@@ -61,4 +80,4 @@ jobs:
           LLM_KEY: ${{ secrets.LLM_KEY }}
         run: |
           nextflow secrets set LLM_KEY "$LLM_KEY"
-          nf-test test --profile=+docker --verbose
+          nf-test test --tag pipeline --profile=+docker --verbose

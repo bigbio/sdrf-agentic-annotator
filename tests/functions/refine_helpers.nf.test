@@ -1,0 +1,153 @@
+nextflow_function {
+
+    name "Test the refine helpers"
+    script "workflows/sdrf_refine_agent.nf"
+    tag "unit"
+
+    test("parseReview reads verdict and confidence") {
+        function "parseReview"
+        when {
+            function {
+                """
+                input[0] = file("${projectDir}/tests/data/review_fail.json")
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert function.result.verdict == 'FAIL' },
+                { assert Math.abs(function.result.conf - 0.4) < 1e-6 }
+            )
+        }
+    }
+
+    test("parseCoverage reads the fraction") {
+        function "parseCoverage"
+        when {
+            function {
+                """
+                input[0] = file("${projectDir}/tests/data/coverage.json")
+                """
+            }
+        }
+        then {
+            assert function.result == 1.0
+        }
+    }
+
+    test("parseCoverage gives null for a coverage error") {
+        function "parseCoverage"
+        when {
+            function {
+                """
+                input[0] = file("${projectDir}/tests/data/coverage_error.json")
+                """
+            }
+        }
+        then {
+            assert function.result == null
+        }
+    }
+
+    test("isBetter: a refined FAIL is never better") {
+        function "isBetter"
+        when {
+            function {
+                """
+                input[0] = [verdict: 'FAIL', conf: 0.2]
+                input[1] = [verdict: 'FAIL', conf: 0.9]
+                input[2] = 0.5
+                input[3] = 1.0
+                """
+            }
+        }
+        then {
+            assert function.result == false
+        }
+    }
+
+    test("isBetter: refined without coverage is not better") {
+        function "isBetter"
+        when {
+            function {
+                """
+                input[0] = [verdict: 'FAIL', conf: 0.2]
+                input[1] = [verdict: 'PASS', conf: 0.9]
+                input[2] = 0.5
+                input[3] = null
+                """
+            }
+        }
+        then {
+            assert function.result == false
+        }
+    }
+
+    test("isBetter: lower refined coverage is not better") {
+        function "isBetter"
+        when {
+            function {
+                """
+                input[0] = [verdict: 'FAIL', conf: 0.2]
+                input[1] = [verdict: 'PASS', conf: 0.9]
+                input[2] = 1.0
+                input[3] = 0.8
+                """
+            }
+        }
+        then {
+            assert function.result == false
+        }
+    }
+
+    test("isBetter: FAIL to PASS with equal coverage is better") {
+        function "isBetter"
+        when {
+            function {
+                """
+                input[0] = [verdict: 'FAIL', conf: 0.9]
+                input[1] = [verdict: 'PASS', conf: 0.5]
+                input[2] = 1.0
+                input[3] = 1.0
+                """
+            }
+        }
+        then {
+            assert function.result == true
+        }
+    }
+
+    test("isBetter: two PASSes need a higher refined confidence") {
+        function "isBetter"
+        when {
+            function {
+                """
+                input[0] = [verdict: 'PASS', conf: 0.8]
+                input[1] = [verdict: 'PASS', conf: 0.8]
+                input[2] = null
+                input[3] = 1.0
+                """
+            }
+        }
+        then {
+            assert function.result == false
+        }
+    }
+
+    test("isBetter: two PASSes with a higher refined confidence is better") {
+        function "isBetter"
+        when {
+            function {
+                """
+                input[0] = [verdict: 'PASS', conf: 0.7]
+                input[1] = [verdict: 'PASS', conf: 0.8]
+                input[2] = 1.0
+                input[3] = 1.0
+                """
+            }
+        }
+        then {
+            assert function.result == true
+        }
+    }
+}
