@@ -13,6 +13,7 @@ include { SDRF_COVERAGE as SDRF_COVERAGE_REV1 } from '../modules/local/sdrf_cove
 include { SDRF_COVERAGE as SDRF_COVERAGE_REV2 } from '../modules/local/sdrf_coverage'
 include { SDRF_REVISE as SDRF_REVISE_REV2 } from '../modules/local/sdrf_revise'
 include { SDRF_REVIEW as SDRF_REVIEW_REVISED_REV2 } from '../modules/local/sdrf_review'
+include { verdictOf ; confidenceOf ; coverageOf } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -167,31 +168,4 @@ workflow SDRF_SUMMARY {
 
     emit:
     summary = ch_summary
-}
-
-def verdictOf(review) {
-    return new groovy.json.JsonSlurper().parse(review.toFile()).verdict ?: 'FAIL'
-}
-
-def confidenceOf(review) {
-    try {
-        def c = new groovy.json.JsonSlurper().parse(review.toFile()).confidence
-        return c != null ? c as Float : -1.0
-    }
-    catch (_e: Exception) {
-        return -1.0
-    }
-}
-
-def coverageOf(coverage) {
-    if (!coverage) {
-        return 'n/a'
-    }
-    try {
-        def c = new groovy.json.JsonSlurper().parse(coverage.toFile())
-        return c.error ? 'unverifiable' : (c.fraction != null ? c.fraction as String : 'n/a')
-    }
-    catch (_e: Exception) {
-        return 'n/a'
-    }
 }

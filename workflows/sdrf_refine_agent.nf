@@ -6,15 +6,14 @@ IMPORT MODULES
 
 include { SDRF_FETCH_BASELINE } from '../modules/local/sdrf_fetch_baseline'
 include { SDRF_REFINE } from '../modules/local/sdrf_refine'
-include { SDRF_REVIEW } from '../modules/local/sdrf_review'
 include { SDRF_REVIEW as SDRF_REVIEW_BASELINE } from '../modules/local/sdrf_review'
 include { SDRF_REVIEW as SDRF_REVIEW_REFINED } from '../modules/local/sdrf_review'
 include { SDRF_REVIEW as SDRF_REVIEW_REFV2 } from '../modules/local/sdrf_review'
-include { SDRF_COVERAGE } from '../modules/local/sdrf_coverage'
 include { SDRF_COVERAGE as SDRF_COVERAGE_BASELINE } from '../modules/local/sdrf_coverage'
 include { SDRF_COVERAGE as SDRF_COVERAGE_REFINED } from '../modules/local/sdrf_coverage'
 include { SDRF_COVERAGE as SDRF_COVERAGE_REFV2 } from '../modules/local/sdrf_coverage'
 include { SDRF_REVISE } from '../modules/local/sdrf_revise'
+include { verdictOf ; parseReview ; coverageFraction ; isBetter } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -111,12 +110,12 @@ workflow SDRF_REFINE_AGENT {
         .join(ch_final_rev.map { r -> tuple(r.pxd, r) }, remainder: true)
         .map { pxd, b, f ->
             def bv = parseReview(b.review)
-            def bc = parseCoverage(b.coverage)
+            def bc = coverageFraction(b.coverage)
             def reason = 'kept original (no improvement)'
             def chosen = 'baseline'
             if (f) {
                 def fv = parseReview(f.review)
-                def fc = parseCoverage(f.coverage)
+                def fc = coverageFraction(f.coverage)
                 chosen = isBetter(bv, fv, bc, fc) ? 'refined' : 'baseline'
                 reason = (chosen == 'refined')
                     ? 'refined passes and is strictly better (verdict/confidence, coverage not worse)'
@@ -190,53 +189,4 @@ workflow SDRF_REFINE_AGENT {
     decision = ch_decision
     verdict = ch_verdict
     summary = ch_summary
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-HELPERS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
-
-def parseReview(review) {
-    def j = new groovy.json.JsonSlurper().parse(review.toFile())
-    def c = j.confidence
-    return [verdict: j.verdict ?: 'FAIL', conf: (c != null ? (c as Float) : -1.0)]
-}
-
-def parseCoverage(coverage) {
-    if (!coverage) {
-        return null
-    }
-    try {
-        def j = new groovy.json.JsonSlurper().parse(coverage.toFile())
-        return (j.fraction != null) ? (j.fraction as Float) : null
-    }
-    catch (_e: Exception) {
-        return null
-    }
-}
-
-def verdictOf(review) {
-    return new groovy.json.JsonSlurper().parse(review.toFile()).verdict ?: 'FAIL'
-}
-
-// Accept the refined SDRF only if it is strictly better than the baseline:
-//   - refined must PASS the independent adversarial review,
-//   - refined coverage must be measurable and not worse than baseline,
-//   - and either the baseline did not PASS (FAIL -> PASS) or the refined confidence is higher.
-def isBetter(bv, fv, bc, fc) {
-    if (fv.verdict != 'PASS') {
-        return false
-    }
-    if (fc == null) {
-        return false
-    }
-    if (bc != null && fc < bc) {
-        return false
-    }
-    if (bv.verdict != 'PASS') {
-        return true
-    }
-    return fv.conf > bv.conf
 }

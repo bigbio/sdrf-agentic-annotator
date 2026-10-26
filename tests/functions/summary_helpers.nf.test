@@ -1,7 +1,7 @@
 nextflow_function {
 
     name "Test the summary helpers"
-    script "workflows/sdrf_agent.nf"
+    script "subworkflows/local/utils_sdrf_agent/main.nf"
     tag "unit"
 
     test("verdictOf reads the verdict") {

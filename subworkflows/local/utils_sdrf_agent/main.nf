@@ -95,3 +95,74 @@ workflow PIPELINE_COMPLETION {
         }
     }
 }
+
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+FUNCTIONS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
+
+// Parsed JSON file, or null when the file is missing or unreadable
+def readJson(json) {
+    if (!json) {
+        return null
+    }
+    try {
+        return new groovy.json.JsonSlurper().parse(json.toFile())
+    }
+    catch (_e: Exception) {
+        return null
+    }
+}
+
+def verdictOf(review) {
+    return readJson(review)?.verdict ?: 'FAIL'
+}
+
+def confidenceOf(review) {
+    try {
+        def c = readJson(review)?.confidence
+        return c != null ? c as Float : -1.0
+    }
+    catch (_e: Exception) {
+        return -1.0
+    }
+}
+
+def parseReview(review) {
+    return [verdict: verdictOf(review), conf: confidenceOf(review)]
+}
+
+// Run coverage for summary.tsv: the fraction, `unverifiable` after a coverage error, or `n/a`
+def coverageOf(coverage) {
+    def c = readJson(coverage)
+    if (c == null) {
+        return 'n/a'
+    }
+    return c.error ? 'unverifiable' : (c.fraction != null ? c.fraction as String : 'n/a')
+}
+
+def coverageFraction(coverage) {
+    def f = readJson(coverage)?.fraction
+    return f != null ? f as Float : null
+}
+
+// Accept the refined SDRF only if it is strictly better than the baseline:
+//   - refined must PASS the independent adversarial review,
+//   - refined coverage must be measurable and not worse than baseline,
+//   - and either the baseline did not PASS (FAIL -> PASS) or the refined confidence is higher.
+def isBetter(bv, fv, bc, fc) {
+    if (fv.verdict != 'PASS') {
+        return false
+    }
+    if (fc == null) {
+        return false
+    }
+    if (bc != null && fc < bc) {
+        return false
+    }
+    if (bv.verdict != 'PASS') {
+        return true
+    }
+    return fv.conf > bv.conf
+}

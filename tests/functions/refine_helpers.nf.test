@@ -1,7 +1,7 @@
 nextflow_function {
 
     name "Test the refine helpers"
-    script "workflows/sdrf_refine_agent.nf"
+    script "subworkflows/local/utils_sdrf_agent/main.nf"
     tag "unit"
 
     test("parseReview reads verdict and confidence") {
@@ -21,8 +21,8 @@ nextflow_function {
         }
     }
 
-    test("parseCoverage reads the fraction") {
-        function "parseCoverage"
+    test("coverageFraction reads the fraction") {
+        function "coverageFraction"
         when {
             function {
                 """
@@ -35,8 +35,8 @@ nextflow_function {
         }
     }
 
-    test("parseCoverage gives null for a coverage error") {
-        function "parseCoverage"
+    test("coverageFraction gives null for a coverage error") {
+        function "coverageFraction"
         when {
             function {
                 """
