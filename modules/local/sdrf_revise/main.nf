@@ -41,7 +41,8 @@ agent SDRF_REVISE {
     Revise the SDRF ${sdrf} for ${pxd}. Existing annotation: reannotate.
     The external review ${review} failed. Fix its findings. The evidence manifest is ${manifest}.
     Do not ask questions.
-    An external reviewer runs `sdrf-adversarial-review` in a separate pipeline task.
+    External reviewer: a separate pipeline task runs `sdrf-adversarial-review` in a fresh context.
+    Hand the Step 9.5 review off to it and give the status REVIEW_PENDING_EXTERNAL.
     Write the outputs to `revised/` with the default names. Name the report ${pxd}.revision.md: for
     each finding, say what you changed or why you did not.
     """
