@@ -49,7 +49,7 @@ How refine mode works:
 2. **Refinement** — the `SDRF_REFINE` agent runs the `sdrf-annotate` skill with
    `existing annotation: fix`. The skill audits the baseline and fixes its defects. The agent also
    fills omitted values that a source supports, and validates the result. It also writes a
-   baseline evidence manifest that traces the *existing* SDRF's values to sources (or lists them
+   baseline evidence manifest that traces the _existing_ SDRF's values to sources (or lists them
    under limitations), so the baseline is scored on the same terms as the refined version.
 3. **Same review for both** — the pipeline runs the deterministic `SDRF_COVERAGE` precheck and the
    independent `SDRF_REVIEW` on the baseline and on the refined SDRF. The pipeline copies the
@@ -60,6 +60,7 @@ How refine mode works:
    - the refined coverage is measurable and not worse than the baseline's, and
    - either the baseline did not `PASS` (FAIL → PASS) or the refined confidence is strictly
      higher.
+
    Otherwise the existing SDRF is kept. The per-PXD decision is written to
    `<PXD>.refine_verdict.json` and summarised in `refine_summary.tsv` (see
    [docs/output.md](docs/output.md)).
@@ -86,10 +87,10 @@ out of your shell history, put a space before the command.
 
 ### What your key actually is depends on the provider type
 
-| Provider type | `--api_provider` | `LLM_KEY` value | `models.json` needed? |
-|---|---|---|---|
-| Built-in provider (Google, OpenAI, Anthropic, OpenRouter, ...) | the provider name, e.g. `google` | the key that provider issues you (e.g. a Google AI Studio API key) | No — pi ships their config |
-| OpenAI-compatible gateway (your org's gateway, e.g. the EBI AI Gateway) | the gateway name you register in `models.json`, e.g. `ebi` | the bearer/API token the gateway issues you | Yes — register the gateway once |
+| Provider type                                                           | `--api_provider`                                           | `LLM_KEY` value                                                    | `models.json` needed?           |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------- |
+| Built-in provider (Google, OpenAI, Anthropic, OpenRouter, ...)          | the provider name, e.g. `google`                           | the key that provider issues you (e.g. a Google AI Studio API key) | No — pi ships their config      |
+| OpenAI-compatible gateway (your org's gateway, e.g. the EBI AI Gateway) | the gateway name you register in `models.json`, e.g. `ebi` | the bearer/API token the gateway issues you                        | Yes — register the gateway once |
 
 > [!NOTE]
 > `--model` is `<provider>/<model>`. The `<provider>` prefix must be the same value you pass
@@ -124,9 +125,7 @@ Keep the file outside the repository, for example in `runtime/` (git ignores `ru
     "ebi": {
       "baseUrl": "https://api.ebi.ac.uk/<your-gateway>/v1",
       "api": "openai-completions",
-      "models": [
-        { "id": "openai/DeepSeek-V4-Flash-0731" }
-      ]
+      "models": [{ "id": "openai/DeepSeek-V4-Flash-0731" }]
     }
   }
 }
@@ -165,10 +164,10 @@ deposited runs. `PXDXXX.coverage.json` is the `coverage` block of that report: `
 `annotated_runs`, `matched_runs`, `fraction`, `missing` and `invented`. The reviewer must fold
 this into its verdict:
 
-| Parameter | Default | Description |
-|---|---|---|
-| `--coverage_min` | `0.0` | If an SDRF annotates less than this fraction (0..1) of the deposited runs, the reviewer must treat it as an important finding unless the artifact honestly declares itself a subset. `0.0` = informational only (backward compatible). |
-| `--subset_mode` | `false` | Permit a clearly-declared representative subset (e.g. a huge DIA deposit) to be accepted instead of failing on under-representation. |
+| Parameter        | Default | Description                                                                                                                                                                                                                            |
+| ---------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--coverage_min` | `0.0`   | If an SDRF annotates less than this fraction (0..1) of the deposited runs, the reviewer must treat it as an important finding unless the artifact honestly declares itself a subset. `0.0` = informational only (backward compatible). |
+| `--subset_mode`  | `false` | Permit a clearly-declared representative subset (e.g. a huge DIA deposit) to be accepted instead of failing on under-representation.                                                                                                   |
 
 ### Confidence gating
 
@@ -176,39 +175,39 @@ Every review records a `confidence` (0..1). A PASS below the following gate, or
 without a confidence, is still accepted and passed on, but flagged `LOW_CONF` in
 `summary.tsv` so you can revisit it:
 
-| Parameter | Default | Description |
-|---|---|---|
-| `--confidence_gate` | `0.0` | Flag PASSes with confidence below this threshold as `LOW_CONF`. `0.0` = no gating. |
+| Parameter           | Default | Description                                                                        |
+| ------------------- | ------- | ---------------------------------------------------------------------------------- |
+| `--confidence_gate` | `0.0`   | Flag PASSes with confidence below this threshold as `LOW_CONF`. `0.0` = no gating. |
 
 ### Content FAIL vs infrastructure FAIL
 
-A dataset whose final review is `FAIL` is a *content* outcome (the SDRF did not
+A dataset whose final review is `FAIL` is a _content_ outcome (the SDRF did not
 survive review), not an infrastructure error. By default the pipeline publishes the
 outputs, logs a warning and completes normally. Only genuine task/infra errors fail
 tasks (which auto-retry via `conf/base.config`):
 
-| Parameter | Default | Description |
-|---|---|---|
+| Parameter               | Default | Description                                                                  |
+| ----------------------- | ------- | ---------------------------------------------------------------------------- |
 | `--exit_on_review_fail` | `false` | `true` makes the run exit non-zero when any dataset's final verdict is FAIL. |
 
 ### Revise rounds and parallelism
 
-| Parameter | Default | Description |
-|---|---|---|
-| `--revise` | `true` | Revise an SDRF whose review fails, then review it again. `--revise false` skips this. |
-| `--max_revise` | `1` | Number of revise rounds, `0` to `2`. A second round only runs for SDRFs whose first revision fails its review too. |
-| `--max_parallel` | `0` | Maximum number of concurrent tasks of each process (each agent, such as `SDRF_ANNOTATE`, and `SDRF_COVERAGE`). `0` keeps the default of 10. The limit is per process, not per run: several agent processes (annotate, review, revise) can each run that many tasks at once, so lower it further to stay within a provider's rate limit. |
+| Parameter        | Default | Description                                                                                                                                                                                                                                                                                                                             |
+| ---------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--revise`       | `true`  | Revise an SDRF whose review fails, then review it again. `--revise false` skips this.                                                                                                                                                                                                                                                   |
+| `--max_revise`   | `1`     | Number of revise rounds, `0` to `2`. A second round only runs for SDRFs whose first revision fails its review too.                                                                                                                                                                                                                      |
+| `--max_parallel` | `0`     | Maximum number of concurrent tasks of each process (each agent, such as `SDRF_ANNOTATE`, and `SDRF_COVERAGE`). `0` keeps the default of 10. The limit is per process, not per run: several agent processes (annotate, review, revise) can each run that many tasks at once, so lower it further to stay within a provider's rate limit. |
 
 ### Gemini free tier
 
 The free tier is enough to test one PXD. It is not enough for batches. Limits seen in October 2026:
 
-| Limit | Value | Effect |
-|---|---|---|
-| Requests per day, `gemini-3.5-flash` | 20 | One annotation uses more than 20 requests. Use `gemini-3.5-flash-lite`. |
-| Requests per minute, `gemini-3.5-flash` | 5 | 429 after about 10 tool calls. |
+| Limit                                            | Value   | Effect                                                                                                                                                                                                                          |
+| ------------------------------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Requests per day, `gemini-3.5-flash`             | 20      | One annotation uses more than 20 requests. Use `gemini-3.5-flash-lite`.                                                                                                                                                         |
+| Requests per minute, `gemini-3.5-flash`          | 5       | 429 after about 10 tool calls.                                                                                                                                                                                                  |
 | Input tokens per minute, `gemini-3.5-flash-lite` | 250,000 | 429 during long agent runs. pi does not retry Gemini 429s, so the task fails and Nextflow starts the agent again from the beginning (see [jonasscheid/nf-agent-sdrf#3](https://github.com/jonasscheid/nf-agent-sdrf/issues/3)). |
-| Overloaded models | 503 | pi retries without output, up to the retry settings in [conf/base.config](../conf/base.config). |
+| Overloaded models                                | 503     | pi retries without output, up to the retry settings in [conf/base.config](../conf/base.config).                                                                                                                                 |
 
 Quotas are per model, so a different model has its own quota. Keys that start with `AQ.` can fail with `401 ACCESS_TOKEN_TYPE_UNSUPPORTED`. If that happens, create a new key.
 
@@ -217,12 +216,12 @@ Quotas are per model, so a different model has its own quota. Keys that start wi
 Pick exactly one container profile (`docker`, `singularity` or `apptainer`), plus optionally
 `test`. The runners are the same in every case; only the container engine differs.
 
-| Profile | Description |
-|---|---|
-| `docker` | Run the agents in the runner image `ghcr.io/bigbio/sdrf-agentic-annotator` with Docker. Suitable for a local machine or CI. |
-| `singularity` | Run the same runner image with Singularity (no root, no daemon). For HPC clusters. Requires Singularity on the execution node. |
-| `apptainer` | Same as `singularity`, using Apptainer (the renamed Singularity). |
-| `test` | Annotates one PXD from [assets/samplesheet.csv](../assets/samplesheet.csv). Needs `LLM_KEY`. Combine with a container profile, e.g. `-profile test,docker`. |
+| Profile       | Description                                                                                                                                                 |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docker`      | Run the agents in the runner image `ghcr.io/bigbio/sdrf-agentic-annotator` with Docker. Suitable for a local machine or CI.                                 |
+| `singularity` | Run the same runner image with Singularity (no root, no daemon). For HPC clusters. Requires Singularity on the execution node.                              |
+| `apptainer`   | Same as `singularity`, using Apptainer (the renamed Singularity).                                                                                           |
+| `test`        | Annotates one PXD from [assets/samplesheet.csv](../assets/samplesheet.csv). Needs `LLM_KEY`. Combine with a container profile, e.g. `-profile test,docker`. |
 
 ## Runner image
 
@@ -233,10 +232,23 @@ copies the sdrf-skills bundle and the `parse_sdrf` ontology cache from the publi
 Python of the same version. The interpreter is not copied, because it needs a newer glibc than
 the pi image has.
 `SDRF_SKILLS_ROOT` and `CLAUDE_PLUGIN_ROOT` both point to `/opt/sdrf-skills`. GitHub Actions
-builds and pushes the image to `ghcr.io/bigbio/sdrf-agentic-annotator`. To build it locally:
+builds and pushes the image to `ghcr.io/bigbio/sdrf-agentic-annotator`. The pipeline pins the image
+by digest in [conf/base.config](../conf/base.config). Update the digest there when the image changes.
+To build the image locally:
 
 ```bash
 docker build -t ghcr.io/bigbio/sdrf-agentic-annotator:dev docker/
+```
+
+To use the local build, override the pinned image in a custom config (`-c local.config`):
+
+```groovy
+process {
+    withLabel: process_single {
+        container = 'ghcr.io/bigbio/sdrf-agentic-annotator:dev'
+    }
+}
+agent.container = 'ghcr.io/bigbio/sdrf-agentic-annotator:dev'
 ```
 
 The image is an OCI/Docker image. Under the `singularity`/`apptainer` profiles, the first use

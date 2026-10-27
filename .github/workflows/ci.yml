@@ -46,6 +46,29 @@ jobs:
           nextflow config -profile test,singularity . > /dev/null
           nextflow config -profile test,apptainer . > /dev/null
 
+  nf-core:
+    name: nf-core lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: nf-core/setup-nextflow@v2
+        with:
+          version: ${{ env.NXF_VER }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install nf-core tools at the version in .nf-core.yml
+        run: |
+          pip install "nf-core==$(sed -n 's/^nf_core_version: //p' .nf-core.yml)"
+      - name: Run nf-core pipelines lint
+        run: |
+          nextflow secrets set LLM_KEY dummy
+          nf-core pipelines lint --dir .
+
   unit:
     name: Unit tests
     # Samplesheet parsing and the summary and refine-gate channel logic.
@@ -93,4 +116,4 @@ jobs:
           LLM_KEY: ${{ secrets.LLM_KEY }}
         run: |
           nextflow secrets set LLM_KEY "$LLM_KEY"
-          nf-test test --profile=+docker --verbose
+          nf-test test --tag pipeline --profile=+docker --verbose

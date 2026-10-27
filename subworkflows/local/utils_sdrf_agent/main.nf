@@ -14,184 +14,13 @@ workflow PIPELINE_INITIALISATION {
     validateParameters()
     log.info(paramsSummaryLog(workflow))
 
-    ch_pxds = channel.fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
-        .map { row -> row[0] }
-
-    emit:
-    pxds = ch_pxds
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBWORKFLOW TO INITIALISE REFINE MODE
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Samplesheet for `--refine` carries two columns: `pxd` (required) and `ref_sdrf` (optional
-absolute path to an existing, already-published SDRF to refine). When `ref_sdrf` is empty the
-pipeline fetches the existing SDRF from bigbio/sdrf-annotated-datasets instead.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
-
-workflow PIPELINE_REFINE_INITIALISATION {
-    take:
-    input // string: path to the samplesheet
-
-    main:
-    validateParameters()
-    log.info(paramsSummaryLog(workflow))
-
     // samplesheetToList returns one list per row in schema column order (pxd, ref_sdrf), with
     // ref_sdrf as a Path. An empty or absent ref_sdrf comes back as an empty list.
-    ch_rows = channel.fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
+    ch_samplesheet = channel.fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
         .map { row -> record(pxd: row[0] as String, ref_sdrf: row[1] ?: null) }
 
     emit:
-    rows = ch_rows
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBWORKFLOW TO SUMMARISE ANNOTATE MODE
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-One row per PXD in summary.tsv. The final verdict comes from the latest review: revise
-round 2, else round 1, else the initial review.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
-
-workflow SUMMARISE_REVIEWS {
-    take:
-    ch_reviewed // records: pxd, review, coverage (initial review)
-    ch_rev1_view // records: pxd, review, coverage (review after revise round 1)
-    ch_rev2_view // records: pxd, review, coverage (review after revise round 2)
-
-    main:
-    // One join per round, so each join sees at most one item per PXD and key
-    ch_summary = ch_reviewed
-        .map { r -> tuple(r.pxd, r) }
-        .join(ch_rev1_view.map { r -> tuple(r.pxd, r) }, remainder: true)
-        .join(ch_rev2_view.map { r -> tuple(r.pxd, r) }, remainder: true)
-        .filter { _pxd, ini, _rev1, _rev2 -> ini }
-        .map { pxd, ini, rev1, rev2 ->
-            def last = rev2 ?: rev1 ?: ini
-            def review = readReview(last.review)
-            def verdict = gateVerdict(review.verdict, review.confidence, (params.confidence_gate as String).toDouble())
-            def coverage = readCoverage(last.coverage)
-            [pxd, readReview(ini.review).verdict, verdict, rev1 ? 'true' : 'false', review.confidence, coverageLabel(coverage)].join('\t')
-        }
-        .collectFile(
-            name: 'summary.tsv',
-            seed: 'pxd\tinitial_verdict\tfinal_verdict\trevised\tconfidence\tcoverage',
-            newLine: true,
-            sort: true,
-        )
-
-    emit:
-    summary = ch_summary
-}
-
-/*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SUBWORKFLOW FOR THE REFINE ACCEPTANCE GATE
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Accept the refined SDRF only if, on the same review, it is strictly better than the
-baseline (see isBetter). Emits one decision record per PXD with the chosen SDRF and its
-evidence manifest, review and coverage report, plus <pxd>.refine_verdict.json files and
-refine_summary.tsv.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- */
-
-workflow REFINE_DECISION {
-    take:
-    ch_base_rev // records: pxd, sdrf, manifest, coverage, review (baseline)
-    ch_final_rev // records: pxd, sdrf, manifest, coverage, review (latest review of the refined SDRF)
-
-    main:
-    ch_decision = ch_base_rev
-        .map { r -> tuple(r.pxd, r) }
-        .join(ch_final_rev.map { r -> tuple(r.pxd, r) }, remainder: true)
-        .filter { _pxd, b, _f -> b }
-        .map { pxd, b, f ->
-            def base = scoreOf(b)
-            def refined = f ? scoreOf(f) : null
-            def chosen = (refined && isBetter(base, refined)) ? 'refined' : 'baseline'
-            def reason = !refined
-                ? 'no refined review produced - kept existing SDRF'
-                : (chosen == 'refined')
-                    ? 'refined passes and is strictly better (verdict/confidence, coverage not worse)'
-                    : 'refined not strictly better - kept existing SDRF'
-            def pick = (chosen == 'refined') ? f : b
-            def picked = (chosen == 'refined') ? refined : base
-            record(
-                pxd: pxd,
-                chosen: chosen,
-                final_verdict: gateVerdict(picked.verdict, picked.confidence, (params.confidence_gate as String).toDouble()),
-                baseline: base,
-                refined: refined,
-                sdrf: pick.sdrf,
-                manifest: pick.manifest,
-                review: pick.review,
-                coverage: pick.coverage,
-                json: new groovy.json.JsonBuilder([
-                    pxd: pxd,
-                    chosen: chosen,
-                    reason: reason,
-                    baseline: [verdict: base.verdict, confidence: base.confidence, coverage: base.coverage],
-                    refined: refined ? [verdict: refined.verdict, confidence: refined.confidence, coverage: refined.coverage] : null,
-                ]).toPrettyString(),
-            )
-        }
-
-    // One verdict file per PXD as soon as its decision is made
-    ch_verdict = REFINE_VERDICT(ch_decision.map { d -> tuple(d.pxd, d.json) }).map { pxd, verdict -> record(pxd: pxd, verdict: verdict) }
-
-    ch_summary = ch_decision
-        .map { d ->
-            [
-                d.pxd,
-                d.baseline.verdict,
-                d.refined ? d.refined.verdict : 'n/a',
-                d.chosen,
-                d.baseline.coverage_label,
-                d.refined ? d.refined.coverage_label : 'n/a',
-                d.baseline.confidence,
-                d.refined ? d.refined.confidence : 'n/a',
-                d.final_verdict,
-            ].join('\t')
-        }
-        .collectFile(
-            name: 'refine_summary.tsv',
-            seed: 'pxd\tbaseline_verdict\trefined_verdict\tchosen\tbaseline_coverage\trefined_coverage\tbaseline_confidence\trefined_confidence\tfinal_verdict',
-            newLine: true,
-            sort: true,
-        )
-
-    ch_decision.subscribe { d ->
-        def refined = d.refined ? d.refined.verdict : 'n/a'
-        if (d.chosen == 'baseline') {
-            log.info("Refine: ${d.pxd} kept existing SDRF (baseline=${d.baseline.verdict}, refined=${refined})")
-        }
-        else {
-            log.info("Refine: ${d.pxd} accepted refined SDRF (baseline=${d.baseline.verdict} -> refined=${refined})")
-        }
-    }
-
-    emit:
-    decision = ch_decision
-    verdict = ch_verdict
-    summary = ch_summary
-}
-
-// Writes <pxd>.refine_verdict.json in the task directory, without a container
-process REFINE_VERDICT {
-    tag "${pxd}"
-
-    input:
-    tuple val(pxd), val(json)
-
-    output:
-    tuple val(pxd), path("${pxd}.refine_verdict.json")
-
-    exec:
-    task.workDir.resolve("${pxd}.refine_verdict.json").text = json + '\n'
+    samplesheet = ch_samplesheet // records: pxd, ref_sdrf (Path or null, used only in refine mode)
 }
 
 /*
@@ -205,6 +34,7 @@ workflow PIPELINE_COMPLETION {
     summary // path: summary.tsv or refine_summary.tsv, both with `pxd` and `final_verdict` columns
 
     main:
+    // A final FAIL is a content outcome, not an infrastructure error: warn, and stop only on request
     summary.subscribe { tsv ->
         def rows = readSummary(tsv)
         def notPass = rows.findAll { r -> !(r.final_verdict in ['PASS', 'LOW_CONF']) }.collect { r -> r.pxd }
@@ -229,18 +59,9 @@ workflow PIPELINE_COMPLETION {
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-HELPERS
+FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-
-// Review input records (a channel helper): each SDRF with its evidence manifest, its coverage report
-// and, where the producer wrote them, its validation output and evidence/ directory
-def withCoverage(ch_sdrfs, ch_cov) {
-    return ch_sdrfs
-        .map { r -> tuple(r.pxd, r) }
-        .join(ch_cov.map { pxd, cov, _sdrf, _manifest -> tuple(pxd, cov) })
-        .map { pxd, r, cov -> record(pxd: pxd, sdrf: r.sdrf, manifest: r.manifest, coverage: cov, validation: r.validation, evidence: r.evidence) }
-}
 
 // Verdict and confidence of a review report written by an agent. A report the pipeline cannot
 // read (e.g. JSON wrapped in a markdown code fence that is not JSON inside) is a FAIL with a
@@ -347,4 +168,20 @@ def readSummary(tsv) {
 // Boolean parameter value. On the command line, `--revise false` arrives as the string 'false'.
 def isTrue(value) {
     return (value instanceof Boolean) ? value : ((value as String)?.trim()?.toLowerCase() in ['true', 'yes', '1'])
+}
+
+// software_versions.yml: the tool versions from the `versions` topic, plus the agent model and runner image
+def softwareVersionsToYAML(rows) {
+    def versions = rows
+        .groupBy { r -> r[0].tokenize(':').last() }
+        .collectEntries { process, entries -> [(process): entries.collectEntries { r -> [(r[1]): r[2]] }] }
+    def agent = workflow.session.config.agent ?: [:]
+    versions['Workflow'] = [
+        (workflow.manifest.name): workflow.manifest.version,
+        Nextflow: workflow.nextflow.version.toString(),
+        agent_model: agent.model,
+        agent_api_provider: agent.apiProvider,
+        agent_container: agent.container,
+    ]
+    return new org.yaml.snakeyaml.Yaml().dumpAsMap(versions)
 }

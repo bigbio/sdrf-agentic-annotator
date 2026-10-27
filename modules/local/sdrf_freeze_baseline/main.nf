@@ -1,3 +1,5 @@
+nextflow.enable.types = true
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SDRF_FREEZE_BASELINE - copies of the baseline SDRF in the work directory
@@ -13,14 +15,23 @@ process SDRF_FREEZE_BASELINE {
 
     tag "${pxd}"
 
-    cpus 1
-    memory '1 GB'
+    label 'process_single'
 
     input:
-    tuple val(pxd), path(baseline, stageAs: 'input/*')
+    record(
+        pxd: String,
+        baseline: Path
+    )
+
+    stage:
+    stageAs baseline, 'input/*'
 
     output:
-    tuple val(pxd), path("${pxd}.baseline.sdrf.tsv"), path("agent/${pxd}.baseline.sdrf.tsv")
+    record(
+        pxd: pxd,
+        baseline: file("${pxd}.baseline.sdrf.tsv"),
+        agent_baseline: file("agent/${pxd}.baseline.sdrf.tsv"),
+    )
 
     script:
     """

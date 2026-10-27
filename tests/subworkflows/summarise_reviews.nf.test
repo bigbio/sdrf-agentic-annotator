@@ -1,7 +1,7 @@
 nextflow_workflow {
 
     name "summary.tsv from the initial review and up to two revise rounds"
-    script "../subworkflows/local/utils_sdrf_agent/main.nf"
+    script "subworkflows/local/summarise_reviews/main.nf"
     workflow "SUMMARISE_REVIEWS"
     tag "unit"
 
@@ -13,7 +13,7 @@ nextflow_workflow {
             }
             workflow {
                 """
-                def data = "${baseDir}/tests/data"
+                def data = "${projectDir}/tests/data"
                 def view = { pxd, review, coverage -> record(pxd: pxd, review: file("\${data}/\${review}"), coverage: file("\${data}/\${coverage}")) }
                 // PXD000001 fails the initial review and revise round 1, and passes round 2 (fenced, lower-case report)
                 // PXD000002 passes at once (fenced on one line); PXD000003 passes without a confidence;

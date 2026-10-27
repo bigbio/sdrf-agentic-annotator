@@ -1,7 +1,7 @@
 nextflow_function {
 
     name "Boolean parameters given on the command line"
-    script "../subworkflows/local/utils_sdrf_agent/main.nf"
+    script "subworkflows/local/utils_sdrf_agent/main.nf"
     function "isTrue"
     tag "unit"
 

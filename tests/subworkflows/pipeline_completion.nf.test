@@ -1,0 +1,70 @@
+nextflow_workflow {
+
+    name "Test workflow PIPELINE_COMPLETION"
+    script "subworkflows/local/utils_sdrf_agent/main.nf"
+    workflow "PIPELINE_COMPLETION"
+    tag "unit"
+
+    test("PASS and LOW_CONF do not stop the run with --exit_on_review_fail") {
+
+        when {
+            params {
+                exit_on_review_fail = true
+            }
+            workflow {
+                """
+                def tsv = file("${outputDir}/refine_summary.tsv")
+                tsv.text = 'pxd\\trefined_verdict\\tfinal_verdict\\nPXD000001\\tFAIL\\tPASS\\nPXD000002\\tPASS\\tLOW_CONF\\n'
+                input[0] = channel.of(tsv)
+                """
+            }
+        }
+
+        then {
+            assert workflow.success
+        }
+    }
+
+    test("a final FAIL stops the run with --exit_on_review_fail") {
+
+        when {
+            params {
+                exit_on_review_fail = true
+            }
+            workflow {
+                """
+                def tsv = file("${outputDir}/summary.tsv")
+                tsv.text = 'pxd\\tinitial_verdict\\tfinal_verdict\\nPXD000001\\tPASS\\tFAIL\\nPXD000002\\tFAIL\\tPASS\\n'
+                input[0] = channel.of(tsv)
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.failed },
+                { assert workflow.errorMessage.contains('non-PASS final verdict: PXD000001') }
+            )
+        }
+    }
+
+    test("--exit_on_review_fail false given on the command line does not stop the run") {
+
+        when {
+            params {
+                exit_on_review_fail = 'false'
+            }
+            workflow {
+                """
+                def tsv = file("${outputDir}/summary.tsv")
+                tsv.text = 'pxd\\tinitial_verdict\\tfinal_verdict\\nPXD000001\\tPASS\\tFAIL\\n'
+                input[0] = channel.of(tsv)
+                """
+            }
+        }
+
+        then {
+            assert workflow.success
+        }
+    }
+}

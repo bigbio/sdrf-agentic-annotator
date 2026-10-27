@@ -1,0 +1,4 @@
+contact_links:
+  - name: bigbio/sdrf-skills
+    url: https://github.com/bigbio/sdrf-skills/issues
+    about: Report problems with the annotation and review skills here

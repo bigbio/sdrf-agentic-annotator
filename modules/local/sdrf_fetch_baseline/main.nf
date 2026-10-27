@@ -1,3 +1,5 @@
+nextflow.enable.types = true
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SDRF_FETCH_BASELINE - download the existing SDRF for a PXD
@@ -13,19 +15,19 @@ process SDRF_FETCH_BASELINE {
 
     tag "${pxd}"
 
-    container 'ghcr.io/bigbio/sdrf-agentic-annotator:dev'
-
-    cpus 1
-    memory '2 GB'
+    label 'process_single'
 
     // Exit 2 is a failed lookup or download (network); any other failure is final.
-    errorStrategy { task.exitStatus == 2 && task.attempt <= 3 ? 'retry' : 'terminate' }
+    errorStrategy task.exitStatus == 2 && task.attempt <= 3 ? 'retry' : 'terminate'
 
     input:
-    val pxd
+    pxd: String
 
     output:
-    tuple val(pxd), path("${pxd}.baseline.sdrf.tsv")
+    record(
+        pxd: pxd,
+        baseline: file("${pxd}.baseline.sdrf.tsv"),
+    )
 
     script:
     """

@@ -30,6 +30,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   the refined version if it is strictly better (verdict/confidence + coverage not worse);
   otherwise it keeps the original. Adds `SDRF_REFINE`, `SDRF_FETCH_BASELINE` and `REFINE_VERDICT`,
   `refine_summary.tsv` and `<PXD>.refine_verdict.json`.
+- nf-tests for `PIPELINE_COMPLETION` and the refine acceptance rule in the unit test job, and a refine-mode pipeline test that runs on dispatch ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- Execution report, timeline, trace and DAG in `<outdir>/pipeline_info/`, and the nf-core institutional profiles ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- nf-core community files (`.nf-core.yml`, `CITATIONS.md`, `CODE_OF_CONDUCT.md`, contributing guide, issue and PR templates, prettier and pre-commit config) and a CI job that runs `nf-core pipelines lint` ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- `pipeline_info/software_versions.yml` from a `versions` topic, with the agent model and the runner image digest ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 
 ### `Changed`
 
@@ -70,6 +74,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   names match ([#14](https://github.com/bigbio/sdrf-agentic-annotator/pull/14)).
 - New parameters `--coverage_min`, `--subset_mode`, `--confidence_gate`,
   `--max_revise`, `--max_parallel` and `--exit_on_review_fail`.
+- `SDRF_ANNOTATE` and `SDRF_REVISE` name the external-review hand-off and the status `REVIEW_PENDING_EXTERNAL` in their requests ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- `SCORE_SDRF` runs the coverage precheck and the review in both modes ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- `REVISE_SDRF` runs one revise round and `REVIEW_REVISE` runs the review and up to two revise rounds. Refine mode scores and revises the refined SDRF with them ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- `SUMMARISE_REVIEWS` and `REFINE_DECISION` are subworkflows in their own directories, and `REFINE_VERDICT` is a module ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- One workflow, `SDRF_AGENTIC_ANNOTATOR` in `workflows/sdrf_agentic_annotator.nf`, and one `PIPELINE_INITIALISATION` run both modes; `--refine` selects the start and the end. Task names change, so `-resume` runs the agents again once ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- `SDRF_COVERAGE`, `SDRF_FETCH_BASELINE`, `SDRF_FREEZE_BASELINE` and `REFINE_VERDICT` are typed processes with record I/O ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- The runner image is pinned by digest in `conf/base.config` instead of the mutable `:dev` tag in four places. The plain processes take their resources from the `process_single` label, under `resourceLimits` ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 
 ### `Fixed`
 
@@ -95,4 +106,3 @@ Audit findings from [#12](https://github.com/bigbio/sdrf-agentic-annotator/issue
   `<PXD>/baseline/<PXD>.baseline.sdrf.tsv`. Revise round 2 now goes to `<PXD>/revised_2/`, and refine
   mode publishes the chosen SDRF's evidence manifest, review and coverage report next to it.
 - New key-free CI job with nf-test unit tests for samplesheet parsing, the summary and the refine gate.
-

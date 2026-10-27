@@ -14,7 +14,7 @@ same terms as the refined version.
 
 The agent gets its own copy of the baseline. The pipeline runs the same SDRF_COVERAGE +
 SDRF_REVIEW on its separate copy of the baseline and on the refined SDRF, and only accepts the
-refined SDRF if it is strictly better (see subworkflows/local/utils_sdrf_agent, REFINE_DECISION).
+refined SDRF if it is strictly better (see subworkflows/local/refine_decision).
 ----------------------------------------------------------------------------------------
  */
 

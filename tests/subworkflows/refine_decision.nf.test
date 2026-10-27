@@ -1,7 +1,7 @@
 nextflow_workflow {
 
     name "Refine acceptance gate"
-    script "../subworkflows/local/utils_sdrf_agent/main.nf"
+    script "subworkflows/local/refine_decision/main.nf"
     workflow "REFINE_DECISION"
     tag "unit"
 
@@ -14,7 +14,7 @@ nextflow_workflow {
             }
             workflow {
                 """
-                def data = "${baseDir}/tests/data"
+                def data = "${projectDir}/tests/data"
                 def reviewed = { pxd, sdrf, review, coverage -> record(pxd: pxd, sdrf: file("\${data}/\${sdrf}"), manifest: file("\${data}/evidence.json"), review: file("\${data}/\${review}"), coverage: file("\${data}/\${coverage}")) }
                 // PXD000001: FAIL -> PASS, accepted. PXD000002: both PASS, refined confidence lower, kept.
                 // PXD000003: refined PASS but coverage unverifiable, kept. PXD000004: no refined review, kept.

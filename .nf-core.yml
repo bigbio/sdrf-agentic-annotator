@@ -1,0 +1,51 @@
+repository_type: pipeline
+nf_core_version: 4.1.0
+template:
+  name: sdrf-agentic-annotator
+  org: bigbio
+  author: Jonas Scheid
+  description: Annotate PRIDE datasets with SDRF using Nextflow agents and the bigbio/sdrf-skills
+  is_nfcore: false
+  version: 0.1.0dev
+lint:
+  files_exist:
+    - assets/multiqc_config.yml
+    - conf/igenomes.config
+    - conf/igenomes_ignored.config
+    - conf/modules.config
+    - conf/test_full.config
+    - assets/email_template.html
+    - assets/email_template.txt
+    - assets/sendmail_template.txt
+    - assets/nf-core-sdrf-agentic-annotator_logo_light.png
+    - docs/images/nf-core-sdrf-agentic-annotator_logo_light.png
+    - docs/images/nf-core-sdrf-agentic-annotator_logo_dark.png
+    - ro-crate-metadata.json
+    - .github/.dockstore.yml
+    - .github/workflows/awstest.yml
+    - .github/workflows/awsfulltest.yml
+    - .github/workflows/branch.yml
+    - .github/workflows/linting.yml
+    - .github/workflows/nf-test.yml
+    - .github/workflows/pr-comment.yml
+    - .github/actions/get-shards/action.yml
+    - .github/actions/nf-test/action.yml
+  files_unchanged:
+    - LICENSE
+    - .gitignore
+    - .gitattributes
+    - .prettierignore
+    - .github/PULL_REQUEST_TEMPLATE.md
+    - .github/ISSUE_TEMPLATE/bug_report.yml
+    - .github/ISSUE_TEMPLATE/config.yml
+    - .github/ISSUE_TEMPLATE/feature_request.yml
+    - CODE_OF_CONDUCT.md
+    - docs/README.md
+  readme:
+    - nfcore_template_badge
+  template_strings:
+    - .github/workflows/docker.yml
+  multiqc_config: false
+  modules_config: false
+  nf_test_content: false
+  pipeline_name_conventions: false

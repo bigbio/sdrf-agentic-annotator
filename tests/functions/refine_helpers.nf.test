@@ -1,0 +1,63 @@
+nextflow_function {
+
+    name "Test the refine acceptance rule"
+    script "subworkflows/local/utils_sdrf_agent/main.nf"
+    function "isBetter"
+    tag "unit"
+
+    test("a refined FAIL is never better") {
+        when {
+            function {
+                """
+                input[0] = [verdict: 'FAIL', confidence: 0.2, coverage: 0.5]
+                input[1] = [verdict: 'FAIL', confidence: 0.9, coverage: 1.0]
+                """
+            }
+        }
+        then {
+            assert function.result == false
+        }
+    }
+
+    test("lower refined coverage is not better") {
+        when {
+            function {
+                """
+                input[0] = [verdict: 'FAIL', confidence: 0.2, coverage: 1.0]
+                input[1] = [verdict: 'PASS', confidence: 0.9, coverage: 0.8]
+                """
+            }
+        }
+        then {
+            assert function.result == false
+        }
+    }
+
+    test("two PASSes need a higher refined confidence") {
+        when {
+            function {
+                """
+                input[0] = [verdict: 'PASS', confidence: 0.8, coverage: null]
+                input[1] = [verdict: 'PASS', confidence: 0.8, coverage: 1.0]
+                """
+            }
+        }
+        then {
+            assert function.result == false
+        }
+    }
+
+    test("two PASSes with a higher refined confidence is better") {
+        when {
+            function {
+                """
+                input[0] = [verdict: 'PASS', confidence: 0.7, coverage: 1.0]
+                input[1] = [verdict: 'PASS', confidence: 0.8, coverage: 1.0]
+                """
+            }
+        }
+        then {
+            assert function.result == true
+        }
+    }
+}
