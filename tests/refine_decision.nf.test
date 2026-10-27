@@ -1,0 +1,60 @@
+nextflow_workflow {
+
+    name "Refine acceptance gate"
+    script "../subworkflows/local/utils_sdrf_agent/main.nf"
+    workflow "REFINE_DECISION"
+    tag "unit"
+
+    test("the refined SDRF is chosen only when it is strictly better") {
+
+        when {
+            params {
+                // flags every chosen PASS here (confidence 0.8 to 0.9, or none) as LOW_CONF
+                confidence_gate = 0.95
+            }
+            workflow {
+                """
+                def data = "${baseDir}/tests/data"
+                def reviewed = { pxd, sdrf, review, coverage -> record(pxd: pxd, sdrf: file("\${data}/\${sdrf}"), manifest: file("\${data}/evidence.json"), review: file("\${data}/\${review}"), coverage: file("\${data}/\${coverage}")) }
+                // PXD000001: FAIL -> PASS, accepted. PXD000002: both PASS, refined confidence lower, kept.
+                // PXD000003: refined PASS but coverage unverifiable, kept. PXD000004: no refined review, kept.
+                // PXD000005: FAIL -> PASS without a confidence, accepted.
+                input[0] = channel.of(
+                    reviewed.call('PXD000001', 'baseline.sdrf.tsv', 'review_fail.json', 'coverage_half.json'),
+                    reviewed.call('PXD000002', 'baseline.sdrf.tsv', 'review_pass.json', 'coverage_half.json'),
+                    reviewed.call('PXD000003', 'baseline.sdrf.tsv', 'review_fail.json', 'coverage_half.json'),
+                    reviewed.call('PXD000004', 'baseline.sdrf.tsv', 'review_pass.json', 'coverage_half.json'),
+                    reviewed.call('PXD000005', 'baseline.sdrf.tsv', 'review_fail.json', 'coverage_half.json'),
+                )
+                input[1] = channel.of(
+                    reviewed.call('PXD000001', 'refined.sdrf.tsv', 'review_pass.json', 'coverage_full.json'),
+                    reviewed.call('PXD000002', 'refined.sdrf.tsv', 'review_pass_fenced.json', 'coverage_full.json'),
+                    reviewed.call('PXD000003', 'refined.sdrf.tsv', 'review_pass.json', 'coverage_error.json'),
+                    reviewed.call('PXD000005', 'refined.sdrf.tsv', 'review_pass_no_confidence.json', 'coverage_full.json'),
+                )
+                """
+            }
+        }
+
+        then {
+            def decisions = workflow.out.decision.collectEntries { d -> [d.pxd, d] }
+            def verdicts = workflow.out.verdict.collectEntries { v -> [v.pxd, new groovy.json.JsonSlurper().parse(new File(v.verdict))] }
+            assertAll(
+                { assert workflow.success },
+                { assert decisions.collectEntries { pxd, d -> [pxd, d.chosen] } == [PXD000001: 'refined', PXD000002: 'baseline', PXD000003: 'baseline', PXD000004: 'baseline', PXD000005: 'refined'] },
+                { assert decisions.PXD000001.sdrf.endsWith('refined.sdrf.tsv') },
+                { assert decisions.PXD000002.sdrf.endsWith('baseline.sdrf.tsv') },
+                { assert verdicts.PXD000001.chosen == 'refined' },
+                { assert verdicts.PXD000004.refined == null },
+                { assert path(workflow.out.summary[0]).readLines() == [
+                    'pxd\tbaseline_verdict\trefined_verdict\tchosen\tbaseline_coverage\trefined_coverage\tbaseline_confidence\trefined_confidence\tfinal_verdict',
+                    'PXD000001\tFAIL\tPASS\trefined\t0.5\t1.0\t0.4\t0.9\tLOW_CONF',
+                    'PXD000002\tPASS\tPASS\tbaseline\t0.5\t1.0\t0.9\t0.8\tLOW_CONF',
+                    'PXD000003\tFAIL\tPASS\tbaseline\t0.5\tunverifiable\t0.4\t0.9\tFAIL',
+                    'PXD000004\tPASS\tn/a\tbaseline\t0.5\tn/a\t0.9\tn/a\tLOW_CONF',
+                    'PXD000005\tFAIL\tPASS\trefined\t0.5\t1.0\t0.4\t-1.0\tLOW_CONF',
+                ] }
+            )
+        }
+    }
+}

@@ -13,3 +13,4 @@ CLAUDE.md
 .nf-test/
 .nf-test.log
 null/
+__pycache__/

@@ -7,7 +7,13 @@ on:
 
 env:
   NXF_VER: "26.10.3"
+  # nf-test 0.9.3 (the setup action's default) wraps workflow tests in `WORKFLOW(*input)`,
+  # which the Nextflow 26.10 parser rejects
+  NFT_VER: "0.9.5"
   NXF_ANSI_LOG: false
+
+permissions:
+  contents: read
 
 concurrency:
   group: "${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}"
@@ -40,6 +46,30 @@ jobs:
           nextflow config -profile test,singularity . > /dev/null
           nextflow config -profile test,apptainer . > /dev/null
 
+  unit:
+    name: Unit tests
+    # Samplesheet parsing and the summary and refine-gate channel logic.
+    # No agents run, so no API key is needed.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: nf-core/setup-nextflow@v2
+        with:
+          version: ${{ env.NXF_VER }}
+      - uses: nf-core/setup-nf-test@v1
+        with:
+          version: ${{ env.NFT_VER }}
+      - name: Run nf-test unit tests
+        run: |
+          nextflow secrets set LLM_KEY dummy
+          nf-test test --tag unit --verbose
+
   test:
     name: Pipeline test
     # Runs the agents, so it needs a real API key in the repository secret LLM_KEY
@@ -56,6 +86,8 @@ jobs:
         with:
           version: ${{ env.NXF_VER }}
       - uses: nf-core/setup-nf-test@v1
+        with:
+          version: ${{ env.NFT_VER }}
       - name: Run nf-test
         env:
           LLM_KEY: ${{ secrets.LLM_KEY }}

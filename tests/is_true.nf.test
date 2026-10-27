@@ -1,0 +1,63 @@
+nextflow_function {
+
+    name "Boolean parameters given on the command line"
+    script "../subworkflows/local/utils_sdrf_agent/main.nf"
+    function "isTrue"
+    tag "unit"
+
+    test("--revise false arrives as the string 'false'") {
+        when {
+            function {
+                """
+                input[0] = 'false'
+                """
+            }
+        }
+        then {
+            assert function.success
+            assert function.result == false
+        }
+    }
+
+    test("--revise true arrives as the string 'true'") {
+        when {
+            function {
+                """
+                input[0] = 'true'
+                """
+            }
+        }
+        then {
+            assert function.success
+            assert function.result == true
+        }
+    }
+
+    test("a bare --refine flag and config values are booleans") {
+        when {
+            function {
+                """
+                input[0] = true
+                """
+            }
+        }
+        then {
+            assert function.success
+            assert function.result == true
+        }
+    }
+
+    test("an unset parameter is false") {
+        when {
+            function {
+                """
+                input[0] = null
+                """
+            }
+        }
+        then {
+            assert function.success
+            assert function.result == false
+        }
+    }
+}

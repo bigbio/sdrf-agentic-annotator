@@ -7,8 +7,8 @@ agent SDRF_REVIEW {
         Follow the `sdrf-adversarial-review` skill. There are no MCP tools: use `sdrf-tools fetch` and
         `sdrf-tools ols`.
         Use the `missing` and `invented` runs of the coverage precheck in the file_mapping pass.
-        ${params.coverage_min > 0 ? "If the precheck `fraction` is below ${params.coverage_min}, report an important finding. Make it a blocker if nothing in the SDRF or manifest declares a subset." : ''}
-        ${params.subset_mode ? 'A clearly declared representative subset can pass: record the disclosure in the summary.' : ''}
+        ${(params.coverage_min as String).toDouble() > 0 ? "If the precheck `fraction` is below ${params.coverage_min}, report an important finding. Make it a blocker if nothing in the SDRF or manifest declares a subset." : ''}
+        ${params.subset_mode.toString().trim().toLowerCase() == 'true' ? 'A clearly declared representative subset can pass: record the disclosure in the summary.' : ''}
         Do not download a deposited file larger than ${params.max_fetch_bytes} bytes. If a value can only
         be checked in a larger file, report it as not fully verifiable.
         """.stripIndent()
@@ -27,6 +27,7 @@ agent SDRF_REVIEW {
     record(
         pxd: pxd,
         sdrf: sdrf,
+        manifest: manifest,
         coverage: coverage,
         review: file("${pxd}.review.json"),
     )
