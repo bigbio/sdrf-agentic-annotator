@@ -18,6 +18,12 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/* \
     && git config --system --add safe.directory '*'
 
+# `find /` blocks for hours on a cluster filesystem (GPFS/NFS) and stalls the agent task, so the
+# guard refuses it; /usr/local/bin comes before /usr/bin in PATH.
+COPY find-guard.sh /usr/local/bin/find
+RUN chmod 0755 /usr/local/bin/find && [ "$(command -v find)" = /usr/local/bin/find ] \
+    && ! find / -maxdepth 0 2>/dev/null
+
 COPY --from=uv /uv /usr/local/bin/uv
 COPY --from=sdrf-skills /opt/sdrf-skills /opt/sdrf-skills
 COPY --from=sdrf-skills /opt/cache /opt/cache
