@@ -37,13 +37,14 @@ process SDRF_PREFILL {
     tuple(task.process, 'container', task.container) >> 'versions'
 
     script:
+    // No early `exit 0`: the topic eval()s above are appended to the end of this script.
     """
-    if ! sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
+    if sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
+        sdrf_prefill.py evidence ${pxd}.prefill.json
+    else
         cat fetch.log >&2
         [ ${task.attempt} -gt 3 ] || exit 2
         jq -n --arg pxd ${pxd} --rawfile log fetch.log '{accession: \$pxd, error: \$log}' > ${pxd}.prefill.json
-        exit 0
     fi
-    sdrf_prefill.py evidence ${pxd}.prefill.json
     """
 }
