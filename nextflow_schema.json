@@ -50,6 +50,12 @@
                     "fa_icon": "fas fa-key",
                     "help_text": "Either a built-in provider such as `google`, `anthropic`, `openai` or `openrouter`, or the provider key you registered in `models.json` for an OpenAI-compatible gateway (e.g. `ebi`). The `<provider>` prefix of `--model` must match this value."
                 },
+                "prefill": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Before the annotate agent, extract the facts the PRIDE record already states (organism, instrument, enzymes, labels, run files) with a non-agent step and give them to the agent.",
+                    "fa_icon": "fas fa-list-check"
+                },
                 "revise": {
                     "type": "boolean",
                     "default": true,

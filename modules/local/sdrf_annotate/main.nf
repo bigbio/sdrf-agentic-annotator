@@ -15,7 +15,10 @@ agent SDRF_ANNOTATE {
         """.stripIndent()
 
     input:
-    pxd: String
+    record(
+        pxd: String,
+        prefill: Path?
+    )
 
     output:
     record(
@@ -32,6 +35,7 @@ agent SDRF_ANNOTATE {
     prompt:
     """
     Annotate ${pxd}. Existing annotation: reannotate.
+    ${prefill ? "The file ${prefill} holds the facts the PRIDE record already states (organism, instrument, enzymes, labels, the deposited run files). Start from them: do not look them up again, and change one only with evidence that you record in the manifest. A value with basis `text` was found by a pattern: confirm it. `comment[data file]` must be a name from `run_files`." : ''}
     Do not ask questions.
     External reviewer: a separate pipeline task runs `sdrf-adversarial-review` in a fresh context.
     Hand the Step 9.5 review off to it and give the status REVIEW_PENDING_EXTERNAL.

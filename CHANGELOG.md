@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `SDRF_REVISE`: one revision round when the review fails, followed by a second review.
 - `summary.tsv` with the initial and final verdict of each PXD.
 - `docker` and `test` profiles.
+- `SDRF_PREFILL`: a non-agent step before the annotate agent. `bin/sdrf_prefill.py` turns the PRIDE record and file list from `sdrf-tools fetch` into `<PXD>.prefill.json` (organism, instrument, organism part, disease, enzymes from the sdrf-tools digest dictionary, labels, acquisition hints, run files, search-parameter files). Each value names its source and basis (`record`, `text` or `absence`). The agent starts from these facts and takes `comment[data file]` from the deposited run list. Turn it off with `--prefill false`.
 - GitHub Actions for linting, the runner image and the pipeline test.
 - `SDRF_COVERAGE`: a deterministic, non-agent precheck that compares every
   `comment[data file]` in an SDRF with the deposited runs. Runs before every review

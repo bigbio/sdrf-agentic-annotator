@@ -5,6 +5,7 @@ IMPORT MODULES AND SUBWORKFLOWS
  */
 
 include { SDRF_ANNOTATE } from '../modules/local/sdrf_annotate'
+include { SDRF_PREFILL } from '../modules/local/sdrf_prefill'
 include { SDRF_FETCH_BASELINE } from '../modules/local/sdrf_fetch_baseline'
 include { SDRF_FREEZE_BASELINE } from '../modules/local/sdrf_freeze_baseline'
 include { SDRF_REFINE } from '../modules/local/sdrf_refine'
@@ -61,7 +62,9 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         ch_refine_verdict = REFINE_DECISION.out.verdict
     }
     else {
-        ch_sdrf = SDRF_ANNOTATE(ch_samplesheet.map { r -> r.pxd })
+        ch_pxd = ch_samplesheet.map { r -> r.pxd }
+        ch_start = isTrue(params.prefill) ? SDRF_PREFILL(ch_pxd) : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null) }
+        ch_sdrf = SDRF_ANNOTATE(ch_start)
         REVIEW_REVISE(ch_sdrf, max_rounds)
         SUMMARISE_REVIEWS(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.review_1, REVIEW_REVISE.out.review_2)
         ch_summary = SUMMARISE_REVIEWS.out.summary
