@@ -31,6 +31,6 @@ nf-core pipelines lint
 ## Pipeline structure
 
 - `workflows/sdrf_agentic_annotator.nf` holds the main workflow. `--refine` selects the start (annotate, or fetch and refine) and the end (`summary.tsv`, or the refine acceptance gate).
-- `subworkflows/local/` holds the shared parts: `SCORE_SDRF` (coverage and review), `REVISE_SDRF` (one revise round), `REVIEW_REVISE` (review and up to two revise rounds), `SDRF_SUMMARY` and `REFINE_GATE`.
+- `subworkflows/local/` holds the shared parts: `SCORE_SDRF` (coverage and review), `REVISE_SDRF` (one revise round), `REVIEW_REVISE` (review and up to two revise rounds), `SUMMARISE_REVIEWS` (`summary.tsv`) and `REFINE_DECISION` (refine acceptance gate).
 - `modules/local/` holds the agents and the plain processes. Agents cannot have a `stub:` block, so there is no `-stub` test.
 - Do not change the names of the output files or the columns of `summary.tsv` without a changelog entry: other tools read them.

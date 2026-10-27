@@ -1,0 +1,56 @@
+nextflow_workflow {
+
+    name "Test workflow PIPELINE_INITIALISATION"
+    script "subworkflows/local/utils_sdrf_agent/main.nf"
+    workflow "PIPELINE_INITIALISATION"
+    tag "unit"
+
+    test("a pxd-only samplesheet gives one PXD per row and no ref_sdrf") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+            }
+            workflow {
+                """
+                input[0] = "${projectDir}/assets/samplesheet.csv"
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.samplesheet.size() == 1 },
+                { assert workflow.out.samplesheet[0].pxd == 'PXD074155' },
+                { assert workflow.out.samplesheet[0].ref_sdrf == null }
+            )
+        }
+    }
+
+    test("ref_sdrf is optional per row") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+            }
+            workflow {
+                """
+                def sheet = file("${outputDir}/refine.csv")
+                sheet.text = 'pxd,ref_sdrf\\nPXD074155,${projectDir}/tests/data/PXD074155.sdrf.tsv\\nPXD058436,\\n'
+                input[0] = sheet.toString()
+                """
+            }
+        }
+
+        then {
+            def rows = workflow.out.samplesheet.collectEntries { r -> [r.pxd, r.ref_sdrf] }
+            assertAll(
+                { assert workflow.success },
+                { assert rows.keySet() == ['PXD074155', 'PXD058436'] as Set },
+                { assert rows.PXD074155.endsWith('tests/data/PXD074155.sdrf.tsv') },
+                { assert rows.PXD058436 == null }
+            )
+        }
+    }
+}

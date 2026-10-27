@@ -6,12 +6,13 @@ IMPORT MODULES AND SUBWORKFLOWS
 
 include { SDRF_ANNOTATE } from '../modules/local/sdrf_annotate'
 include { SDRF_FETCH_BASELINE } from '../modules/local/sdrf_fetch_baseline'
+include { SDRF_FREEZE_BASELINE } from '../modules/local/sdrf_freeze_baseline'
 include { SDRF_REFINE } from '../modules/local/sdrf_refine'
 include { SCORE_SDRF as SCORE_BASELINE } from '../subworkflows/local/score_sdrf'
 include { REVIEW_REVISE } from '../subworkflows/local/review_revise'
-include { SDRF_SUMMARY } from '../subworkflows/local/sdrf_summary'
-include { REFINE_GATE } from '../subworkflows/local/refine_gate'
-include { verdictOf ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
+include { SUMMARISE_REVIEWS } from '../subworkflows/local/summarise_reviews'
+include { REFINE_DECISION } from '../subworkflows/local/refine_decision'
+include { isTrue ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -36,36 +37,34 @@ workflow SDRF_AGENTIC_ANNOTATOR {
     ch_refine_decision = channel.empty()
     ch_refine_verdict = channel.empty()
 
-    if (params.refine) {
+    max_rounds = isTrue(params.revise) ? (params.max_revise as Integer) : 0
+
+    if (isTrue(params.refine)) {
         // The existing SDRF is the samplesheet's ref_sdrf, else the one in bigbio/sdrf-annotated-datasets
         ch_has_ref = ch_samplesheet
             .filter { r -> r.ref_sdrf }
-            .map { r -> record(pxd: r.pxd, baseline: file(r.ref_sdrf as String)) }
+            .map { r -> record(pxd: r.pxd, baseline: r.ref_sdrf) }
         ch_fetched = SDRF_FETCH_BASELINE(ch_samplesheet.filter { r -> !r.ref_sdrf }.map { r -> r.pxd })
-        ch_sdrf = SDRF_REFINE(ch_has_ref.mix(ch_fetched))
-        max_rounds = params.revise ? 1 : 0
+        // The baseline that is scored and published, and a separate copy for the refine agent
+        ch_frozen = SDRF_FREEZE_BASELINE(ch_has_ref.mix(ch_fetched))
+        ch_sdrf = SDRF_REFINE(ch_frozen.map { r -> record(pxd: r.pxd, baseline: r.agent_baseline) })
+
+        // Refine mode revises the refined SDRF at most once
+        REVIEW_REVISE(ch_sdrf, Math.min(max_rounds, 1))
+
+        ch_baseline = ch_sdrf
+            .map { r -> record(pxd: r.pxd, manifest: r.baseline_manifest) }
+            .join(ch_frozen.map { r -> record(pxd: r.pxd, sdrf: r.baseline) }, by: 'pxd')
+        REFINE_DECISION(SCORE_BASELINE(ch_baseline).review, REVIEW_REVISE.out.last_review)
+        ch_summary = REFINE_DECISION.out.summary
+        ch_refine_decision = REFINE_DECISION.out.decision
+        ch_refine_verdict = REFINE_DECISION.out.verdict
     }
     else {
         ch_sdrf = SDRF_ANNOTATE(ch_samplesheet.map { r -> r.pxd })
-        max_rounds = params.revise ? params.max_revise : 0
-    }
-
-    REVIEW_REVISE(ch_sdrf, max_rounds)
-
-    if (params.refine) {
-        ch_baseline_review = SCORE_BASELINE(ch_sdrf.map { r -> record(pxd: r.pxd, sdrf: r.baseline_sdrf, manifest: r.baseline_manifest) }).review
-        // Without revise, only a refined SDRF that passes its review can replace the baseline
-        ch_refined_review = REVIEW_REVISE.out.last_review.filter { r -> params.revise || verdictOf(r.review) == 'PASS' }
-        REFINE_GATE(ch_baseline_review, ch_refined_review)
-        ch_summary = REFINE_GATE.out.summary
-        ch_verdicts = REFINE_GATE.out.verdicts
-        ch_refine_decision = REFINE_GATE.out.decision
-        ch_refine_verdict = REFINE_GATE.out.verdict
-    }
-    else {
-        SDRF_SUMMARY(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.revised_review)
-        ch_summary = SDRF_SUMMARY.out.summary
-        ch_verdicts = SDRF_SUMMARY.out.verdicts
+        REVIEW_REVISE(ch_sdrf, max_rounds)
+        SUMMARISE_REVIEWS(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.review_1, REVIEW_REVISE.out.review_2)
+        ch_summary = SUMMARISE_REVIEWS.out.summary
         ch_annotated = ch_sdrf
         ch_reviewed = REVIEW_REVISE.out.reviewed
         ch_revised = REVIEW_REVISE.out.revised
@@ -81,7 +80,6 @@ workflow SDRF_AGENTIC_ANNOTATOR {
 
     emit:
     summary = ch_summary // path: summary.tsv, or refine_summary.tsv in refine mode
-    verdicts = ch_verdicts // records: pxd, verdict (the final verdict of each PXD)
     annotated = ch_annotated
     reviewed = ch_reviewed
     revised = ch_revised

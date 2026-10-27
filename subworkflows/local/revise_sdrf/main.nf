@@ -17,5 +17,5 @@ workflow REVISE_SDRF {
 
     emit:
     revised = ch_revised // records: SDRF_REVISE output
-    review = SCORE_SDRF.out.review // records: pxd, sdrf, coverage, review
+    review = SCORE_SDRF.out.review // records: pxd, sdrf, manifest, coverage, review
 }

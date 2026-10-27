@@ -4,11 +4,12 @@ nextflow.enable.types = true
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 REFINE_VERDICT - write the baseline-vs-refined decision of a PXD as <pxd>.refine_verdict.json
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Runs in the Nextflow JVM, without a container.
+----------------------------------------------------------------------------------------
  */
 
 process REFINE_VERDICT {
     tag "${pxd}"
-    label 'process_single'
 
     input:
     record(
@@ -22,10 +23,6 @@ process REFINE_VERDICT {
         verdict: file("${pxd}.refine_verdict.json"),
     )
 
-    script:
-    """
-    cat > ${pxd}.refine_verdict.json <<'EOF'
-    ${json}
-    EOF
-    """
+    exec:
+    task.workDir.resolve("${pxd}.refine_verdict.json").text = json + '\n'
 }

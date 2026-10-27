@@ -8,13 +8,13 @@ sdrf-annotate skill with `existing annotation: fix` on that baseline, and writes
 refined/<pxd>.sdrf.tsv          the improved, validated SDRF
 refined/<pxd>.evidence.json     evidence manifest for the improved SDRF
 refined/<pxd>.refine.md         how it improves on the baseline + validation commands
-baseline/<pxd>.baseline.sdrf.tsv      verbatim copy of the existing SDRF (read-only input)
 baseline/<pxd>.baseline.evidence.json evidence manifest for the EXISTING SDRF, so the
 independent reviewer can score the baseline on the
 same terms as the refined version.
 
-The pipeline then runs the same SDRF_COVERAGE + SDRF_REVIEW on both and only accepts the
-refined SDRF if it is strictly better (see subworkflows/local/refine_gate).
+The agent gets its own copy of the baseline. The pipeline runs the same SDRF_COVERAGE +
+SDRF_REVIEW on its separate copy of the baseline and on the refined SDRF, and only accepts the
+refined SDRF if it is strictly better (see subworkflows/local/refine_decision).
 ----------------------------------------------------------------------------------------
  */
 
@@ -32,6 +32,7 @@ agent SDRF_REFINE {
           - `sdrf-tools` and `parse_sdrf` are on PATH. There are no MCP tools.
           - The baseline SDRF is a read-only link to another task. Never edit it in place.
             Write only into ./refined/ and ./baseline/ and keep fetched evidence in ./evidence/.
+            Do not copy the baseline SDRF: the pipeline scores its own copy of it.
 
         Step 0.5 of the skill audits the baseline and fixes its defects. Also fill values that the
         baseline leaves empty or `not available` when a source supports them. Keep every other
@@ -65,7 +66,6 @@ agent SDRF_REFINE {
         sdrf: file("refined/${pxd}.sdrf.tsv"),
         manifest: file("refined/${pxd}.evidence.json"),
         report: file("refined/${pxd}.refine.md"),
-        baseline_sdrf: file("baseline/${pxd}.baseline.sdrf.tsv"),
         baseline_manifest: file("baseline/${pxd}.baseline.evidence.json"),
     )
 
@@ -78,8 +78,7 @@ agent SDRF_REFINE {
       - refined/${pxd}.sdrf.tsv            the refined SDRF
       - refined/${pxd}.evidence.json       its evidence manifest
       - refined/${pxd}.refine.md           the Step 10 report: what changed against the baseline and why
-      - baseline/${pxd}.baseline.sdrf.tsv  a verbatim copy of ${baseline}
       - baseline/${pxd}.baseline.evidence.json
-                                           the evidence manifest for the baseline SDRF
+                                           the evidence manifest for the baseline SDRF ${baseline}
     """
 }

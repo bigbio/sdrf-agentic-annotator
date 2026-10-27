@@ -30,13 +30,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   the refined version if it is strictly better (verdict/confidence + coverage not worse);
   otherwise it keeps the original. Adds `SDRF_REFINE`, `SDRF_FETCH_BASELINE` and `REFINE_VERDICT`,
   `refine_summary.tsv` and `<PXD>.refine_verdict.json`.
-- `nextflow_function` and `nextflow_workflow` nf-tests for the summary, completion and refine helpers. A CI job runs them with nf-test 0.9.5 on every pull request; they need no API key. A refine-mode pipeline test runs on dispatch ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- nf-tests for `PIPELINE_COMPLETION` and the refine acceptance rule in the unit test job, and a refine-mode pipeline test that runs on dispatch ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 - Execution report, timeline, trace and DAG in `<outdir>/pipeline_info/`, and the nf-core institutional profiles ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 - nf-core community files (`.nf-core.yml`, `CITATIONS.md`, `CODE_OF_CONDUCT.md`, contributing guide, issue and PR templates, prettier and pre-commit config) and a CI job that runs `nf-core pipelines lint` ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 - `pipeline_info/software_versions.yml` from a `versions` topic, with the agent model and the runner image digest ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 
 ### `Changed`
 
+- `SDRF_ANNOTATE`, `SDRF_REVIEW` and `SDRF_REVISE` tell the agent where the sdrf-skills bundle is (`/opt/sdrf-skills`) and not to search the whole filesystem. On a cluster the agents ran `find /` for skill files whenever `sdrf-tools fetch` failed, and the search hung for tens of minutes on the shared filesystem. `SDRF_REFINE` already had this note.
 - Documentation rewritten to make per-provider API keys clear: one `LLM_KEY` secret is
   delivered to the runner over RPC, and what its value must be depends on the provider type
   (a built-in provider key such as Google, or an OpenAI-compatible gateway token such as the
@@ -51,6 +52,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   It sets `SDRF_SKILLS_ROOT` and ships the `parse_sdrf` ontology cache for offline, non-root runs
   ([#11](https://github.com/bigbio/sdrf-agentic-annotator/pull/11)).
 - Workflow outputs are copied, not linked, to `--outdir`.
+- The runner image refuses `find /` (`docker/find-guard.sh`): on a cluster it blocks in uninterruptible I/O on GPFS/NFS for hours and stalls the agent task. The agent gets an error that points to the skills bundle and the task directory.
 - bigbio/sdrf-skills `ebf95fb` in the runner image and the module skills, with curated uveal-melanoma cell lines.
 - Refine mode reuses the sdrf-skills tools: `SDRF_FETCH_BASELINE` is a plain process that runs
   `sdrf-tools curated` instead of an agent, and fails when the PXD has no curated SDRF.
@@ -73,20 +75,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - New parameters `--coverage_min`, `--subset_mode`, `--confidence_gate`,
   `--max_revise`, `--max_parallel` and `--exit_on_review_fail`.
 - `SDRF_ANNOTATE` and `SDRF_REVISE` name the external-review hand-off and the status `REVIEW_PENDING_EXTERNAL` in their requests ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- The review and coverage helpers are functions of the utils subworkflow, shared by both workflows ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- `SCORE_SDRF` runs the coverage precheck and the review for both workflows. In refine mode, the reviewer of a revised SDRF now also gets its validation output ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- `REVISE_SDRF` runs one revise round and `REVIEW_REVISE` runs the review and up to two revise rounds. `--max_revise` takes 0 to 2; the schema rejects other values ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- Refine mode scores the refined SDRF with `SCORE_SDRF` and revises it with `REVIEW_REVISE` ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- `REFINE_GATE` holds the acceptance gate, `REFINE_VERDICT` (now a module with record I/O) and `refine_summary.tsv` ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- `SCORE_SDRF` runs the coverage precheck and the review in both modes ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- `REVISE_SDRF` runs one revise round and `REVIEW_REVISE` runs the review and up to two revise rounds. Refine mode scores and revises the refined SDRF with them ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- `SUMMARISE_REVIEWS` and `REFINE_DECISION` are subworkflows in their own directories, and `REFINE_VERDICT` is a module ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 - One workflow, `SDRF_AGENTIC_ANNOTATOR` in `workflows/sdrf_agentic_annotator.nf`, and one `PIPELINE_INITIALISATION` run both modes; `--refine` selects the start and the end. Task names change, so `-resume` runs the agents again once ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- `SDRF_COVERAGE` and `SDRF_FETCH_BASELINE` are typed processes with record I/O ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- The summary rows stay records until `collectFile`. `PIPELINE_COMPLETION` reads the final verdict of each PXD from these records instead of the TSV, and the run no longer warns twice about a final FAIL ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- `--max_parallel` sets `agent.maxForks`, so it limits the agent tasks; 0 means no limit. Before, it set `process.maxForks`, with a limit of 10 for 0 ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+- `SDRF_COVERAGE`, `SDRF_FETCH_BASELINE`, `SDRF_FREEZE_BASELINE` and `REFINE_VERDICT` are typed processes with record I/O ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 - The runner image is pinned by digest in `conf/base.config` instead of the mutable `:dev` tag in four places. The plain processes take their resources from the `process_single` label, under `resourceLimits` ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 
 ### `Fixed`
 
-- With `--max_revise 2`, `summary.tsv` takes the final verdict from the last revise round. Before, a PXD with two revise rounds stopped the run ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- In refine mode, the completion check reads the verdict of the chosen SDRF. Before, it read `refined_verdict`, so a kept baseline gave a wrong warning and `--exit_on_review_fail` could stop the run ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- In refine mode, `SDRF_REVISE` gets the evidence manifest of the refined SDRF. Before, it got no manifest and the task failed when the refined review failed ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
-- Refine mode publishes `<PXD>.refine_verdict.json`. Before, the output block could not read the PXD of the `REFINE_VERDICT` tuple and the run failed ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
+Audit findings from [#12](https://github.com/bigbio/sdrf-agentic-annotator/issues/12):
+
+- Refine mode crashed when it published `<PXD>.refine_verdict.json`.
+- `--max_revise 2` took the round-1 verdict as final and then crashed before writing `summary.tsv`.
+- `--revise false`, `--refine false` and `--exit_on_review_fail false` given on the command line
+  arrived as the string `'false'` and acted as `true`.
+- `--max_parallel` did not limit the agents, which only read the `agent` config scope.
+- A review report the pipeline could not parse, such as JSON in a markdown code fence, crashed
+  the run; a lower-case `pass` counted as FAIL. A PASS without a confidence escaped `--confidence_gate`.
+- Refine mode reviewed and published the agent's copy of the baseline, which the agent could
+  change, and gave the agent a link to a samplesheet `ref_sdrf`. The new `SDRF_FREEZE_BASELINE`
+  copies the baseline into the work directory: one copy is reviewed and published, the agent gets
+  another. Refine mode also passed no evidence manifest to `SDRF_REVISE`, dropped a failed refined
+  review when revise was off, and read `refined_verdict` as the final verdict for warnings and
+  `--exit_on_review_fail`. `refine_summary.tsv` has a new last column, `final_verdict`, which
+  applies `--confidence_gate`.
+- `--coverage_min` given on the command line failed every review task while its instruction was
+  built (`'0.8' > 0` compares a string with a number), and `--subset_mode false` acted as `true`.
+- Revised files were published in `<PXD>/revised/revised/`, and a kept refine baseline as
+  `<PXD>/baseline/<PXD>.baseline.sdrf.tsv`. Revise round 2 now goes to `<PXD>/revised_2/`, and refine
+  mode publishes the chosen SDRF's evidence manifest, review and coverage report next to it.
+- New key-free CI job with nf-test unit tests for samplesheet parsing, the summary and the refine gate.

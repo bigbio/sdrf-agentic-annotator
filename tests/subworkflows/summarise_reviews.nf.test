@@ -1,0 +1,51 @@
+nextflow_workflow {
+
+    name "summary.tsv from the initial review and up to two revise rounds"
+    script "subworkflows/local/summarise_reviews/main.nf"
+    workflow "SUMMARISE_REVIEWS"
+    tag "unit"
+
+    test("the latest review per PXD is the final verdict") {
+
+        when {
+            params {
+                confidence_gate = 0.5
+            }
+            workflow {
+                """
+                def data = "${projectDir}/tests/data"
+                def view = { pxd, review, coverage -> record(pxd: pxd, review: file("\${data}/\${review}"), coverage: file("\${data}/\${coverage}")) }
+                // PXD000001 fails the initial review and revise round 1, and passes round 2 (fenced, lower-case report)
+                // PXD000002 passes at once (fenced on one line); PXD000003 passes without a confidence;
+                // PXD000004's report is not JSON
+                input[0] = channel.of(
+                    view.call('PXD000001', 'review_fail.json', 'coverage_half.json'),
+                    view.call('PXD000002', 'review_pass_fenced_inline.json', 'coverage_half.json'),
+                    view.call('PXD000003', 'review_pass_no_confidence.json', 'coverage_error.json'),
+                    view.call('PXD000004', 'review_not_json.json', 'coverage_half.json'),
+                )
+                input[1] = channel.of(
+                    view.call('PXD000001', 'review_fail.json', 'coverage_half.json'),
+                    view.call('PXD000004', 'review_fail.json', 'coverage_full.json'),
+                )
+                input[2] = channel.of(
+                    view.call('PXD000001', 'review_pass_fenced.json', 'coverage_full.json'),
+                )
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert path(workflow.out.summary[0]).readLines() == [
+                    'pxd\tinitial_verdict\tfinal_verdict\trevised\tconfidence\tcoverage',
+                    'PXD000001\tFAIL\tPASS\ttrue\t0.8\t1.0',
+                    'PXD000002\tPASS\tPASS\tfalse\t0.9\t0.5',
+                    'PXD000003\tPASS\tLOW_CONF\tfalse\t-1.0\tunverifiable',
+                    'PXD000004\tFAIL\tFAIL\ttrue\t0.4\t1.0',
+                ] }
+            )
+        }
+    }
+}

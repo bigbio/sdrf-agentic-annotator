@@ -18,7 +18,7 @@ nextflow_pipeline {
             def summary = path("$outputDir/refine_summary.tsv").readLines()
             assertAll(
                 { assert workflow.success },
-                { assert summary[0] == 'pxd\tbaseline_verdict\trefined_verdict\tchosen\tbaseline_coverage\trefined_coverage\tbaseline_confidence\trefined_confidence' },
+                { assert summary[0] == 'pxd\tbaseline_verdict\trefined_verdict\tchosen\tbaseline_coverage\trefined_coverage\tbaseline_confidence\trefined_confidence\tfinal_verdict' },
                 { assert summary[1].startsWith('PXD000001\t') },
                 { assert path("$outputDir/PXD000001/PXD000001.refine_verdict.json").exists() }
             )
