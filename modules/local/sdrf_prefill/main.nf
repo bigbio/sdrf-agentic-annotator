@@ -8,7 +8,8 @@ A plain (non-agent) process. `sdrf-tools fetch` writes the PRIDE record and the 
 list to evidence/. bin/sdrf_prefill.py turns them into <pxd>.prefill.json: organism,
 instrument, organism part, disease, enzymes (the sdrf-tools digest dictionary), labels,
 acquisition hints, the deposited run files and the search-parameter files. The agent starts from
-these facts instead of looking them up again. Disable with --prefill false.
+these facts instead of looking them up again. If the lookup fails three times, the file has an
+`error` and the agent gathers the record itself. Disable with --prefill false.
 ----------------------------------------------------------------------------------------
  */
 
@@ -18,8 +19,9 @@ process SDRF_PREFILL {
 
     label 'process_single'
 
-    // Exit 2 is a failed PRIDE lookup (network); any other failure is final.
-    errorStrategy task.exitStatus == 2 && task.attempt <= 3 ? 'retry' : 'terminate'
+    // Exit 2 is a failed PRIDE or Europe PMC lookup; after three retries the task writes an `error` instead.
+    errorStrategy task.exitStatus == 2 ? 'retry' : 'terminate'
+    maxRetries 3
 
     input:
     pxd: String
@@ -36,7 +38,12 @@ process SDRF_PREFILL {
 
     script:
     """
-    sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1 || { cat fetch.log >&2; exit 2; }
+    if ! sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
+        cat fetch.log >&2
+        [ ${task.attempt} -gt 3 ] || exit 2
+        jq -n --arg pxd ${pxd} --rawfile log fetch.log '{accession: \$pxd, error: \$log}' > ${pxd}.prefill.json
+        exit 0
+    fi
     sdrf_prefill.py evidence ${pxd}.prefill.json
     """
 }
