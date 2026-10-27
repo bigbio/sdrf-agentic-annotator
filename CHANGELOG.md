@@ -48,6 +48,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
   It sets `SDRF_SKILLS_ROOT` and ships the `parse_sdrf` ontology cache for offline, non-root runs
   ([#11](https://github.com/bigbio/sdrf-agentic-annotator/pull/11)).
 - Workflow outputs are copied, not linked, to `--outdir`.
+- The runner image refuses `find /` (`docker/find-guard.sh`): on a cluster it blocks in uninterruptible I/O on GPFS/NFS for hours and stalls the agent task. The agent gets an error that points to the skills bundle and the task directory.
 - bigbio/sdrf-skills `ebf95fb` in the runner image and the module skills, with curated uveal-melanoma cell lines.
 - Refine mode reuses the sdrf-skills tools: `SDRF_FETCH_BASELINE` is a plain process that runs
   `sdrf-tools curated` instead of an agent, and fails when the PXD has no curated SDRF.
