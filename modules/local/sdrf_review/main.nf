@@ -6,6 +6,9 @@ agent SDRF_REVIEW {
     instruction """\
         Follow the `sdrf-adversarial-review` skill. There are no MCP tools: use `sdrf-tools fetch` and
         `sdrf-tools ols`.
+        The sdrf-skills bundle is at `/opt/sdrf-skills` (the `SDRF_SKILLS_ROOT` environment variable): resolve
+        skill paths such as `spec/sdrf-proteomics/TERMS.tsv` or `skills/sdrf-annotate/references/gather-context.md`
+        against it. Never search the whole filesystem (`find /`): on a cluster it hangs for tens of minutes.
         Use the `missing` and `invented` runs of the coverage precheck in the file_mapping pass.
         ${(params.coverage_min as String).toDouble() > 0 ? "If the precheck `fraction` is below ${params.coverage_min}, report an important finding. Make it a blocker if nothing in the SDRF or manifest declares a subset." : ''}
         ${params.subset_mode.toString().trim().toLowerCase() == 'true' ? 'A clearly declared representative subset can pass: record the disclosure in the summary.' : ''}

@@ -5,6 +5,9 @@ agent SDRF_ANNOTATE {
 
     instruction """\
         Follow the `sdrf-annotate` skill. There are no MCP tools: gather the record with `sdrf-tools fetch`.
+        The sdrf-skills bundle is at `/opt/sdrf-skills` (the `SDRF_SKILLS_ROOT` environment variable): resolve
+        skill paths such as `spec/sdrf-proteomics/TERMS.tsv` or `skills/sdrf-annotate/references/gather-context.md`
+        against it. Never search the whole filesystem (`find /`): on a cluster it hangs for tens of minutes.
         Keep `evidence/`, `samples.tsv` and `technical.tsv` in the working directory: later tasks read them.
         In Step 9, also run `sdrf-tools check` on the SDRF and fix every issue it reports.
         Do not download a deposited file larger than ${params.max_fetch_bytes} bytes. For MaxQuant, read
