@@ -24,6 +24,7 @@ workflow {
     revised = SDRF_AGENTIC_ANNOTATOR.out.revised
     revised_review = SDRF_AGENTIC_ANNOTATOR.out.revised_review
     coverage = SDRF_AGENTIC_ANNOTATOR.out.coverage
+    final_sdrf = SDRF_AGENTIC_ANNOTATOR.out.final_sdrf
     refine_decision = SDRF_AGENTIC_ANNOTATOR.out.refine_decision
     refine_verdict = SDRF_AGENTIC_ANNOTATOR.out.refine_verdict
     versions = SDRF_AGENTIC_ANNOTATOR.out.versions
@@ -45,6 +46,13 @@ output {
     }
     coverage {
         path { r -> r.coverage >> "${r.pxd}/${r.coverage.name}" }
+    }
+    // the passing SDRF with the pipeline in its annotation tool column, validated with parse_sdrf
+    final_sdrf {
+        path { r ->
+            r.sdrf >> "${r.pxd}/final/${r.sdrf.name}"
+            r.validation >> "${r.pxd}/final/${r.validation.name}"
+        }
     }
     // revise round 1 in <pxd>/revised/, round 2 in <pxd>/revised_2/
     revised {

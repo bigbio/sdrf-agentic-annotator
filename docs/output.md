@@ -15,6 +15,9 @@ The pipeline writes all files to `--outdir`.
     ├── samples.tsv
     ├── technical.tsv
     ├── evidence/
+    ├── final/              only if the last review passed (annotate mode)
+    │   ├── <PXD>.sdrf.tsv  the passing SDRF with `NT=sdrf-agentic-annotator;VV=v<version>` as its annotation tool
+    │   └── <PXD>.stamp_validation.txt   the `parse_sdrf validate-sdrf` output for that file
     ├── revised/            only if the first review failed and --revise is true
     │   ├── <PXD>.sdrf.tsv
     │   ├── <PXD>.evidence.json
