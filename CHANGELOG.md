@@ -39,6 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### `Changed`
 
+- An agent task that still fails after its retries is skipped and logged instead of stopping the whole run, so one PXD with a persistent error (a lookup that keeps failing, an agent that never writes its outputs) no longer loses the batch. `--fail_fast` restores the old behaviour. The retry delay is unchanged ([#12](https://github.com/bigbio/sdrf-agentic-annotator/issues/12)).
 - `SDRF_ANNOTATE`, `SDRF_REVIEW` and `SDRF_REVISE` tell the agent where the sdrf-skills bundle is (`/opt/sdrf-skills`) and not to search the whole filesystem. On a cluster the agents ran `find /` for skill files whenever `sdrf-tools fetch` failed, and the search hung for tens of minutes on the shared filesystem. `SDRF_REFINE` already had this note.
 - Documentation rewritten to make per-provider API keys clear: one `LLM_KEY` secret is
   delivered to the runner over RPC, and what its value must be depends on the provider type

@@ -189,6 +189,7 @@ tasks (which auto-retry via `conf/base.config`):
 | Parameter               | Default | Description                                                                  |
 | ----------------------- | ------- | ---------------------------------------------------------------------------- |
 | `--exit_on_review_fail` | `false` | `true` makes the run exit non-zero when any dataset's final verdict is FAIL. |
+| `--fail_fast` | `false` | `true` stops the whole run when an agent task still fails after its retries. By default the task is skipped, logged as `Error is ignored`, and the other PXDs carry on; the skipped PXD has no row in `summary.tsv`. |
 
 ### Revise rounds and parallelism
 

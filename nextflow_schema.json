@@ -101,6 +101,12 @@
                     "description": "Make the run exit non-zero when any dataset's final verdict is FAIL.",
                     "fa_icon": "fas fa-exclamation-triangle"
                 },
+                "fail_fast": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Stop the whole run when an agent task still fails after its retries. By default that task is skipped and the other PXDs carry on.",
+                    "fa_icon": "fas fa-bolt"
+                },
                 "models_json": {
                     "type": "string",
                     "format": "file-path",
