@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `SDRF_REVISE`: one revision round when the review fails, followed by a second review.
 - `summary.tsv` with the initial and final verdict of each PXD.
 - `docker` and `test` profiles.
+- `SDRF_PREFILL`: a non-agent step before the annotate agent. `bin/sdrf_prefill.py` turns the PRIDE record and file list from `sdrf-tools fetch` into `<PXD>.prefill.json` (organism, instrument, organism part, disease, enzymes from the sdrf-tools digest dictionary, labels, acquisition hints, run files, search-parameter files). Each value names its source and basis (`record`, `text` or `absence`). The agent starts from these facts and takes `comment[data file]` from the deposited run list. Turn it off with `--prefill false`.
+- `SDRF_STAMP`: a non-agent step after the last review (annotate mode). For each passing SDRF, `bin/sdrf_stamp.py` sets `comment[sdrf annotation tool]` to `NT=sdrf-agentic-annotator;VV=v<version>` (the agents write `manual curation`, which is wrong for a model's output), and `parse_sdrf validate-sdrf`, the command CI of bigbio/sdrf-annotated-datasets runs, has to pass on the stamped file. The file is published as `<PXD>/final/<PXD>.sdrf.tsv`, ready to submit.
 - GitHub Actions for linting, the runner image and the pipeline test.
 - `SDRF_COVERAGE`: a deterministic, non-agent precheck that compares every
   `comment[data file]` in an SDRF with the deposited runs. Runs before every review
@@ -83,6 +85,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - The runner image is pinned by digest in `conf/base.config` instead of the mutable `:dev` tag in four places. The plain processes take their resources from the `process_single` label, under `resourceLimits` ([#17](https://github.com/bigbio/sdrf-agentic-annotator/pull/17)).
 
 ### `Fixed`
+
+- `SDRF_COVERAGE` and `SDRF_PREFILL` stopped the run when the PRIDE or Europe PMC lookup kept failing: the early `exit 0` of their fallback skipped the `eval()` outputs that Nextflow reads from `.command.env`. The fallback now runs to the end of the script.
 
 Audit findings from [#12](https://github.com/bigbio/sdrf-agentic-annotator/issues/12):
 

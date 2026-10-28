@@ -5,6 +5,8 @@ IMPORT MODULES AND SUBWORKFLOWS
  */
 
 include { SDRF_ANNOTATE } from '../modules/local/sdrf_annotate'
+include { SDRF_PREFILL } from '../modules/local/sdrf_prefill'
+include { SDRF_STAMP } from '../modules/local/sdrf_stamp'
 include { SDRF_FETCH_BASELINE } from '../modules/local/sdrf_fetch_baseline'
 include { SDRF_FREEZE_BASELINE } from '../modules/local/sdrf_freeze_baseline'
 include { SDRF_REFINE } from '../modules/local/sdrf_refine'
@@ -12,7 +14,7 @@ include { SCORE_SDRF as SCORE_BASELINE } from '../subworkflows/local/score_sdrf'
 include { REVIEW_REVISE } from '../subworkflows/local/review_revise'
 include { SUMMARISE_REVIEWS } from '../subworkflows/local/summarise_reviews'
 include { REFINE_DECISION } from '../subworkflows/local/refine_decision'
-include { isTrue ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
+include { isTrue ; readReview ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -34,6 +36,7 @@ workflow SDRF_AGENTIC_ANNOTATOR {
     ch_revised = channel.empty()
     ch_revised_review = channel.empty()
     ch_coverage = channel.empty()
+    ch_final = channel.empty()
     ch_refine_decision = channel.empty()
     ch_refine_verdict = channel.empty()
 
@@ -61,7 +64,9 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         ch_refine_verdict = REFINE_DECISION.out.verdict
     }
     else {
-        ch_sdrf = SDRF_ANNOTATE(ch_samplesheet.map { r -> r.pxd })
+        ch_pxd = ch_samplesheet.map { r -> r.pxd }
+        ch_start = isTrue(params.prefill) ? SDRF_PREFILL(ch_pxd) : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null) }
+        ch_sdrf = SDRF_ANNOTATE(ch_start)
         REVIEW_REVISE(ch_sdrf, max_rounds)
         SUMMARISE_REVIEWS(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.review_1, REVIEW_REVISE.out.review_2)
         ch_summary = SUMMARISE_REVIEWS.out.summary
@@ -70,6 +75,8 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         ch_revised = REVIEW_REVISE.out.revised
         ch_revised_review = REVIEW_REVISE.out.revised_review
         ch_coverage = REVIEW_REVISE.out.coverage
+        // The SDRF of a passing last review, with this pipeline named as its annotation tool
+        ch_final = SDRF_STAMP(REVIEW_REVISE.out.last_review.filter { r -> readReview(r.review).verdict == 'PASS' }.map { r -> record(pxd: r.pxd, sdrf: r.sdrf) })
     }
 
     ch_versions = channel.topic('versions')
@@ -85,6 +92,7 @@ workflow SDRF_AGENTIC_ANNOTATOR {
     revised = ch_revised
     revised_review = ch_revised_review
     coverage = ch_coverage
+    final_sdrf = ch_final // records: pxd, sdrf, validation of each passing SDRF
     refine_decision = ch_refine_decision
     refine_verdict = ch_refine_verdict
     versions = ch_versions // path: software_versions.yml

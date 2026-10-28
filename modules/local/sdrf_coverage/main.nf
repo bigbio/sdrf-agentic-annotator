@@ -40,17 +40,17 @@ process SDRF_COVERAGE {
     tuple(task.process, 'container', task.container) >> 'versions'
 
     script:
+    // No early `exit 0`: the topic eval()s above are appended to the end of this script.
     """
-    if ! sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
+    if sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
+        # Exit 1 only means the audit has blockers; the coverage block is still complete.
+        sdrf-tools audit-existing ${sdrf} --runs evidence/files.json --json > audit.json || [ \$? -eq 1 ]
+        jq '.coverage // {fraction: null, error: ([.findings[] | select(.code | IN("empty", "no_data_file_column")) | .summary] | join("; "))}' \\
+            audit.json > ${pxd}.coverage.json
+    else
         cat fetch.log >&2
         [ ${task.attempt} -gt 3 ] || exit 2
         jq -n --rawfile log fetch.log '{fraction: null, error: \$log}' > ${pxd}.coverage.json
-        exit 0
     fi
-
-    # Exit 1 only means the audit has blockers; the coverage block is still complete.
-    sdrf-tools audit-existing ${sdrf} --runs evidence/files.json --json > audit.json || [ \$? -eq 1 ]
-    jq '.coverage // {fraction: null, error: ([.findings[] | select(.code | IN("empty", "no_data_file_column")) | .summary] | join("; "))}' \\
-        audit.json > ${pxd}.coverage.json
     """
 }
