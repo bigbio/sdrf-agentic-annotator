@@ -27,6 +27,9 @@ RUN chmod 0755 /usr/local/bin/find && [ "$(command -v find)" = /usr/local/bin/fi
 COPY --from=uv /uv /usr/local/bin/uv
 COPY --from=sdrf-skills /opt/sdrf-skills /opt/sdrf-skills
 COPY --from=sdrf-skills /opt/cache /opt/cache
+# The PRIDE ontology cache of sdrf-pipelines lacks the terms added to the PRIDE ontology since it was built: `study sample`, `control sample`,
+# `calibration sample` and `blank` (sample types, PRIDE:0001013 to PRIDE:0001016), so parse_sdrf rejects them. This copy is that cache plus the 21 missing terms.
+COPY pride.parquet /opt/cache/sdrf-pipelines/ontologies/pride.parquet
 COPY --from=sdrf-skills /tmp/constraints.txt /tmp/python-version /tmp/
 
 # Editable install: the tools find spec/ and data/ relative to their own files.

@@ -36,6 +36,7 @@ agent SDRF_ANNOTATE {
     """
     Annotate ${pxd}. Existing annotation: reannotate.
     ${prefill ? "The file ${prefill} holds the facts the PRIDE record already states (organism, instrument, enzymes, labels, the deposited run files). Start from them: do not look them up again, and change one only with evidence that you record in the manifest. If the file has an `error`, ignore it and gather the record yourself. A value with basis `text` was found by a pattern: confirm it. `comment[data file]` must be a name from `run_files`." : ''}
+    `characteristics[sample type]` is `study sample` by default. Use another child of `sample type` (PRIDE:0000895) only when the deposit or the publication says so: `control sample`, `calibration sample`, `blank`, `single cell`, `multiplex sample` or `environmental sample`.
     Do not ask questions.
     External reviewer: a separate pipeline task runs `sdrf-adversarial-review` in a fresh context.
     Hand the Step 9.5 review off to it and give the status REVIEW_PENDING_EXTERNAL.
