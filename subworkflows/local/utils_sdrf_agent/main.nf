@@ -58,7 +58,7 @@ workflow PIPELINE_COMPLETION {
         if (isTrue(params.exit_on_review_fail) && (notPass || noReview)) {
             def failed = notPass + noReview
             error(
-                "exit_on_review_fail requested and ${failed.size()} PXD(s) have no PASS final verdict: ${failed.join(', ')}. " + "This is an intentional exit-on-content-fail; a PXD whose re-review did not finish counts as not passed."
+                "exit_on_review_fail requested and ${failed.size()} PXD(s) have a non-PASS final verdict: ${failed.join(', ')}. " + "This is an intentional exit-on-content-fail; a PXD whose re-review did not finish counts as not passed."
             )
         }
     }
