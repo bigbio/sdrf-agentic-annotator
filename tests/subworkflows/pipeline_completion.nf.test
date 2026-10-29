@@ -67,4 +67,44 @@ nextflow_workflow {
             assert workflow.success
         }
     }
+
+    test("a PXD whose re-review did not finish stops the run with --exit_on_review_fail") {
+
+        when {
+            params {
+                exit_on_review_fail = true
+            }
+            workflow {
+                """
+                def tsv = file("${outputDir}/summary.tsv")
+                tsv.text = 'pxd\\tinitial_verdict\\tfinal_verdict\\nPXD000001\\tFAIL\\tNO_REVIEW\\nPXD000002\\tPASS\\tPASS\\n'
+                input[0] = channel.of(tsv)
+                """
+            }
+        }
+
+        then {
+            assert workflow.failed
+        }
+    }
+
+    test("NO_REVIEW only warns without --exit_on_review_fail") {
+
+        when {
+            params {
+                exit_on_review_fail = false
+            }
+            workflow {
+                """
+                def tsv = file("${outputDir}/summary.tsv")
+                tsv.text = 'pxd\\tinitial_verdict\\tfinal_verdict\\nPXD000001\\tFAIL\\tNO_REVIEW\\n'
+                input[0] = channel.of(tsv)
+                """
+            }
+        }
+
+        then {
+            assert workflow.success
+        }
+    }
 }

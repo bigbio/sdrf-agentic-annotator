@@ -18,11 +18,13 @@ nextflow_workflow {
                 // PXD000001 fails the initial review and revise round 1, and passes round 2 (fenced, lower-case report)
                 // PXD000002 passes at once (fenced on one line); PXD000003 passes without a confidence;
                 // PXD000004's report is not JSON
+                // PXD000005 fails the initial review, and its revise round wrote files but the re-review was skipped
                 input[0] = channel.of(
                     view.call('PXD000001', 'review_fail.json', 'coverage_half.json'),
                     view.call('PXD000002', 'review_pass_fenced_inline.json', 'coverage_half.json'),
                     view.call('PXD000003', 'review_pass_no_confidence.json', 'coverage_error.json'),
                     view.call('PXD000004', 'review_not_json.json', 'coverage_half.json'),
+                    view.call('PXD000005', 'review_fail.json', 'coverage_half.json'),
                 )
                 input[1] = channel.of(
                     view.call('PXD000001', 'review_fail.json', 'coverage_half.json'),
@@ -30,6 +32,12 @@ nextflow_workflow {
                 )
                 input[2] = channel.of(
                     view.call('PXD000001', 'review_pass_fenced.json', 'coverage_full.json'),
+                )
+                input[3] = channel.of(
+                    record(pxd: 'PXD000001', dir: 'revised'),
+                    record(pxd: 'PXD000001', dir: 'revised_2'),
+                    record(pxd: 'PXD000004', dir: 'revised'),
+                    record(pxd: 'PXD000005', dir: 'revised'),
                 )
                 """
             }
@@ -44,8 +52,30 @@ nextflow_workflow {
                     'PXD000002\tPASS\tPASS\tfalse\t0.9\t0.5',
                     'PXD000003\tPASS\tLOW_CONF\tfalse\t-1.0\tunverifiable',
                     'PXD000004\tFAIL\tFAIL\ttrue\t0.4\t1.0',
+                    'PXD000005\tFAIL\tNO_REVIEW\ttrue\tNA\tNA',
                 ] }
             )
+        }
+    }
+
+    test("a run in which no PXD finishes its first review fails") {
+
+        when {
+            params {
+                confidence_gate = 0.5
+            }
+            workflow {
+                """
+                input[0] = channel.empty()
+                input[1] = channel.empty()
+                input[2] = channel.empty()
+                input[3] = channel.empty()
+                """
+            }
+        }
+
+        then {
+            assert workflow.failed
         }
     }
 }

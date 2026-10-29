@@ -189,6 +189,7 @@ tasks (which auto-retry via `conf/base.config`):
 | Parameter               | Default | Description                                                                  |
 | ----------------------- | ------- | ---------------------------------------------------------------------------- |
 | `--exit_on_review_fail` | `false` | `true` makes the run exit non-zero when any dataset's final verdict is FAIL. |
+| `--fail_fast` | `false` | `true` stops the whole run when an agent task still fails after its retries. By default the task is skipped, logged as `Error is ignored`, and the other PXDs carry on; a PXD that was skipped before its first review has no row in `summary.tsv`. If a revise round wrote its files but its re-review was skipped, the row has the final verdict `NO_REVIEW` and `revised` `true`: the revised SDRF has no verdict, and `--exit_on_review_fail` counts it as not passed. If no PXD finishes its first review, the run fails with an error. |
 
 ### Revise rounds and parallelism
 

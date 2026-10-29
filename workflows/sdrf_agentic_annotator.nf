@@ -68,7 +68,7 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         ch_start = isTrue(params.prefill) ? SDRF_PREFILL(ch_pxd) : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null) }
         ch_sdrf = SDRF_ANNOTATE(ch_start)
         REVIEW_REVISE(ch_sdrf, max_rounds)
-        SUMMARISE_REVIEWS(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.review_1, REVIEW_REVISE.out.review_2)
+        SUMMARISE_REVIEWS(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.review_1, REVIEW_REVISE.out.review_2, REVIEW_REVISE.out.revised)
         ch_summary = SUMMARISE_REVIEWS.out.summary
         ch_annotated = ch_sdrf
         ch_reviewed = REVIEW_REVISE.out.reviewed

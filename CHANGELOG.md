@@ -39,6 +39,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### `Changed`
 
+- An agent task that still fails after its retries is skipped and logged instead of stopping the whole run, so one PXD with a persistent error (a lookup that keeps failing, an agent that never writes its outputs) no longer loses the batch. `--fail_fast` restores the old behaviour. A PXD whose re-review was skipped after a successful revise is reported as `NO_REVIEW` in `summary.tsv`, not as its initial FAIL, and a run in which no PXD finishes fails instead of ending with no summary. The retry delay is unchanged ([#12](https://github.com/bigbio/sdrf-agentic-annotator/issues/12)).
 - `SDRF_ANNOTATE`, `SDRF_REVIEW` and `SDRF_REVISE` tell the agent where the sdrf-skills bundle is (`/opt/sdrf-skills`) and not to search the whole filesystem. On a cluster the agents ran `find /` for skill files whenever `sdrf-tools fetch` failed, and the search hung for tens of minutes on the shared filesystem. `SDRF_REFINE` already had this note.
 - Documentation rewritten to make per-provider API keys clear: one `LLM_KEY` secret is
   delivered to the runner over RPC, and what its value must be depends on the provider type
@@ -86,6 +87,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### `Fixed`
 
+- Agent tasks that waited more than an hour for a free slot failed at once with `Agent RPC invocation capability expired after 3600s while the task waited to start`, because Nextflow creates the credentials of every agent task when it creates the task, not when it starts. With `--max_parallel` below the number of PXDs, the later PXDs of a batch were retried and then lost. `agent.rpc.capabilityTimeout` is now 48 hours in `conf/base.config` ([#12](https://github.com/bigbio/sdrf-agentic-annotator/issues/12)).
 - `SDRF_COVERAGE` and `SDRF_PREFILL` stopped the run when the PRIDE or Europe PMC lookup kept failing: the early `exit 0` of their fallback skipped the `eval()` outputs that Nextflow reads from `.command.env`. The fallback now runs to the end of the script.
 
 Audit findings from [#12](https://github.com/bigbio/sdrf-agentic-annotator/issues/12):

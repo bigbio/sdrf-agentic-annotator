@@ -37,11 +37,17 @@ workflow PIPELINE_COMPLETION {
     // A final FAIL is a content outcome, not an infrastructure error: warn, and stop only on request
     summary.subscribe { tsv ->
         def rows = readSummary(tsv)
-        def notPass = rows.findAll { r -> !(r.final_verdict in ['PASS', 'LOW_CONF']) }.collect { r -> r.pxd }
+        def noReview = rows.findAll { r -> r.final_verdict == 'NO_REVIEW' }.collect { r -> r.pxd }
+        def notPass = rows.findAll { r -> !(r.final_verdict in ['PASS', 'LOW_CONF', 'NO_REVIEW']) }.collect { r -> r.pxd }
         def lowConf = rows.findAll { r -> r.final_verdict == 'LOW_CONF' }.collect { r -> r.pxd }
         if (notPass) {
             log.warn(
                 "Final review did not pass for ${notPass.size()} PXD(s): ${notPass.join(', ')}. " + "This is a content outcome, not an infrastructure error. See ${tsv.name} and review reports."
+            )
+        }
+        if (noReview) {
+            log.warn(
+                "The re-review of the revised SDRF did not finish for ${noReview.size()} PXD(s): ${noReview.join(', ')}. " + "A task failed and was skipped, so the revised files have no verdict. This is an infrastructure failure, not a content outcome."
             )
         }
         if (lowConf) {
@@ -49,9 +55,10 @@ workflow PIPELINE_COMPLETION {
                 "Final verdict is LOW_CONF for ${lowConf.size()} PXD(s): ${lowConf.join(', ')}. " + "Accepted and passed on; revisit if you want a stronger annotation."
             )
         }
-        if (isTrue(params.exit_on_review_fail) && notPass) {
+        if (isTrue(params.exit_on_review_fail) && (notPass || noReview)) {
+            def failed = notPass + noReview
             error(
-                "exit_on_review_fail requested and ${notPass.size()} PXD(s) have a non-PASS final verdict: ${notPass.join(', ')}. " + "This is an intentional exit-on-content-fail; infra errors are handled separately by task retries."
+                "exit_on_review_fail requested and ${failed.size()} PXD(s) have a non-PASS final verdict: ${failed.join(', ')}. " + "This is an intentional exit-on-content-fail; a PXD whose re-review did not finish counts as not passed."
             )
         }
     }
