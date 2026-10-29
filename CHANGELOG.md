@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### `Added`
 
+- `bin/raw_dissociation.py` reads the fragmentation method from the instrument method embedded in the deposited Thermo RAW files (an HTTP range request for the first 8 MB of one or two files), and `SDRF_PREFILL` adds it to `<PXD>.prefill.json` as `dissociation_method` with basis `raw`, its evidence and a confidence. The annotate agent is told to use it for `comment[dissociation method]` instead of `not available`. Several activation types in one method are reported as `ambiguous`.
 - Samplesheet input with a list of PXD accessions, validated with nf-schema.
 - `nextflow_schema.json` with input, output and agent parameters.
 - `SDRF_REVISE`: one revision round when the review fails, followed by a second review.

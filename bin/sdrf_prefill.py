@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Prefill what the PRIDE record already states, so the annotate agent starts from verified facts.
 
-usage: sdrf_prefill.py EVIDENCE_DIR OUTPUT.json
+usage: sdrf_prefill.py EVIDENCE_DIR OUTPUT.json [DISSOCIATION.json]
 
 Reads evidence/pride.json and evidence/files.json (written by `sdrf-tools fetch`) and writes
 <PXD>.prefill.json. Every value comes from a structured field of the record or from the digest
@@ -75,7 +75,20 @@ def files(evidence):
     }
 
 
-def prefill(evidence):
+def dissociation_facts(path):
+    """The fragmentation method that bin/raw_dissociation.py read from the deposited RAW files, as facts with basis `raw`."""
+    if not path or not Path(path).exists():
+        return []
+    data = json.loads(Path(path).read_text())
+    value = data.get("value")
+    if not value:
+        return []
+    files = [f["file"] for f in data.get("files", []) if f.get("types")]
+    evidence = [line for f in data.get("files", []) for line in f.get("evidence", [])][:4]
+    return [fact(sdrf, "instrument method embedded in " + ", ".join(files), "raw", confidence=value["confidence"], ambiguous=value["ambiguous"], evidence=evidence) for sdrf in value["sdrf"]]
+
+
+def prefill(evidence, dissociation=None):
     evidence = Path(evidence)
     record = json.loads((evidence / "pride.json").read_text())
     protocols = prose(record, "sampleProcessingProtocol", "dataProcessingProtocol", "projectDescription", "title")
@@ -93,12 +106,13 @@ def prefill(evidence):
         "cleavage_agent": enzymes,
         "label": labels or [fact("label free sample", "no labelling keyword in the record", "absence")],
         "acquisition": text_hits(ACQUISITION, protocols),
+        "dissociation_method": dissociation_facts(dissociation),
         "modifications_reported": [fact(m.get("name"), "pride.json:identifiedPTMStrings", accession=m.get("accession")) for m in record.get("identifiedPTMStrings") or []],
         "files": files(evidence),
     }
 
 
 if __name__ == "__main__":
-    out = prefill(sys.argv[1])
+    out = prefill(sys.argv[1], sys.argv[3] if len(sys.argv) > 3 else None)
     Path(sys.argv[2]).write_text(json.dumps(out, indent=2, ensure_ascii=False) + "\n")
     print(f"wrote {sys.argv[2]}: {len(out['organism'])} organism, {len(out['instrument'])} instrument, {len(out['cleavage_agent'])} enzyme, {out['files']['run_count']} run files")

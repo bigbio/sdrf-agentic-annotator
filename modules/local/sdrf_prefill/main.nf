@@ -7,7 +7,8 @@ SDRF_PREFILL - what the PRIDE record already states, before the annotate agent s
 A plain (non-agent) process. `sdrf-tools fetch` writes the PRIDE record and the deposit's file
 list to evidence/. bin/sdrf_prefill.py turns them into <pxd>.prefill.json: organism,
 instrument, organism part, disease, enzymes (the sdrf-tools digest dictionary), labels,
-acquisition hints, the deposited run files and the search-parameter files. The agent starts from
+acquisition hints, the fragmentation method read from the embedded method of the deposited Thermo RAW files
+(bin/raw_dissociation.py), the deposited run files and the search-parameter files. The agent starts from
 these facts instead of looking them up again. If the lookup fails three times, the file has an
 `error` and the agent gathers the record itself. Disable with --prefill false.
 ----------------------------------------------------------------------------------------
@@ -40,7 +41,8 @@ process SDRF_PREFILL {
     // No early `exit 0`: the topic eval()s above are appended to the end of this script.
     """
     if sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
-        sdrf_prefill.py evidence ${pxd}.prefill.json
+        raw_dissociation.py ${pxd} ${pxd}.dissociation.json > raw.log 2>&1 || echo '{}' > ${pxd}.dissociation.json
+        sdrf_prefill.py evidence ${pxd}.prefill.json ${pxd}.dissociation.json
     else
         cat fetch.log >&2
         [ ${task.attempt} -gt 3 ] || exit 2
