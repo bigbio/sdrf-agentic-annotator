@@ -2,10 +2,11 @@ nextflow.enable.types = true
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SDRF_STAMP - name this pipeline in the annotation tool column of a passing SDRF
+SDRF_STAMP - name this pipeline and the samples of a passing SDRF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 A plain (non-agent) process. The agents write `manual curation`, which is wrong for an SDRF
-that a model produced. bin/sdrf_stamp.py sets `NT=sdrf-agentic-annotator;VV=v<version>`, and
+that a model produced. bin/sdrf_stamp.py sets `NT=sdrf-agentic-annotator;VV=v<version>`, renames the samples to
+`<PXD>-Sample-<n>` (the original names go to <PXD>.sample_names.tsv), and
 `parse_sdrf validate-sdrf` (the command that CI of bigbio/sdrf-annotated-datasets runs) has to pass
 on the stamped file, so what is published is what was validated. Nothing else in the file changes.
 ----------------------------------------------------------------------------------------
@@ -31,6 +32,7 @@ process SDRF_STAMP {
         pxd: pxd,
         sdrf: file("${pxd}.sdrf.tsv"),
         validation: file("${pxd}.stamp_validation.txt"),
+        names: file("${pxd}.sample_names.tsv"),
     )
 
     topic:
@@ -39,7 +41,7 @@ process SDRF_STAMP {
 
     script:
     """
-    sdrf_stamp.py ${sdrf} ${pxd}.sdrf.tsv ${workflow.manifest.version}
+    sdrf_stamp.py ${sdrf} ${pxd}.sdrf.tsv ${workflow.manifest.version} ${pxd} ${pxd}.sample_names.tsv
     parse_sdrf validate-sdrf --sdrf_file ${pxd}.sdrf.tsv --use_ols_cache_only > ${pxd}.stamp_validation.txt 2>&1 || { cat ${pxd}.stamp_validation.txt >&2; exit 1; }
     """
 }

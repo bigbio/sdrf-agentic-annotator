@@ -52,6 +52,7 @@ output {
         path { r ->
             r.sdrf >> "${r.pxd}/final/${r.sdrf.name}"
             r.validation >> "${r.pxd}/final/${r.validation.name}"
+            r.names >> "${r.pxd}/final/${r.names.name}"
         }
     }
     // revise round 1 in <pxd>/revised/, round 2 in <pxd>/revised_2/
