@@ -43,5 +43,6 @@ agent SDRF_ANNOTATE {
     Do not ask questions.
     External reviewer: a separate pipeline task runs `sdrf-adversarial-review` in a fresh context.
     Hand the Step 9.5 review off to it and give the status REVIEW_PENDING_EXTERNAL.
+    Before you give the status, list the working directory and write any of these files that is missing; the task fails without every one of them: `${pxd}.sdrf.tsv`; `${pxd}.evidence.json` (the evidence manifest itself, not only a copy under evidence/); `${pxd}.validation.txt` (the full output of `parse_sdrf validate-sdrf` on the final SDRF); `${pxd}.report.md` (a short report: templates, sources, open questions); `samples.tsv`; `technical.tsv`; the folder `evidence/`.
     """
 }

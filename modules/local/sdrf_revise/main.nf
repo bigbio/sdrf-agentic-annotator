@@ -46,6 +46,7 @@ agent SDRF_REVISE {
     Do not ask questions.
     External reviewer: a separate pipeline task runs `sdrf-adversarial-review` in a fresh context.
     Hand the Step 9.5 review off to it and give the status REVIEW_PENDING_EXTERNAL.
+    Before you give the status, list revised/ and write any of these files that is missing; the task fails without every one of them: `revised/${pxd}.sdrf.tsv`; `revised/${pxd}.evidence.json`; `revised/${pxd}.validation.txt` (the full output of `parse_sdrf validate-sdrf` on the revised SDRF); `revised/${pxd}.revision.md` (what changed and why); `revised/samples.tsv`; `revised/technical.tsv`.
     Write the outputs to `revised/` with the default names. Name the report ${pxd}.revision.md: for
     each finding, say what you changed or why you did not.
     """
