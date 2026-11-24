@@ -79,6 +79,7 @@ def methods_excerpt(text, limit=6000):
 TOLERANCE = re.compile(r"(?:±|\+/-|\+-)?\s*(\d+(?:\.\d+)?)\s*(ppm|Da|mmu|Th)\b")
 PRECURSOR_WORDS = re.compile(r"precursor|parent|MS1\b|peptide\s+mass|first\s+search|main\s+search|(?<![/\w])MS\s+toleran", re.IGNORECASE)
 FRAGMENT_WORDS = re.compile(r"fragment|MS/MS|MS2\b|product\s+ion|MS\s*/\s*MS", re.IGNORECASE)
+TOLERANCE_WORDS = re.compile(r"toleran|accuracy|error|deviation|mass\s+window|\bwindow\b|\bset\s+(?:to|at)\b", re.IGNORECASE)
 NUMBER_WORDS = {"one": "1", "two": "2", "three": "3", "four": "4", "five": "5", "zero": "0", "no": "0"}
 MISSED = (
     re.compile(r"\b(\d|one|two|three|four|five|zero|no)\s+(?:missed|miss-?)\s*cleavages?", re.IGNORECASE),
@@ -114,7 +115,7 @@ def search_settings(text):
             start = m.end()
             pre = [x.end() for x in PRECURSOR_WORDS.finditer(window)]
             frag = [x.end() for x in FRAGMENT_WORDS.finditer(window)]
-            if not pre and not frag:
+            if (not pre and not frag) or not TOLERANCE_WORDS.search(window):
                 continue
             field = "fragment_tolerance" if (frag and (not pre or frag[-1] > pre[-1])) else "precursor_tolerance"
             add(field, f"{m.group(1)} {m.group(2)}", s)
@@ -190,3 +191,127 @@ def filename_design(files, max_positions=8, max_values=12):
         positions.append({"index": i, "kind": kind, "n_values": len(values), "values": values[:max_values]})
     positions = sorted(sorted(positions, key=lambda p: p["n_values"])[:max_positions], key=lambda p: p["index"])
     return {"positions": positions, "dropped": dropped, "compared": len(rows), "files": len(split)}
+
+
+# ---------------------------------------------------------------- ontology term matches
+
+# category -> (cache file, accession prefix kept). A term that an ontology imports from another
+# (an uberon term inside mondo) is left out, so each term is reported once, under its own category.
+CATEGORY_SOURCES = {
+    "organism_part": [("uberon", "uberon:")],
+    "cell_type": [("cl", "cl:")],
+    "disease": [("mondo", "mondo:")],
+    "modification": [("unimod", "unimod:")],
+    "instrument": [("psi-ms", "ms:")],
+}
+INSTRUMENT_WORDS = re.compile(
+    r"orbitrap|exploris|exactive|timstof|tripletof|synapt|ltq|astral|eclipse|lumos|fusion|zenotof|xevo|velos|elite|impact|maxis")
+STOP_LABELS = {
+    "cell", "cells", "tissue", "tissues", "protein", "proteins", "control", "sample", "samples", "organ", "part",
+    "region", "system", "body", "line", "type", "material", "entity", "molecule", "compound", "disease",
+    "disorder", "syndrome", "group", "time", "set", "label", "unknown", "other", "none", "instrument model",
+}
+TOKEN = re.compile(r"[A-Za-z0-9][A-Za-z0-9+/'-]*[A-Za-z0-9+]|[A-Za-z0-9]")
+
+
+def _read_cache(directory, name):
+    """Rows (accession, label) of <name>.parquet (pandas) or <name>.tsv; None when neither can be read."""
+    from pathlib import Path
+    base = Path(directory)
+    if (base / f"{name}.tsv").exists():
+        import csv
+        with open(base / f"{name}.tsv", newline="") as fh:
+            return [(r["accession"], r["label"]) for r in csv.DictReader(fh, delimiter="\t")]
+    if (base / f"{name}.parquet").exists():
+        try:
+            import pandas as pd
+        except ImportError:
+            return None
+        frame = pd.read_parquet(base / f"{name}.parquet", columns=["accession", "label"])
+        return list(frame.itertuples(index=False, name=None))
+    return None
+
+
+def load_terms(ontology_dir):
+    """{category: [{"label", "accession"}]} from the ontology caches, and the reason when none could be read."""
+    from pathlib import Path
+    if not ontology_dir or not Path(ontology_dir).is_dir():
+        return {}, f"no ontology cache folder ({ontology_dir})"
+    terms = {}
+    for category, sources in CATEGORY_SOURCES.items():
+        for name, prefix in sources:
+            rows = _read_cache(ontology_dir, name)
+            for acc, label in rows or []:
+                if not isinstance(label, str) or not str(acc).lower().startswith(prefix):
+                    continue
+                if category == "instrument" and not INSTRUMENT_WORDS.search(label.lower()):
+                    continue
+                terms.setdefault(category, []).append({"label": label, "accession": acc})
+    if not terms:
+        return {}, f"no readable ontology cache in {ontology_dir} (parquet needs pandas and pyarrow)"
+    return terms, None
+
+
+def _index(terms):
+    """n-gram of lower-case tokens -> [(category, term)], and the longest n-gram length."""
+    index, longest = {}, 1
+    for category, items in terms.items():
+        for term in items:
+            label = (term.get("label") or "").strip()
+            if not label or label.lower() in STOP_LABELS:
+                continue
+            key = tuple(t.lower() for t in TOKEN.findall(label))
+            if not key:
+                continue
+            index.setdefault(key, []).append((category, term))
+            longest = max(longest, len(key))
+    return index, longest
+
+
+def _short_label_ok(label, span):
+    """A label of fewer than 4 characters counts only where the text writes it in capitals or with a digit."""
+    return len(label) >= 4 or span.isupper() or any(c.isdigit() for c in span)
+
+
+def term_matches(text, terms, known=None):
+    """Whole-word matches of the term labels in `text`, longest first, by category, with count and first sentence.
+
+    `known` ({category: set of lower-case values}) holds the values the annotated corpus uses in that column.
+    When it is given, a one-word label counts only if the corpus uses it, so that common words that are also
+    ontology labels (tube, acquired, impact) are not reported; labels of several words always count.
+    """
+    text = text or ""
+    index, longest = _index(terms)
+    tokens = list(TOKEN.finditer(text))
+    lower = [t.group(0).lower() for t in tokens]
+    bounds = [m.end() for m in SENTENCE_SPLIT.finditer(text)] + [len(text)]
+    hits = {}
+    i = 0
+    while i < len(tokens):
+        matched = 0
+        for n in range(min(longest, len(tokens) - i), 0, -1):
+            key = tuple(lower[i:i + n])
+            found = index.get(key)
+            if not found and lower[i + n - 1].endswith("s"):  # plain plural of the last word
+                found = index.get(key[:-1] + (key[-1][:-1],))
+            if not found:
+                continue
+            span = text[tokens[i].start():tokens[i + n - 1].end()]
+            for category, term in found:
+                if not _short_label_ok(term["label"], span):
+                    continue
+                if known is not None and n == 1 and term["label"].lower() not in known.get(category, set()):
+                    continue
+                entry = hits.setdefault(category, {}).get(term["label"])
+                if entry is None:
+                    start = max([0] + [b for b in bounds if b <= tokens[i].start()])
+                    end = min(b for b in bounds if b >= tokens[i + n - 1].end())
+                    hits[category][term["label"]] = entry = {
+                        "label": term["label"], "accession": term.get("accession"), "count": 0,
+                        "sentence": text[start:end].strip()}
+                entry["count"] += 1
+                matched = n
+            if matched:
+                break
+        i += matched or 1
+    return {c: sorted(v.values(), key=lambda e: (-e["count"], e["label"])) for c, v in hits.items()}

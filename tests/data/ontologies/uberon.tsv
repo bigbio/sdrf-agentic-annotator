@@ -1,0 +1,5 @@
+accession	label	ontology
+uberon:0002107	liver	uberon
+uberon:0001977	serum	uberon
+uberon:0000479	tissue	uberon
+cl:0000000	cell	uberon

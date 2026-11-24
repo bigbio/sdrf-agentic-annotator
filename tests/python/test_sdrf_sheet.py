@@ -86,3 +86,69 @@ def test_filename_design_timestamps_and_caps():
     assert len(out["positions"]) <= 8
     assert all(len(p["values"]) <= 12 for p in out["positions"])
     assert not any(v.isdigit() and len(v) >= 6 for p in out["positions"] for v in p["values"])
+
+
+# ---------------------------------------------------------------- term matches
+
+from pathlib import Path
+
+ONTOLOGIES = Path(__file__).resolve().parents[1] / "data" / "ontologies"
+TEXT = ("HeLa and PC-3 cells and primary fibroblasts were used. Liver tissue and serum came from patients with breast carcinoma. "
+        "Methionine oxidation was a variable modification. Spectra were acquired on an Orbitrap Exploris 480.")
+
+
+def _terms():
+    terms, reason = sdrf_sheet.load_terms(str(ONTOLOGIES))
+    assert reason is None
+    terms["cell_line"] = [{"label": "HeLa", "accession": None}, {"label": "PC-3", "accession": None}]
+    return terms
+
+
+def _labels(matches, category):
+    return {m["label"].lower(): m for m in matches.get(category, [])}
+
+
+def test_term_matches_whole_word():
+    m = sdrf_sheet.term_matches(TEXT, _terms())
+    assert set(_labels(m, "cell_line")) == {"hela", "pc-3"}
+    assert _labels(m, "organism_part")["liver"]["accession"] == "uberon:0002107"
+    assert _labels(m, "disease")["breast carcinoma"]["accession"] == "mondo:0007254"
+    assert "liver" not in _labels(m, "disease")  # imported uberon term in mondo is not a disease
+    assert _labels(m, "modification")["oxidation"]["accession"] == "unimod:35"
+    assert _labels(m, "cell_type")["fibroblast"]["count"] == 1
+    inst = _labels(m, "instrument")
+    assert "orbitrap exploris 480" in inst and "orbitrap" not in inst  # longest match wins
+    assert inst["orbitrap exploris 480"]["sentence"].startswith("Spectra were acquired")
+
+
+def test_short_labels_need_capitals():
+    assert "all" not in _labels(sdrf_sheet.term_matches("all samples were ca. 10 years old", _terms()), "disease")
+    hit = sdrf_sheet.term_matches("Children with ALL were included.", _terms())
+    assert "all" in _labels(hit, "disease")
+
+
+def test_stop_list():
+    m = sdrf_sheet.term_matches("Each cell sample was a control tissue protein from serum.", _terms())
+    found = {label for cat in m.values() for label in _labels({"x": cat}, "x")}
+    assert "serum" in found
+    assert not found & {"cell", "tissue", "protein", "control", "sample"}
+
+
+def test_load_terms_missing_dir(tmp_path):
+    for d in (None, str(tmp_path / "nope")):
+        terms, reason = sdrf_sheet.load_terms(d)
+        assert terms == {} and reason
+
+
+def test_search_settings_ignores_scan_range():
+    s = "MS/MS product ion scan from 200 to 1250 Da was followed by a survey scan of 100-1500 Da."
+    assert sdrf_sheet.search_settings(s) == []
+
+
+def test_single_word_labels_need_corpus_use():
+    terms = {"organism_part": [{"label": "tube", "accession": "uberon:1"}, {"label": "liver", "accession": "uberon:2"},
+                               {"label": "bone marrow", "accession": "uberon:3"}]}
+    text = "The liver and bone marrow were put in a tube."
+    m = sdrf_sheet.term_matches(text, terms, known={"organism_part": {"liver"}})
+    assert set(_labels(m, "organism_part")) == {"liver", "bone marrow"}
+    assert set(_labels(sdrf_sheet.term_matches(text, terms), "organism_part")) == {"liver", "bone marrow", "tube"}
