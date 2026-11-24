@@ -152,3 +152,64 @@ def test_single_word_labels_need_corpus_use():
     m = sdrf_sheet.term_matches(text, terms, known={"organism_part": {"liver"}})
     assert set(_labels(m, "organism_part")) == {"liver", "bone marrow"}
     assert set(_labels(sdrf_sheet.term_matches(text, terms), "organism_part")) == {"liver", "bone marrow", "tube"}
+
+
+# ---------------------------------------------------------------- corpus index and similar SDRFs
+
+import csv
+import subprocess
+import sys
+
+CORPUS = Path(__file__).resolve().parents[1] / "data" / "corpus"
+BIN = Path(__file__).resolve().parents[2] / "bin"
+
+
+def _index(tmp_path):
+    out = tmp_path / "index.tsv"
+    subprocess.run([sys.executable, str(BIN / "build_corpus_index.py"), str(CORPUS), str(out)], check=True)
+    return out
+
+
+def test_build_index(tmp_path):
+    rows = {r["accession"]: r for r in csv.DictReader(open(_index(tmp_path)), delimiter="\t")}
+    assert set(rows) == {"PXD000101", "PXD000102", "PXD000103"}  # sandbox left out
+    r = rows["PXD000101"]
+    assert r["organism"] == "Homo sapiens" and r["instrument"] == "Orbitrap Exploris 480"
+    assert r["label"] == "label free sample" and r["cell_line"] == "HeLa"
+    assert r["modification"] == "Oxidation"
+    assert "comment[instrument]" in r["columns"].split("|")
+
+
+FACTS = {"organism": {"homo sapiens"}, "instrument": {"orbitrap exploris 480"}, "label": {"label free sample"}}
+
+
+def test_similar_requires_core_match(tmp_path):
+    facts = dict(FACTS, label={"silac"})
+    assert sdrf_sheet.similar_sdrfs(str(_index(tmp_path)), facts, str(CORPUS)) == []
+
+
+def test_similar_ranks_by_shared_biology(tmp_path):
+    facts = dict(FACTS, cell_line={"hela"}, disease={"cervical adenocarcinoma"})
+    got = sdrf_sheet.similar_sdrfs(str(_index(tmp_path)), facts, str(CORPUS))
+    assert [g["accession"] for g in got] == ["PXD000101", "PXD000102"]
+    assert set(got[0]["shared"]) >= {"cell_line", "disease"}
+    assert got[0]["header"][0] == "source name" and len(got[0]["rows"]) == 2
+    no_root = sdrf_sheet.similar_sdrfs(str(_index(tmp_path)), facts, None)
+    assert no_root[0]["header"][0] == "source name" and no_root[0]["rows"] == []
+
+
+def test_corpus_terms(tmp_path):
+    cell_lines, known = sdrf_sheet.corpus_terms(str(_index(tmp_path)))
+    assert {"label": "HeLa", "accession": None} in cell_lines
+    assert "cervix" in known["organism_part"] and "oxidation" in known["modification"]
+    assert "orbitrap exploris 480" in known["instrument"]
+    assert sdrf_sheet.corpus_terms(None) == ([], None)
+
+
+def test_gzipped_index(tmp_path):
+    out = tmp_path / "index.tsv.gz"
+    subprocess.run([sys.executable, str(BIN / "build_corpus_index.py"), str(CORPUS), str(out)], check=True)
+    assert out.read_bytes()[:2] == b"\x1f\x8b"  # really gzip, not plain text under a .gz name
+    facts = dict(FACTS, cell_line={"hela"})
+    assert [g["accession"] for g in sdrf_sheet.similar_sdrfs(str(out), facts, None)][0] == "PXD000101"
+    assert sdrf_sheet.corpus_terms(str(out))[1]["cell_line"] == {"hela"}

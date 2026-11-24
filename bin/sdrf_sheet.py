@@ -315,3 +315,69 @@ def term_matches(text, terms, known=None):
                 break
         i += matched or 1
     return {c: sorted(v.values(), key=lambda e: (-e["count"], e["label"])) for c, v in hits.items()}
+
+
+# ---------------------------------------------------------------- corpus: known values and similar SDRFs
+
+CORE = ("organism", "instrument", "label")
+BIOLOGY = ("cell_line", "organism_part", "disease")
+KNOWN = ("organism_part", "cell_type", "disease", "modification", "instrument", "cell_line")
+
+
+def _read_index(index_path):
+    import csv
+    from pathlib import Path
+    if not index_path or not Path(index_path).exists():
+        return []
+    import gzip
+    opener = gzip.open if str(index_path).endswith(".gz") else open
+    with opener(index_path, "rt", newline="") as fh:
+        return list(csv.DictReader(fh, delimiter="\t"))
+
+
+def _values(row, field):
+    return {v.lower() for v in (row.get(field) or "").split("|") if v}
+
+
+def corpus_terms(index_path):
+    """Cell line terms (names as the corpus writes them) and {category: lower-case values used by the corpus}."""
+    rows = _read_index(index_path)
+    if not rows:
+        return [], None
+    names = {}
+    for r in rows:
+        for v in (r.get("cell_line") or "").split("|"):
+            if v and len(v) > 1:
+                names.setdefault(v.lower(), v)
+    known = {c: set() for c in KNOWN}
+    for r in rows:
+        for c in KNOWN:
+            known[c] |= _values(r, c)
+    return [{"label": v, "accession": None} for v in sorted(names.values())], known
+
+
+def similar_sdrfs(index_path, facts, corpus_root, k=2):
+    """Up to k corpus SDRFs sharing organism, instrument and label with `facts`, ranked by shared biology.
+
+    `facts` maps a field to a set of lower-case values. Each result has the accession, the shared fields,
+    the header, and the first three rows when the corpus checkout `corpus_root` is given.
+    """
+    import csv
+    from pathlib import Path
+    scored = []
+    for r in _read_index(index_path):
+        if not all(_values(r, f) & set(facts.get(f) or ()) for f in CORE):
+            continue
+        shared = [f for f in BIOLOGY if _values(r, f) & set(facts.get(f) or ())]
+        scored.append((len(shared), r["accession"], shared, r))
+    scored.sort(key=lambda s: s[1], reverse=True)  # newer accession first among equals
+    scored.sort(key=lambda s: -s[0])
+    out = []
+    for _, acc, shared, r in scored[:k]:
+        header, rows = r["columns"].split("|"), []
+        if corpus_root and (Path(corpus_root) / r["path"]).exists():
+            with open(Path(corpus_root) / r["path"], newline="", encoding="utf-8", errors="replace") as fh:
+                table = list(csv.reader(fh, delimiter="\t"))
+            header, rows = table[0], table[1:4]
+        out.append({"accession": acc, "shared": list(CORE) + shared, "header": header, "rows": rows})
+    return out

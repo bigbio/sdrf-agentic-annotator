@@ -1,0 +1,2 @@
+source name	characteristics[organism]	characteristics[organism part]	characteristics[cell line]	characteristics[disease]	assay name	comment[instrument]	comment[label]	comment[modification parameters]	comment[data file]
+S1	Homo sapiens	liver	not applicable	normal	run1	NT=Orbitrap Exploris 480;AC=MS:1003028	label free sample	NT=Carbamidomethyl;MT=Fixed;TA=C;AC=UNIMOD:4	r1.raw
