@@ -65,3 +65,12 @@ def test_long_output_is_cut(tmp_path):
     text = sdrf_checks.report(write(tmp_path), record=None, run=lambda cmd: (0, "x" * 50000), limit=1000)
     assert "[cut:" in text
     assert len(text) < 12 * 1500
+
+
+def test_relative_paths_work_from_the_scratch_folder(tmp_path, monkeypatch):
+    write(tmp_path)
+    (tmp_path / "pride.json").write_text("{}")
+    monkeypatch.chdir(tmp_path)
+    for _, cmd in sdrf_checks.commands("PXD1.sdrf.tsv", record="pride.json"):
+        paths = [a for a in cmd if a.endswith((".tsv", ".json"))]
+        assert paths and all(a.startswith("/") for a in paths), cmd

@@ -38,8 +38,8 @@ def active_templates(sdrf):
 
 
 def commands(sdrf, record=None):
-    """(name, argv) of every check, in the order the skill lists them."""
-    s = str(sdrf)
+    """(name, argv) of every check, in the order the skill lists them. Paths are absolute: the commands run in a scratch folder."""
+    s = str(Path(sdrf).resolve())
     validate = ["parse_sdrf", "validate-sdrf", "-s", s]
     for t in active_templates(sdrf):
         validate += ["-t", t]
@@ -49,10 +49,10 @@ def commands(sdrf, record=None):
         ("sdrf-tools structure", ["sdrf-tools", "structure", s]),
         ("sdrf-tools check", ["sdrf-tools", "check", s]),
         ("sdrf-tools score", ["sdrf-tools", "score", s]),
-        ("parse_sdrf convert-openms -t2", ["parse_sdrf", "convert-openms", "-s", str(Path(s).resolve()), "-t2"]),
+        ("parse_sdrf convert-openms -t2", ["parse_sdrf", "convert-openms", "-s", s, "-t2"]),
     ]
     if record:
-        cmds.append(("sdrf-tools reconcile", ["sdrf-tools", "reconcile", s, "--record", str(record)]))
+        cmds.append(("sdrf-tools reconcile", ["sdrf-tools", "reconcile", s, "--record", str(Path(record).resolve())]))
     return cmds
 
 
