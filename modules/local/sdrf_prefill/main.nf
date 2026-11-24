@@ -11,6 +11,9 @@ acquisition hints, the fragmentation method read from the embedded method of the
 (bin/raw_dissociation.py), the deposited run files and the search-parameter files. The agent starts from
 these facts instead of looking them up again. If the lookup fails three times, the file has an
 `error` and the agent gathers the record itself. Disable with --prefill false.
+bin/sdrf_sheet.py then writes <pxd>.sheet.md, the evidence sheet the annotate agent starts from: the methods of
+the manuscript, ontology term matches (ontology_dir, corpus_index), search settings found by pattern, the design
+read from the run file names and similar SDRFs of the corpus. It calls no model and never fails the task.
 ----------------------------------------------------------------------------------------
  */
 
@@ -25,12 +28,17 @@ process SDRF_PREFILL {
     maxRetries 3
 
     input:
-    pxd: String
+    record(
+        pxd: String,
+        ontology_dir: Path?,
+        corpus_index: Path?
+    )
 
     output:
     record(
         pxd: pxd,
         prefill: file("${pxd}.prefill.json"),
+        sheet: file("${pxd}.sheet.md"),
     )
 
     topic:
@@ -43,10 +51,13 @@ process SDRF_PREFILL {
     if sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
         raw_dissociation.py ${pxd} ${pxd}.dissociation.json > raw.log 2>&1 || echo '{}' > ${pxd}.dissociation.json
         sdrf_prefill.py evidence ${pxd}.prefill.json ${pxd}.dissociation.json
+        sdrf_sheet.py evidence ${pxd}.prefill.json ${pxd} ${ontology_dir ? "--ontology-dir ${ontology_dir}" : ''} ${corpus_index ? "--corpus-index ${corpus_index}" : ''} > sheet.log 2>&1 \\
+            || printf '# Evidence sheet for %s\\n\\n## Not available\\n- the sheet could not be built: gather the evidence yourself\\n' ${pxd} > ${pxd}.sheet.md
     else
         cat fetch.log >&2
         [ ${task.attempt} -gt 3 ] || exit 2
         jq -n --arg pxd ${pxd} --rawfile log fetch.log '{accession: \$pxd, error: \$log}' > ${pxd}.prefill.json
+        printf '# Evidence sheet for %s\\n\\n## Not available\\n- the PRIDE record could not be fetched\\n' ${pxd} > ${pxd}.sheet.md
     fi
     """
 }

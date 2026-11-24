@@ -65,7 +65,13 @@ workflow SDRF_AGENTIC_ANNOTATOR {
     }
     else {
         ch_pxd = ch_samplesheet.map { r -> r.pxd }
-        ch_start = isTrue(params.prefill) ? SDRF_PREFILL(ch_pxd) : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null) }
+        // The evidence sheet uses the ontology caches (--ontology_dir) and the corpus index (default: the bundled one)
+        ontology_dir = params.ontology_dir ? file(params.ontology_dir) : null
+        corpus_index = file(params.corpus_index ?: "${projectDir}/assets/corpus_index.tsv.gz")
+        ch_start = isTrue(params.prefill)
+            ? SDRF_PREFILL(ch_pxd.map { pxd -> record(pxd: pxd, ontology_dir: ontology_dir, corpus_index: corpus_index) })
+                .map { r -> record(pxd: r.pxd, prefill: r.prefill, sheet: isTrue(params.sheet) ? r.sheet : null) }
+            : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null, sheet: null) }
         ch_sdrf = SDRF_ANNOTATE(ch_start)
         REVIEW_REVISE(ch_sdrf, max_rounds)
         SUMMARISE_REVIEWS(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.review_1, REVIEW_REVISE.out.review_2, REVIEW_REVISE.out.revised)

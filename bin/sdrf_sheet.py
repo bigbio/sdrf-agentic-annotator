@@ -79,6 +79,7 @@ def methods_excerpt(text, limit=6000):
 TOLERANCE = re.compile(r"(?:±|\+/-|\+-)?\s*(\d+(?:\.\d+)?)\s*(ppm|Da|mmu|Th)\b")
 PRECURSOR_WORDS = re.compile(r"precursor|parent|MS1\b|peptide\s+mass|first\s+search|main\s+search|(?<![/\w])MS\s+toleran", re.IGNORECASE)
 FRAGMENT_WORDS = re.compile(r"fragment|MS/MS|MS2\b|product\s+ion|MS\s*/\s*MS", re.IGNORECASE)
+SEARCH_STAGE = re.compile(r"\s*(?:in|for|at|during)?\s*(?:the\s+)?(first|main)\s+search", re.IGNORECASE)
 TOLERANCE_WORDS = re.compile(r"toleran|accuracy|error|deviation|mass\s+window|\bwindow\b|\bset\s+(?:to|at)\b", re.IGNORECASE)
 NUMBER_WORDS = {"one": "1", "two": "2", "three": "3", "four": "4", "five": "5", "zero": "0", "no": "0"}
 MISSED = (
@@ -115,10 +116,11 @@ def search_settings(text):
             start = m.end()
             pre = [x.end() for x in PRECURSOR_WORDS.finditer(window)]
             frag = [x.end() for x in FRAGMENT_WORDS.finditer(window)]
-            if (not pre and not frag) or not TOLERANCE_WORDS.search(window):
+            if (not pre and not frag) or not TOLERANCE_WORDS.search(s[:m.start()]):
                 continue
             field = "fragment_tolerance" if (frag and (not pre or frag[-1] > pre[-1])) else "precursor_tolerance"
-            add(field, f"{m.group(1)} {m.group(2)}", s)
+            q = SEARCH_STAGE.match(s[m.end():m.end() + 30])
+            add(field, f"{m.group(1)} {m.group(2)}" + (f" ({q.group(1).lower()} search)" if q else ""), s)
         for pat in MISSED:
             m = pat.search(s)
             if m:
@@ -302,6 +304,8 @@ def term_matches(text, terms, known=None):
                     continue
                 if known is not None and n == 1 and term["label"].lower() not in known.get(category, set()):
                     continue
+                if category == "instrument" and n == 1:  # "orbitrap" names a family, not a model
+                    continue
                 entry = hits.setdefault(category, {}).get(term["label"])
                 if entry is None:
                     start = max([0] + [b for b in bounds if b <= tokens[i].start()])
@@ -335,28 +339,57 @@ def _read_index(index_path):
         return list(csv.DictReader(fh, delimiter="\t"))
 
 
+def label_class(value):
+    """The labelling class of a label value: tmt, itraq, silac, dimethyl or label free (TMT126 and TMT are both tmt)."""
+    v = value.lower()
+    for cls in ("tmt", "itraq", "silac", "dimethyl"):
+        if v.startswith(cls) or cls in v.split():
+            return cls
+    return "label free" if "label free" in v or "label-free" in v else v
+
+
 def _values(row, field):
-    return {v.lower() for v in (row.get(field) or "").split("|") if v}
+    values = {v.lower() for v in (row.get(field) or "").split("|") if v}
+    return {label_class(v) for v in values} if field == "label" else values
 
 
-def corpus_terms(index_path):
-    """Cell line terms (names as the corpus writes them) and {category: lower-case values used by the corpus}."""
+GENERIC_CELL_LINES = {"cell line", "cell lines", "cells", "cell", "pooled", "pool", "mixed", "mix", "control", "unknown",
+                      "primary", "primary cells", "other", "multiple", "various", "none"}
+
+
+def cell_line_name_ok(name):
+    """A value that looks like a cell line name: letters, a capital or a digit as written, not a generic word."""
+    name = (name or "").strip()
+    return (len(name) >= 3 and bool(re.search(r"[A-Za-z]", name)) and bool(re.search(r"[A-Z0-9]", name))
+            and not name.isdigit() and name.lower() not in GENERIC_CELL_LINES)
+
+
+def corpus_terms(index_path, min_datasets=10, min_cell_line=2):
+    """Cell line terms and {category: lower-case values}, both from the annotated corpus.
+
+    A value counts when at least `min_datasets` corpus SDRFs use it in that column (a one-word ontology label is
+    matched only if it counts, see term_matches). A cell line needs `min_cell_line` SDRFs and a cell-line-like name;
+    a trailing " cell" or " cells" is dropped. The names keep the case the corpus writes them in.
+    """
     rows = _read_index(index_path)
     if not rows:
         return [], None
+    from collections import Counter
+    counts = {c: Counter() for c in KNOWN}
     names = {}
     for r in rows:
-        for v in (r.get("cell_line") or "").split("|"):
-            if v and len(v) > 1:
-                names.setdefault(v.lower(), v)
-    known = {c: set() for c in KNOWN}
-    for r in rows:
         for c in KNOWN:
-            known[c] |= _values(r, c)
-    return [{"label": v, "accession": None} for v in sorted(names.values())], known
+            counts[c].update(_values(r, c))
+        for v in {re.sub(r"\s+cells?$", "", x) for x in (r.get("cell_line") or "").split("|") if x}:
+            if cell_line_name_ok(v):
+                names.setdefault(v.lower(), Counter())[v] += 1
+    lines = sorted(c.most_common(1)[0][0] for k, c in names.items() if sum(c.values()) >= min_cell_line)
+    known = {c: {v for v, n in counts[c].items() if n >= min_datasets} for c in KNOWN}
+    known["cell_line"] = {v.lower() for v in lines}
+    return [{"label": v, "accession": None} for v in lines], known
 
 
-def similar_sdrfs(index_path, facts, corpus_root, k=2):
+def similar_sdrfs(index_path, facts, corpus_root, k=2, exclude=None):
     """Up to k corpus SDRFs sharing organism, instrument and label with `facts`, ranked by shared biology.
 
     `facts` maps a field to a set of lower-case values. Each result has the accession, the shared fields,
@@ -366,9 +399,12 @@ def similar_sdrfs(index_path, facts, corpus_root, k=2):
     from pathlib import Path
     scored = []
     for r in _read_index(index_path):
-        if not all(_values(r, f) & set(facts.get(f) or ()) for f in CORE):
+        if exclude and r["accession"] == exclude:  # never the dataset itself, when it is already in the corpus
             continue
-        shared = [f for f in BIOLOGY if _values(r, f) & set(facts.get(f) or ())]
+        want = dict(facts, label={label_class(v) for v in facts.get("label") or ()})
+        if not all(_values(r, f) & set(want.get(f) or ()) for f in CORE):
+            continue
+        shared = [f for f in BIOLOGY if _values(r, f) & set(want.get(f) or ())]
         scored.append((len(shared), r["accession"], shared, r))
     scored.sort(key=lambda s: s[1], reverse=True)  # newer accession first among equals
     scored.sort(key=lambda s: -s[0])
@@ -381,3 +417,162 @@ def similar_sdrfs(index_path, facts, corpus_root, k=2):
             header, rows = table[0], table[1:4]
         out.append({"accession": acc, "shared": list(CORE) + shared, "header": header, "rows": rows})
     return out
+
+
+# ---------------------------------------------------------------- render and command line
+
+SECTION_TITLES = {"methods": "Methods excerpt", "terms": "Term matches", "settings": "Search settings",
+                  "design": "Design from file names", "similar": "Similar SDRFs"}
+CATEGORY_TITLES = {"cell_line": "cell line", "organism_part": "organism part", "cell_type": "cell type",
+                   "disease": "disease", "modification": "modification", "instrument": "instrument"}
+
+
+def _quote(sentence, n=220):
+    sentence = " ".join((sentence or "").split())
+    return '"' + (sentence if len(sentence) <= n else sentence[:n - 1] + "…") + '"'
+
+
+def _render(sheet, excerpt_limit, terms_per_category, similar_rows):
+    out = [f"# Evidence sheet for {sheet.get('accession') or ''}".rstrip(),
+           "Built without a model from the PRIDE record, the manuscript and the deposited file names. Each value names "
+           "its source. Values marked (confirm) were found by a pattern: confirm them before you use them. A missing "
+           "value was not found here; it may still be in the manuscript.", ""]
+    errors = sheet.get("errors") or {}
+    m = sheet.get("methods") or {}
+    out.append("## 1. Methods excerpt" + (f" (headings: {', '.join(m.get('headings')[:6])})" if m.get("headings") else ""))
+    if m.get("found"):
+        text = m.get("text") or ""
+        out.append(text if len(text) <= excerpt_limit else text[:excerpt_limit].rsplit(" ", 1)[0] + " …")
+    else:
+        out.append("no manuscript methods found: use the PRIDE protocols and the manuscript itself")
+    out += ["", "## 2. Term matches (ontology labels in the methods, title and PRIDE protocols)"]
+    terms = sheet.get("terms") or {}
+    if terms:
+        for cat in CATEGORY_TITLES:
+            items = terms.get(cat) or []
+            if not items:
+                continue
+            out.append(f"### {CATEGORY_TITLES[cat]}")
+            for t in items[:terms_per_category]:
+                acc = f" ({t['accession']})" if t.get("accession") else ""
+                out.append(f"- {t['label']}{acc}, {t['count']}x: {_quote(t.get('sentence'))}")
+            if len(items) > terms_per_category:
+                out.append(f"- … {len(items) - terms_per_category} more")
+    else:
+        out.append("none found")
+    if sheet.get("terms_note"):
+        out.append(f"note: {sheet['terms_note']}")
+    out += ["", "## 3. Search settings (confirm)"]
+    for x in sheet.get("settings") or []:
+        out.append(f"- {x['field'].replace('_', ' ')}: {x['value']} (confirm): {_quote(x['sentence'])}")
+    if not sheet.get("settings"):
+        out.append("none found")
+    d = sheet.get("design") or {}
+    out += ["", f"## 4. Design from file names ({d.get('files', 0)} run files, {d.get('compared', 0)} with the common name pattern)"]
+    for p in d.get("positions") or []:
+        more = f" (of {p['n_values']})" if p["n_values"] > len(p["values"]) else ""
+        out.append(f"- token {p['index']} ({p['kind']}, {p['n_values']} values){more}: {', '.join(p['values'])}")
+    if d.get("dropped"):
+        out.append(f"- the same in every file: {', '.join(d['dropped'][:12])}")
+    if not d.get("positions"):
+        out.append("no varying name token")
+    out += ["", "## 5. Similar SDRFs (a column set to compare with, not values for this dataset)"]
+    for x in sheet.get("similar") or []:
+        out.append(f"- {x['accession']} (shares {', '.join(x['shared'])}): columns {' | '.join(x['header'])}")
+        for row in (x.get("rows") or [])[:similar_rows]:
+            out.append("  " + " | ".join(row))
+    if not sheet.get("similar"):
+        out.append("none in the corpus with the same organism, instrument and label")
+    if errors:
+        out += ["", "## Not available"] + [f"- {SECTION_TITLES.get(k, k)}: {v}" for k, v in errors.items()]
+    return "\n".join(out) + "\n"
+
+
+def render(sheet, limit=12000):
+    """The sheet as Markdown, at most `limit` characters: similar-SDRF rows go first, then the term tail, then the excerpt."""
+    text = _render(sheet, 6000, 10**6, 3)
+    for terms_per_category, similar_rows in ((10**6, 0), (5, 0)):
+        if len(text) <= limit:
+            return text
+        text = _render(sheet, 6000, terms_per_category, similar_rows)
+    if len(text) > limit:
+        excerpt = len((sheet.get("methods") or {}).get("text") or "")
+        text = _render(sheet, max(0, min(6000, excerpt) - (len(text) - limit) - 50), 5, 0)
+    return text[:limit]
+
+
+def _lower_values(items):
+    return {str(i.get("value")).lower() for i in items or [] if i.get("value")}
+
+
+def build_sheet(evidence_dir, prefill_path, ontology_dir=None, corpus_index=None):
+    """All sections; a section that fails is left empty and named in `errors`."""
+    import json
+    from pathlib import Path
+    ev = Path(evidence_dir)
+    sheet = {"errors": {}}
+
+    def section(name, fn, default):
+        try:
+            return fn()
+        except Exception as e:  # the sheet must never fail the prefill task
+            sheet["errors"][name] = f"{type(e).__name__}: {e}"[:300]
+            return default
+
+    record = section("record", lambda: json.loads((ev / "pride.json").read_text()), {})
+    prefill = section("prefill", lambda: json.loads(Path(prefill_path).read_text()), {})
+    sheet["accession"] = record.get("accession") or prefill.get("accession")
+    manuscript = (ev / "manuscript.txt").read_text(errors="replace") if (ev / "manuscript.txt").exists() else ""
+    sheet["methods"] = section("methods", lambda: methods_excerpt(manuscript), {"found": False, "headings": [], "text": ""})
+    protocols = "\n".join(str(record.get(k) or "") for k in ("title", "sampleProcessingProtocol", "dataProcessingProtocol"))
+    text = sheet["methods"]["text"] + "\n" + protocols
+
+    def terms():
+        found, reason = load_terms(ontology_dir)
+        cell_lines, known = corpus_terms(corpus_index)
+        if cell_lines:
+            found["cell_line"] = cell_lines
+        if reason and not cell_lines:
+            sheet["errors"]["terms"] = reason
+        elif reason:
+            sheet["terms_note"] = reason + "; cell lines from the corpus only"
+        return term_matches(text, found, known=known)
+
+    sheet["terms"] = section("terms", terms, {})
+    sheet["settings"] = section("settings", lambda: search_settings(text), [])
+    run_files = (prefill.get("files") or {}).get("run_files") or []
+    sheet["design"] = section("design", lambda: filename_design(run_files), {})
+    facts = {"organism": _lower_values(prefill.get("organism")), "instrument": _lower_values(prefill.get("instrument")),
+             "label": _lower_values(prefill.get("label"))}
+    for cat in BIOLOGY:
+        facts[cat] = {t["label"].lower() for t in sheet["terms"].get(cat) or []}
+    sheet["similar"] = section("similar", lambda: similar_sdrfs(corpus_index, facts, None, exclude=sheet["accession"]), [])
+    return sheet
+
+
+def main(argv):
+    import argparse
+    import json
+    from pathlib import Path
+    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    ap.add_argument("evidence_dir")
+    ap.add_argument("prefill")
+    ap.add_argument("out_prefix")
+    ap.add_argument("--ontology-dir")
+    ap.add_argument("--corpus-index")
+    a = ap.parse_args(argv)
+    try:
+        sheet = build_sheet(a.evidence_dir, a.prefill, a.ontology_dir, a.corpus_index)
+        text = render(sheet)
+    except Exception as e:  # never fail the task: write what went wrong instead
+        sheet = {"errors": {"sheet": f"{type(e).__name__}: {e}"[:300]}}
+        text = f"# Evidence sheet\n\n## Not available\n- {sheet['errors']['sheet']}\n"
+    Path(a.out_prefix + ".sheet.md").write_text(text)
+    Path(a.out_prefix + ".sheet.json").write_text(json.dumps(sheet, indent=1, ensure_ascii=False, default=sorted) + "\n")
+    print(f"wrote {a.out_prefix}.sheet.md: {len(text)} characters, errors: {sorted(sheet.get('errors') or {})}")
+    return 0
+
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main(sys.argv[1:]))

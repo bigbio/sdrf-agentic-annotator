@@ -199,7 +199,7 @@ def test_similar_ranks_by_shared_biology(tmp_path):
 
 
 def test_corpus_terms(tmp_path):
-    cell_lines, known = sdrf_sheet.corpus_terms(str(_index(tmp_path)))
+    cell_lines, known = sdrf_sheet.corpus_terms(str(_index(tmp_path)), min_datasets=1, min_cell_line=1)
     assert {"label": "HeLa", "accession": None} in cell_lines
     assert "cervix" in known["organism_part"] and "oxidation" in known["modification"]
     assert "orbitrap exploris 480" in known["instrument"]
@@ -212,4 +212,126 @@ def test_gzipped_index(tmp_path):
     assert out.read_bytes()[:2] == b"\x1f\x8b"  # really gzip, not plain text under a .gz name
     facts = dict(FACTS, cell_line={"hela"})
     assert [g["accession"] for g in sdrf_sheet.similar_sdrfs(str(out), facts, None)][0] == "PXD000101"
-    assert sdrf_sheet.corpus_terms(str(out))[1]["cell_line"] == {"hela"}
+    assert sdrf_sheet.corpus_terms(str(out), min_datasets=1, min_cell_line=1)[1]["cell_line"] == {"hela"}
+
+
+# ---------------------------------------------------------------- render and command line
+
+import json
+
+SECTIONS = ["## 1. Methods excerpt", "## 2. Term matches", "## 3. Search settings", "## 4. Design from file names",
+            "## 5. Similar SDRFs"]
+
+
+def _big_sheet():
+    long = " ".join(f"Sentence {i} about trypsin digestion at 10 ppm." for i in range(800))
+    return {
+        "accession": "PXD000001",
+        "methods": {"found": True, "headings": ["Methods"], "text": long},
+        "terms": {"organism_part": [{"label": f"part{i}", "accession": f"uberon:{i}", "count": 30 - i,
+                                     "sentence": "x" * 300} for i in range(30)]},
+        "settings": [sdrf_sheet._setting("precursor_tolerance", "10 ppm", "Precursor tolerance was 10 ppm.")],
+        "design": {"positions": [{"index": 2, "kind": "condition", "n_values": 2, "values": ["ctrl", "drug"]}],
+                   "dropped": ["2019"], "compared": 4, "files": 4},
+        "similar": [{"accession": "PXD000101", "shared": ["organism", "instrument", "label"],
+                     "header": ["source name"] * 40, "rows": [["v" * 50] * 40] * 3}],
+        "errors": {},
+    }
+
+
+def test_render_cap():
+    text = sdrf_sheet.render(_big_sheet(), limit=12000)
+    assert len(text) <= 12000
+    positions = [text.index(s) for s in SECTIONS]
+    assert positions == sorted(positions)
+    assert "Precursor tolerance was 10 ppm." in text and "(confirm)" in text
+    assert "uberon:0" in text and "part29" not in text  # top terms kept, the tail cut
+    assert "ctrl, drug" in text and "PXD000101" in text
+
+
+def test_label_classes_match_corpus(tmp_path):
+    facts = {"organism": {"homo sapiens"}, "instrument": {"orbitrap exploris 480"}, "label": {"tmt"}}
+    got = sdrf_sheet.similar_sdrfs(str(_index(tmp_path)), facts, None)
+    assert [g["accession"] for g in got] == ["PXD000103"]  # corpus label TMT126 is the TMT class
+
+
+def _evidence(tmp_path, manuscript):
+    ev = tmp_path / "evidence"
+    ev.mkdir()
+    (ev / "pride.json").write_text(json.dumps({
+        "accession": "PXD000001", "title": "HeLa proteome",
+        "sampleProcessingProtocol": "HeLa cells were digested with trypsin.",
+        "dataProcessingProtocol": "Precursor mass tolerance was 10 ppm."}))
+    (ev / "files.json").write_text(json.dumps({"files": ["a_ctrl_R1.raw", "a_drug_R1.raw"], "other_files": []}))
+    (ev / "manuscript.txt").write_text(manuscript)
+    prefill = tmp_path / "PXD000001.prefill.json"
+    prefill.write_text(json.dumps({
+        "organism": [{"value": "Homo sapiens"}], "instrument": [{"value": "Orbitrap Exploris 480"}],
+        "label": [{"value": "label free sample"}], "files": {"run_files": ["a_ctrl_R1.raw", "a_drug_R1.raw"]}}))
+    return ev, prefill
+
+
+def test_cli_writes_sheet(tmp_path):
+    ev, prefill = _evidence(tmp_path, PAPER)
+    out = tmp_path / "PXD000001"
+    subprocess.run([sys.executable, str(BIN / "sdrf_sheet.py"), str(ev), str(prefill), str(out),
+                    "--ontology-dir", str(ONTOLOGIES), "--corpus-index", str(_index(tmp_path))], check=True)
+    text = (tmp_path / "PXD000001.sheet.md").read_text()
+    data = json.loads((tmp_path / "PXD000001.sheet.json").read_text())
+    assert "Orbitrap Exploris 480 in DDA mode" in text  # methods excerpt
+    assert "10 ppm" in text  # from the PRIDE protocol when the manuscript does not say it
+    assert "ctrl, drug" in text
+    assert "HeLa" in {m["label"] for m in data["terms"].get("cell_line", [])}
+    assert data["errors"] == {}
+
+
+def test_cli_never_fails(tmp_path):
+    ev, prefill = _evidence(tmp_path, "")
+    bad = tmp_path / "ontologies"
+    bad.mkdir()
+    (bad / "uberon.parquet").write_text("not a parquet file")
+    out = tmp_path / "PXD000001"
+    r = subprocess.run([sys.executable, str(BIN / "sdrf_sheet.py"), str(ev), str(prefill), str(out),
+                        "--ontology-dir", str(bad), "--corpus-index", str(tmp_path / "missing.tsv")])
+    assert r.returncode == 0
+    text = (tmp_path / "PXD000001.sheet.md").read_text()
+    assert "no manuscript methods found" in text
+    assert "Term matches" in text and "Not available" in text
+    assert (tmp_path / "PXD000001.sheet.json").exists()
+
+
+def test_tolerance_first_and_main_search():
+    s = ("The mass tolerance for precursor ions was set as 20 ppm in First search and 5 ppm in Main search, "
+         "and the mass tolerance for fragment ions was set as 0.02 Da.")
+    got = {(i["field"], i["value"]) for i in sdrf_sheet.search_settings(s)}
+    assert got == {("precursor_tolerance", "20 ppm (first search)"), ("precursor_tolerance", "5 ppm (main search)"),
+                   ("fragment_tolerance", "0.02 Da")}
+
+
+def test_corpus_terms_thresholds(tmp_path):
+    index = str(_index(tmp_path))
+    # HeLa is used by two corpus datasets, cervix by two, oxidation by two
+    lines, known = sdrf_sheet.corpus_terms(index, min_datasets=3, min_cell_line=2)
+    assert [t["label"] for t in lines] == ["HeLa"] and "cervix" not in known["organism_part"]
+    lines, known = sdrf_sheet.corpus_terms(index, min_datasets=2, min_cell_line=3)
+    assert lines == [] and "cervix" in known["organism_part"]
+
+
+def test_cell_line_name_shape():
+    ok = sdrf_sheet.cell_line_name_ok
+    assert ok("HeLa") and ok("CHO") and ok("PANC-1") and ok("A549") and ok("MCF 10A")
+    assert not ok("pooled") and not ok("27") and not ok("cell line") and not ok("x") and not ok("mixed cells")
+    assert not ok("HT")  # two-letter codes match acronyms in methods text
+
+
+def test_similar_excludes_own_accession(tmp_path):
+    facts = dict(FACTS, cell_line={"hela"})
+    got = sdrf_sheet.similar_sdrfs(str(_index(tmp_path)), facts, None, exclude="PXD000101")
+    assert "PXD000101" not in [g["accession"] for g in got]
+
+
+def test_instrument_needs_model_name():
+    terms = {"instrument": [{"label": "orbitrap", "accession": "ms:1000484"},
+                            {"label": "orbitrap exploris 480", "accession": "ms:1003028"}]}
+    m = sdrf_sheet.term_matches("Peptides were detected in the Orbitrap.", terms, known={"instrument": {"orbitrap"}})
+    assert m.get("instrument", []) == []
