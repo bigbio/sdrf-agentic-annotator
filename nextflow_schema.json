@@ -10,7 +10,10 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": [
+                "input",
+                "outdir"
+            ],
             "properties": {
                 "input": {
                     "type": "string",
@@ -43,6 +46,16 @@
                     "description": "Model that the agents use, as `<provider>/<model>`.",
                     "fa_icon": "fas fa-brain"
                 },
+                "annotate_model": {
+                    "type": "string",
+                    "description": "Model of the annotate, revise and refine agents, as `<provider>/<model>` (default: `model`).",
+                    "fa_icon": "fas fa-brain"
+                },
+                "review_model": {
+                    "type": "string",
+                    "description": "Model of the review agent, as `<provider>/<model>` (default: `model`).",
+                    "fa_icon": "fas fa-brain"
+                },
                 "api_provider": {
                     "type": "string",
                     "default": "google",
@@ -55,6 +68,24 @@
                     "default": true,
                     "description": "Before the annotate agent, extract the facts the PRIDE record already states (organism, instrument, enzymes, labels, run files) with a non-agent step and give them to the agent.",
                     "fa_icon": "fas fa-list-check"
+                },
+                "sheet": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Give the annotate agent an evidence sheet built without a model.",
+                    "fa_icon": "fas fa-list"
+                },
+                "ontology_dir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Folder of ontology label caches (`<name>.parquet` or `<name>.tsv` with accession, label, ontology) for the sheet's term matches.",
+                    "fa_icon": "fas fa-folder"
+                },
+                "corpus_index": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Index of the annotated SDRF corpus (`bin/build_corpus_index.py`) for the sheet's similar SDRFs.",
+                    "fa_icon": "fas fa-file"
                 },
                 "revise": {
                     "type": "boolean",
