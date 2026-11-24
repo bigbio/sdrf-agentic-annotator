@@ -43,6 +43,8 @@ process SDRF_COVERAGE {
     // No early `exit 0`: the topic eval()s above are appended to the end of this script.
     """
     if sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
+        # runs inside a zip of the deposit count as deposited runs (bin/archive_runs.py)
+        archive_runs.py evidence/files.json > archive.log 2>&1 || true
         # Exit 1 only means the audit has blockers; the coverage block is still complete.
         sdrf-tools audit-existing ${sdrf} --runs evidence/files.json --json > audit.json || [ \$? -eq 1 ]
         jq '.coverage // {fraction: null, error: ([.findings[] | select(.code | IN("empty", "no_data_file_column")) | .summary] | join("; "))}' \\

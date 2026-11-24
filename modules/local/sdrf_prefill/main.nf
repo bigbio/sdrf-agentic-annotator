@@ -49,6 +49,7 @@ process SDRF_PREFILL {
     // No early `exit 0`: the topic eval()s above are appended to the end of this script.
     """
     if sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
+        archive_runs.py evidence/files.json > archive.log 2>&1 || true
         raw_dissociation.py ${pxd} ${pxd}.dissociation.json > raw.log 2>&1 || echo '{}' > ${pxd}.dissociation.json
         sdrf_prefill.py evidence ${pxd}.prefill.json ${pxd}.dissociation.json
         sdrf_sheet.py evidence ${pxd}.prefill.json ${pxd} ${ontology_dir ? "--ontology-dir ${ontology_dir}" : ''} ${corpus_index ? "--corpus-index ${corpus_index}" : ''} > sheet.log 2>&1 \\
