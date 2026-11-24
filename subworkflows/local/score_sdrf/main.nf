@@ -21,5 +21,5 @@ workflow SCORE_SDRF {
 
     emit:
     review = ch_review // records: pxd, sdrf, manifest, coverage, review
-    coverage = ch_coverage // records: pxd, coverage
+    coverage = ch_coverage.map { r -> record(pxd: r.pxd, coverage: r.coverage) } // records: pxd, coverage
 }

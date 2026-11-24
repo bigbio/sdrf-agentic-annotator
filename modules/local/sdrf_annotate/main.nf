@@ -40,6 +40,13 @@ agent SDRF_ANNOTATE {
     ${sheet ? "Read ${sheet} first. It holds the methods of the manuscript and candidate values, each with its source sentence or file, built without a model. Open evidence/manuscript.txt only for a fact the sheet does not hold. Values marked (confirm) were found by a pattern: confirm them before you use them. The similar SDRFs show a column set, not values for this dataset. Record in the manifest the sentence that supports each value." : ''}
     `characteristics[sample type]` is `study sample` by default. Use another child of `sample type` (PRIDE:0000895) only when the deposit or the publication says so: `control sample`, `calibration sample`, `blank`, `single cell`, `multiplex sample` or `environmental sample`.
     Combine independent lookups (several files, several terms) into one shell command per turn: every turn costs a model request.
+    These are the most common reasons the reviewer fails an SDRF; check each before you finish:
+    - Mass tolerances: write a value only when a source states it (manuscript, PRIDE protocol, a deposited search parameter file) and cite that sentence or file; when the search engine sets them itself (DIA-NN library-free, for example) or no source states them, write `not available`. Never use 10 ppm / 20 ppm as defaults. Keep precursor and fragment apart in "X and Y, respectively" sentences.
+    - Citations: take the DOI and PubMed ID only from evidence/pride.json or the Europe PMC record you fetched, never from memory; quote only text that is in a file you read.
+    - Enzymes: a co-digestion (Lys-C and trypsin, trypsin and Glu-C) needs one `comment[cleavage agent details]` column per enzyme.
+    - Instrument: if the PRIDE record, the RAW header and the manuscript disagree, use the RAW header, then the PRIDE record, and record the disagreement in the manifest.
+    - Modifications: list every modification of the search, including those in a small deposited search parameter or result file.
+    - Design: one row per run, and the factor values that the deposit's sample names or tables give; never one row for a whole archive or study.
     Do not ask questions.
     External reviewer: a separate pipeline task runs `sdrf-adversarial-review` in a fresh context.
     Hand the Step 9.5 review off to it and give the status REVIEW_PENDING_EXTERNAL.
