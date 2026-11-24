@@ -76,11 +76,14 @@ def methods_excerpt(text, limit=6000):
 
 # ---------------------------------------------------------------- search settings
 
-TOLERANCE = re.compile(r"(?:±|\+/-|\+-)?\s*(\d+(?:\.\d+)?)\s*(ppm|Da|mmu|Th)\b")
+TOLERANCE = re.compile(r"(?:±|\+/-|\+-)?\s*(\d+(?:\.\d+)?)\s*(ppm|Da|mmu)\b")
+# the ion type named right after the number ("10 ppm for precursors", "4.5 ppm (precursor)") wins over the words before it
+ION_WORD = re.compile(r"\b(precursor|parent|MS1|fragment|product|MS/MS|MS2)", re.IGNORECASE)
+TRAILING_ION = re.compile(r"\s*(?:\(\s*|for\s+(?:the\s+)?)(precursor|parent|MS1|fragment|product|MS/MS|MS2)", re.IGNORECASE)
 PRECURSOR_WORDS = re.compile(r"precursor|parent|MS1\b|peptide\s+mass|first\s+search|main\s+search|(?<![/\w])MS\s+toleran", re.IGNORECASE)
 FRAGMENT_WORDS = re.compile(r"fragment|MS/MS|MS2\b|product\s+ion|MS\s*/\s*MS", re.IGNORECASE)
 SEARCH_STAGE = re.compile(r"\s*(?:in|for|at|during)?\s*(?:the\s+)?(first|main)\s+search", re.IGNORECASE)
-TOLERANCE_WORDS = re.compile(r"toleran|accuracy|error|deviation|mass\s+window|\bwindow\b|\bset\s+(?:to|at)\b", re.IGNORECASE)
+TOLERANCE_WORDS = re.compile(r"toleran|accuracy|error|deviation|\bset\s+(?:to|at)\b", re.IGNORECASE)
 NUMBER_WORDS = {"one": "1", "two": "2", "three": "3", "four": "4", "five": "5", "zero": "0", "no": "0"}
 MISSED = (
     re.compile(r"\b(\d|one|two|three|four|five|zero|no)\s+(?:missed|miss-?)\s*cleavages?", re.IGNORECASE),
@@ -111,14 +114,30 @@ def search_settings(text):
 
     for s in sentences(text or ""):
         start = 0
-        for m in TOLERANCE.finditer(s):
+        tols = list(TOLERANCE.finditer(s))
+        if len(tols) >= 2 and "respectively" in s.lower() and TOLERANCE_WORDS.search(s[:tols[0].start()]):
+            # "10 ppm and 0.02 Da for precursor and fragment ions, respectively": numbers and ion types in order
+            ions = ION_WORD.findall(s[tols[-1].end():])
+            if len(ions) >= len(tols):
+                for m, ion in zip(tols, ions):
+                    field = "precursor_tolerance" if ion.lower() in ("precursor", "parent", "ms1") else "fragment_tolerance"
+                    add(field, f"{m.group(1)} {m.group(2)}", s)
+                tols = []
+        for m in tols:
             window = s[start:m.start()]
             start = m.end()
-            pre = [x.end() for x in PRECURSOR_WORDS.finditer(window)]
-            frag = [x.end() for x in FRAGMENT_WORDS.finditer(window)]
-            if (not pre and not frag) or not TOLERANCE_WORDS.search(s[:m.start()]):
+            if "isolation" in window[-40:].lower() or not TOLERANCE_WORDS.search(s[:m.start()]):
                 continue
-            field = "fragment_tolerance" if (frag and (not pre or frag[-1] > pre[-1])) else "precursor_tolerance"
+            trail = TRAILING_ION.match(s[m.end():m.end() + 30])
+            if trail:
+                ion = trail.group(1).lower()
+                field = "precursor_tolerance" if ion in ("precursor", "parent", "ms1") else "fragment_tolerance"
+            else:
+                pre = [x.end() for x in PRECURSOR_WORDS.finditer(window)]
+                frag = [x.end() for x in FRAGMENT_WORDS.finditer(window)]
+                if not pre and not frag:
+                    continue
+                field = "fragment_tolerance" if (frag and (not pre or frag[-1] > pre[-1])) else "precursor_tolerance"
             q = SEARCH_STAGE.match(s[m.end():m.end() + 30])
             add(field, f"{m.group(1)} {m.group(2)}" + (f" ({q.group(1).lower()} search)" if q else ""), s)
         for pat in MISSED:
@@ -186,7 +205,7 @@ def filename_design(files, max_positions=8, max_values=12):
             kind = "fraction"
         elif all(REPLICATE_TOKEN.match(v) for v in values):
             kind = "replicate"
-        elif len(values) == len(rows):
+        elif len(values) == len(rows) and len(rows) >= 6:  # with few files, a token unique per file may be the condition
             kind = "run"
         else:
             kind = "condition"
@@ -234,9 +253,17 @@ def _read_cache(directory, name):
     return None
 
 
+DEFAULT_ONTOLOGY_DIR = "/opt/cache/sdrf-pipelines/ontologies"  # the caches of sdrf-pipelines in the runner image
+
+
 def load_terms(ontology_dir):
-    """{category: [{"label", "accession"}]} from the ontology caches, and the reason when none could be read."""
+    """{category: [{"label", "accession"}]} from the ontology caches, and the reason when none could be read.
+
+    Without `ontology_dir`, the caches of sdrf-pipelines in the runner image are used when they are there.
+    """
     from pathlib import Path
+    if not ontology_dir and Path(DEFAULT_ONTOLOGY_DIR).is_dir():
+        ontology_dir = DEFAULT_ONTOLOGY_DIR
     if not ontology_dir or not Path(ontology_dir).is_dir():
         return {}, f"no ontology cache folder ({ontology_dir})"
     terms = {}
@@ -275,6 +302,33 @@ def _short_label_ok(label, span):
     return len(label) >= 4 or span.isupper() or any(c.isdigit() for c in span)
 
 
+# reagents and phrases whose words are also ontology labels (dimethyl, milk, serum, blood): masked before matching
+REAGENT_PHRASES = re.compile(
+    r"dimethyl\s+sulfoxide|non-?\s*fat\s+(?:dry\s+)?milk|skim(?:med)?\s+milk|milk\s+powder|"
+    r"(?:fetal|foetal|newborn)\s+(?:bovine|calf)\s+serum|bovine\s+serum\s+albumin|horse\s+serum|goat\s+serum|"
+    r"blood\s+donors?|methyl[-\s]\S*cyclodextrin", re.IGNORECASE)
+CELL_CONTEXT = {"cell", "cells", "line", "lines", "cultures", "xenografts"}
+
+
+def _mask(text):
+    return REAGENT_PHRASES.sub(lambda m: " " * len(m.group(0)), text)
+
+
+def _cell_line_ok(label, text, tokens, lower, i, n):
+    """A cell line name counts with a digit or hyphen (K562, PC-3), or when 'cell(s)'/'line' follows within 3 words
+    of the same sentence."""
+    if re.search(r"[\d-]", label):
+        return True
+    prev = tokens[i + n - 1].end()
+    for k in range(i + n, min(i + n + 3, len(tokens))):
+        if re.search(r"[.;:!?]", text[prev:tokens[k].start()]):
+            return False
+        if lower[k] in CELL_CONTEXT:
+            return True
+        prev = tokens[k].end()
+    return False
+
+
 def term_matches(text, terms, known=None):
     """Whole-word matches of the term labels in `text`, longest first, by category, with count and first sentence.
 
@@ -284,7 +338,7 @@ def term_matches(text, terms, known=None):
     """
     text = text or ""
     index, longest = _index(terms)
-    tokens = list(TOKEN.finditer(text))
+    tokens = list(TOKEN.finditer(_mask(text)))
     lower = [t.group(0).lower() for t in tokens]
     bounds = [m.end() for m in SENTENCE_SPLIT.finditer(text)] + [len(text)]
     hits = {}
@@ -306,13 +360,16 @@ def term_matches(text, terms, known=None):
                     continue
                 if category == "instrument" and n == 1:  # "orbitrap" names a family, not a model
                     continue
+                if category == "cell_line" and not _cell_line_ok(term["label"], text, tokens, lower, i, n):
+                    continue
                 entry = hits.setdefault(category, {}).get(term["label"])
                 if entry is None:
                     start = max([0] + [b for b in bounds if b <= tokens[i].start()])
                     end = min(b for b in bounds if b >= tokens[i + n - 1].end())
                     hits[category][term["label"]] = entry = {
                         "label": term["label"], "accession": term.get("accession"), "count": 0,
-                        "sentence": text[start:end].strip()}
+                        "sentence": text[start:end].strip(),
+                        "at": tokens[i].start() - start - (len(text[start:end]) - len(text[start:end].lstrip()))}
                 entry["count"] += 1
                 matched = n
             if matched:
@@ -367,7 +424,7 @@ def cell_line_name_ok(name):
 def corpus_terms(index_path, min_datasets=10, min_cell_line=2):
     """Cell line terms and {category: lower-case values}, both from the annotated corpus.
 
-    A value counts when at least `min_datasets` corpus SDRFs use it in that column (a one-word ontology label is
+    A value counts when at least `min_datasets` corpus accessions use it in that column (a one-word ontology label is
     matched only if it counts, see term_matches). A cell line needs `min_cell_line` SDRFs and a cell-line-like name;
     a trailing " cell" or " cells" is dropped. The names keep the case the corpus writes them in.
     """
@@ -375,12 +432,19 @@ def corpus_terms(index_path, min_datasets=10, min_cell_line=2):
     if not rows:
         return [], None
     from collections import Counter
+    # counted once per accession: one dataset with 93 SDRF files is one use, not 93
+    by_acc = {}
+    for r in rows:
+        acc = by_acc.setdefault(r["accession"], {**{c: set() for c in KNOWN}, "names": set()})
+        for c in KNOWN:
+            acc[c] |= _values(r, c)
+        acc["names"] |= {re.sub(r"\s+cells?$", "", x) for x in (r.get("cell_line") or "").split("|") if x}
     counts = {c: Counter() for c in KNOWN}
     names = {}
-    for r in rows:
+    for acc in by_acc.values():
         for c in KNOWN:
-            counts[c].update(_values(r, c))
-        for v in {re.sub(r"\s+cells?$", "", x) for x in (r.get("cell_line") or "").split("|") if x}:
+            counts[c].update(acc[c])
+        for v in acc["names"]:
             if cell_line_name_ok(v):
                 names.setdefault(v.lower(), Counter())[v] += 1
     lines = sorted(c.most_common(1)[0][0] for k, c in names.items() if sum(c.values()) >= min_cell_line)
@@ -427,9 +491,13 @@ CATEGORY_TITLES = {"cell_line": "cell line", "organism_part": "organism part", "
                    "disease": "disease", "modification": "modification", "instrument": "instrument"}
 
 
-def _quote(sentence, n=220):
-    sentence = " ".join((sentence or "").split())
-    return '"' + (sentence if len(sentence) <= n else sentence[:n - 1] + "…") + '"'
+def _quote(sentence, n=220, at=0):
+    """The sentence in quotes, cut to about n characters around position `at` (where the value is)."""
+    sentence = sentence or ""
+    if len(sentence) > n:
+        lo = max(0, min(at - n // 3, len(sentence) - n))
+        sentence = ("\u2026" if lo else "") + sentence[lo:lo + n] + ("\u2026" if lo + n < len(sentence) else "")
+    return '"' + " ".join(sentence.split()) + '"'
 
 
 def _render(sheet, excerpt_limit, terms_per_category, similar_rows):
@@ -455,7 +523,7 @@ def _render(sheet, excerpt_limit, terms_per_category, similar_rows):
             out.append(f"### {CATEGORY_TITLES[cat]}")
             for t in items[:terms_per_category]:
                 acc = f" ({t['accession']})" if t.get("accession") else ""
-                out.append(f"- {t['label']}{acc}, {t['count']}x: {_quote(t.get('sentence'))}")
+                out.append(f"- {t['label']}{acc}, {t['count']}x: {_quote(t.get('sentence'), at=t.get('at', 0))}")
             if len(items) > terms_per_category:
                 out.append(f"- … {len(items) - terms_per_category} more")
     else:
@@ -464,7 +532,7 @@ def _render(sheet, excerpt_limit, terms_per_category, similar_rows):
         out.append(f"note: {sheet['terms_note']}")
     out += ["", "## 3. Search settings (confirm)"]
     for x in sheet.get("settings") or []:
-        out.append(f"- {x['field'].replace('_', ' ')}: {x['value']} (confirm): {_quote(x['sentence'])}")
+        out.append(f"- {x['field'].replace('_', ' ')}: {x['value']} (confirm): {_quote(x['sentence'], at=max(0, x['sentence'].find(x['value'].split()[0])))}")
     if not sheet.get("settings"):
         out.append("none found")
     d = sheet.get("design") or {}

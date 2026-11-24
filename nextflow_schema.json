@@ -79,13 +79,15 @@
                     "type": "string",
                     "format": "directory-path",
                     "description": "Folder of ontology label caches (`<name>.parquet` or `<name>.tsv` with accession, label, ontology) for the sheet's term matches.",
-                    "fa_icon": "fas fa-folder"
+                    "fa_icon": "fas fa-folder",
+                    "exists": true
                 },
                 "corpus_index": {
                     "type": "string",
                     "format": "file-path",
                     "description": "Index of the annotated SDRF corpus (`bin/build_corpus_index.py`) for the sheet's similar SDRFs.",
-                    "fa_icon": "fas fa-file"
+                    "fa_icon": "fas fa-file",
+                    "exists": true
                 },
                 "revise": {
                     "type": "boolean",

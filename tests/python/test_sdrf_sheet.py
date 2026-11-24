@@ -335,3 +335,73 @@ def test_instrument_needs_model_name():
                             {"label": "orbitrap exploris 480", "accession": "ms:1003028"}]}
     m = sdrf_sheet.term_matches("Peptides were detected in the Orbitrap.", terms, known={"instrument": {"orbitrap"}})
     assert m.get("instrument", []) == []
+
+
+# ---------------------------------------------------------------- final review fixes
+
+def _settings(s):
+    return {(i["field"], i["value"]) for i in sdrf_sheet.search_settings(s)}
+
+
+def test_tolerance_named_after_the_number():
+    assert _settings("A mass tolerance of 10 ppm for precursors and 0.5 Da for fragments was used.") == {
+        ("precursor_tolerance", "10 ppm"), ("fragment_tolerance", "0.5 Da")}
+    assert _settings("The tolerance was 4.5 ppm (precursor) and 20 ppm for MS/MS spectra.") == {
+        ("precursor_tolerance", "4.5 ppm"), ("fragment_tolerance", "20 ppm")}
+
+
+def test_isolation_window_is_not_a_tolerance():
+    assert _settings("The precursor isolation window was 1.6 Th and the precursor mass window was set to 2 Th.") == set()
+
+
+def test_quote_contains_the_match():
+    lead = "Figure 1 legend: overview of the cohorts, the collection sites and the timing of every sample " * 4
+    text = lead + "with samples taken from the venous sinus of each donor."
+    m = sdrf_sheet.term_matches(text, {"organism_part": [{"label": "venous sinus", "accession": "uberon:0006615"}]})
+    sheet = {"accession": "PXD1", "terms": m}
+    assert "venous sinus" in sdrf_sheet.render(sheet).split("venous sinus (uberon:0006615)")[1].split("\n")[0]
+
+
+def test_cell_line_needs_cell_context_or_code():
+    terms = {"cell_line": [{"label": "GEO", "accession": None}, {"label": "Ramos", "accession": None},
+                           {"label": "K562", "accession": None}, {"label": "HEL", "accession": None}]}
+    text = "Data were deposited in GEO. Ramos cells and K562 were lysed in HEL buffer."
+    assert set(_labels(sdrf_sheet.term_matches(text, terms), "cell_line")) == {"ramos", "k562"}
+
+
+def test_reagent_phrases_are_not_terms():
+    terms = {"modification": [{"label": "dimethyl", "accession": "unimod:36"}],
+             "organism_part": [{"label": "milk", "accession": "uberon:0001913"},
+                               {"label": "blood", "accession": "uberon:0000178"},
+                               {"label": "serum", "accession": "uberon:0001977"}]}
+    text = ("Cells were frozen in dimethyl sulfoxide and blocked with 5% non-fat milk in medium with fetal bovine serum. "
+            "Cells came from a single blood donor.")
+    assert sdrf_sheet.term_matches(text, terms) == {}
+
+
+def test_known_counts_accessions_not_files(tmp_path):
+    index = tmp_path / "index.tsv"
+    head = "accession\tpath\torganism\tinstrument\tlabel\tcell_line\torganism_part\tdisease\tcell_type\tmodification\tcolumns\n"
+    rows = "".join(f"PXD000200\tdatasets/PXD000200/f{i}.sdrf.tsv\tHomo sapiens\tx\tlabel free sample\t\tknee\t\t\t\tsource name\n"
+                   for i in range(12))
+    index.write_text(head + rows)
+    assert "knee" not in sdrf_sheet.corpus_terms(str(index), min_datasets=10)[1]["organism_part"]
+
+
+def test_few_files_are_conditions_not_runs():
+    out = sdrf_sheet.filename_design(["FA257LQ_Control_Slot2_24.raw", "FA257LQ_Yuanwei_Slot2_25.raw"])
+    assert {p["kind"] for p in out["positions"]} == {"condition"}
+    many = sdrf_sheet.filename_design([f"X_s{i}_ctrl.raw" if i % 2 else f"X_s{i}_drug.raw" for i in range(8)])
+    assert {p["values"][0]: p["kind"] for p in many["positions"]}["s0"] == "run"
+
+
+def test_default_ontology_dir(tmp_path, monkeypatch):
+    (tmp_path / "uberon.tsv").write_text("accession\tlabel\tontology\nuberon:0002107\tliver\tuberon\n")
+    monkeypatch.setattr(sdrf_sheet, "DEFAULT_ONTOLOGY_DIR", str(tmp_path))
+    terms, reason = sdrf_sheet.load_terms(None)
+    assert reason is None and terms["organism_part"][0]["label"] == "liver"
+
+
+def test_tolerances_respectively():
+    assert _settings("The mass tolerances were set to 10 ppm and 0.02 Da for precursor and fragment ions, respectively.") == {
+        ("precursor_tolerance", "10 ppm"), ("fragment_tolerance", "0.02 Da")}

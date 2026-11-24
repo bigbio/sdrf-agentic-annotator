@@ -198,8 +198,8 @@ With `--prefill true` (default) and `--sheet true` (default), SDRF_PREFILL also 
 sentence, search settings found by pattern, the design read from the run file names, and similar SDRFs from the
 annotated corpus (`assets/corpus_index.tsv.gz`, rebuilt with `bin/build_corpus_index.py <corpus checkout> <out>`;
 `--corpus_index` uses another). `--ontology_dir` is a folder of ontology label caches (`<name>.parquet` or
-`<name>.tsv` with `accession`, `label`, `ontology`, e.g. sdrf-pipelines `data/ontologies`); without it the sheet has
-no ontology matches except cell lines. The annotate agent starts from the sheet; the review agent does not see it.
+`<name>.tsv` with `accession`, `label`, `ontology`); without it the sheet uses the sdrf-pipelines caches of the
+runner image (`/opt/cache/sdrf-pipelines/ontologies`). The annotate agent starts from the sheet; the review agent does not see it.
 
 ### A model per step
 
