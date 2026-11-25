@@ -45,7 +45,7 @@ agent SDRF_REVIEW {
     The deterministic coverage precheck is ${coverage}.
     ${checks ? "The pipeline already hashed the SDRF and ran the deterministic checks of the skill's steps 1 and 3 (validate-sdrf for the active templates, sdrf-tools structure, check, score and reconcile, convert-openms) on this exact file: the outputs are in ${checks}. Use them for the deterministic_validation and spec_compliance passes and do not run those commands again; re-hash the SDRF only once, at the end, to confirm it did not change." : ''}
     `not available` for a mass tolerance that no source states is correct, not a finding, even though convert-openms then cannot read it; a tolerance value that no source states is an important finding.
-    Every turn is a call to a shared, saturated model, so keep turns few: combine independent lookups (greps, jq queries, file reads, ontology lookups) into one shell command per turn, and read only the parts of large files that a check needs.
+    Every turn is a model request and every file you read is sent again with every later request, so keep turns and reads small: combine independent lookups (greps, jq queries, file reads, ontology lookups) into one shell command per turn, read a file larger than 40 KB or a template YAML only in the parts a check needs (grep, sed -n), and download or unpack a deposited file only when a finding depends on it (list an archive with `unzip -l` first).
     Write the report to ${pxd}.review.json. Add `confidence` (0 to 1). Copy the precheck into
     `coverage` unless it has an `error`.
     Do not ask questions.
