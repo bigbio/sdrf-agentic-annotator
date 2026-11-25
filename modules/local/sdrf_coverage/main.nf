@@ -21,8 +21,16 @@ process SDRF_COVERAGE {
 
     label 'process_single'
 
-    // Exit 2 is a failed PRIDE lookup; after three retries the task writes an `error` instead.
-    errorStrategy task.exitStatus == 2 ? 'retry' : 'terminate'
+    // Exit 2 is a failed PRIDE or Europe PMC lookup. Europe PMC answers 500 in bursts, so each retry waits
+    // 1, 2 then 3 minutes; after three retries the task writes an `error` instead. The wait is in the
+    // directive, not the script, so the task hash (and -resume of running campaigns) is unchanged.
+    errorStrategy {
+        if (task.exitStatus == 2) {
+            sleep(60000L * task.attempt)
+            return 'retry'
+        }
+        return 'terminate'
+    }
     maxRetries 3
 
     input:
