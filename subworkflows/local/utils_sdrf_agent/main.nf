@@ -114,6 +114,24 @@ def existingSdrf(pxd, dir) {
     ]
 }
 
+// The prideQC annotations.tsv files of a PXD, from `--qc_index`: a folder of <PXD>.tsv files, one file
+// path per line (absolute, or relative to the index folder). Paths that do not exist are dropped. An empty
+// set when there is no index or no list for the PXD, so the QC is optional per dataset.
+def qcFiles(pxd, indexDir) {
+    if (!indexDir) {
+        return [] as Set
+    }
+    def list = file(indexDir as String).resolve("${pxd}.tsv")
+    if (!list.exists()) {
+        return [] as Set
+    }
+    return list.readLines()
+        .collect { line -> line.trim() }
+        .findAll { line -> line }
+        .collect { line -> line.startsWith('/') ? file(line) : list.parent.resolve(line).normalize() }
+        .findAll { f -> f.exists() } as Set
+}
+
 def fileIfExists(dir, name) {
     def f = dir.resolve(name as String)
     return f.exists() ? f : null
