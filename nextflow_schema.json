@@ -89,6 +89,13 @@
                     "fa_icon": "fas fa-file",
                     "exists": true
                 },
+                "qc_index": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Folder of `<PXD>.tsv` files, each listing the prideQC `annotations.tsv` files of that dataset (absolute or relative paths). The evidence sheet and the checks then show what the raw files contain and which SDRF values they contradict.",
+                    "fa_icon": "fas fa-microscope",
+                    "exists": true
+                },
                 "revise": {
                     "type": "boolean",
                     "default": true,

@@ -36,8 +36,13 @@ process SDRF_COVERAGE {
     input:
     record(
         pxd: String,
-        sdrf: Path
+        sdrf: Path,
+        qc: Set<Path>
     )
+
+    stage:
+    // prideQC annotations.tsv files of the dataset (--qc_index); empty when it has none
+    stageAs(qc, 'qc/*/annotations.tsv')
 
     output:
     record(
@@ -69,5 +74,7 @@ process SDRF_COVERAGE {
         sdrf_checks.py ${sdrf} ${pxd}.checks.md > checks.log 2>&1 || true
     fi
     [ -s ${pxd}.checks.md ] || printf '# Deterministic checks\n\nThe checks could not run. Run them yourself.\n' > ${pxd}.checks.md
+    # What the raw files show against what the SDRF says (sdrf_qc.py never fails)
+    if [ -d qc ]; then printf '\n' >> ${pxd}.checks.md; sdrf_qc.py compare qc ${sdrf} >> ${pxd}.checks.md; fi
     """
 }

@@ -14,7 +14,7 @@ include { SCORE_SDRF as SCORE_BASELINE } from '../subworkflows/local/score_sdrf'
 include { REVIEW_REVISE } from '../subworkflows/local/review_revise'
 include { SUMMARISE_REVIEWS } from '../subworkflows/local/summarise_reviews'
 include { REFINE_DECISION } from '../subworkflows/local/refine_decision'
-include { existingSdrf ; isTrue ; readReview ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
+include { existingSdrf ; isTrue ; qcFiles ; readReview ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -93,7 +93,7 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         ontology_dir = params.ontology_dir ? file(params.ontology_dir) : null
         corpus_index = file(params.corpus_index ?: "${projectDir}/assets/corpus_index.tsv.gz")
         ch_start = isTrue(params.prefill)
-            ? SDRF_PREFILL(ch_pxd.map { pxd -> record(pxd: pxd, ontology_dir: ontology_dir, corpus_index: corpus_index) })
+            ? SDRF_PREFILL(ch_pxd.map { pxd -> record(pxd: pxd, ontology_dir: ontology_dir, corpus_index: corpus_index, qc: qcFiles(pxd, params.qc_index)) })
                 .map { r -> record(pxd: r.pxd, prefill: r.prefill, sheet: isTrue(params.sheet) ? r.sheet : null) }
             : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null, sheet: null) }
         ch_sdrf = SDRF_ANNOTATE(ch_start)

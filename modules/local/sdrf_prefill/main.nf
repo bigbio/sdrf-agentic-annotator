@@ -39,8 +39,13 @@ process SDRF_PREFILL {
     record(
         pxd: String,
         ontology_dir: Path?,
-        corpus_index: Path?
+        corpus_index: Path?,
+        qc: Set<Path>
     )
+
+    stage:
+    // prideQC annotations.tsv files of the dataset (--qc_index); empty when it has none
+    stageAs(qc, 'qc/*/annotations.tsv')
 
     output:
     record(
@@ -68,5 +73,7 @@ process SDRF_PREFILL {
         jq -n --arg pxd ${pxd} --rawfile log fetch.log '{accession: \$pxd, error: \$log}' > ${pxd}.prefill.json
         printf '# Evidence sheet for %s\\n\\n## Not available\\n- the PRIDE record could not be fetched\\n' ${pxd} > ${pxd}.sheet.md
     fi
+    # What the raw files show (sdrf_qc.py never fails)
+    if [ -d qc ]; then printf '\\n' >> ${pxd}.sheet.md; sdrf_qc.py sheet qc >> ${pxd}.sheet.md; fi
     """
 }
