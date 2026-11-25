@@ -169,6 +169,12 @@
                     "default": false,
                     "description": "Run in refine mode: take the existing SDRF for each PXD (from the optional `ref_sdrf` path in the samplesheet, or fetched from bigbio/sdrf-annotated-datasets), refine it by seeded re-annotation, and only accept the refined version if it scores strictly better (verdict/confidence + coverage) on the same independent review. Otherwise keep the original.",
                     "fa_icon": "fas fa-edit"
+                },
+                "review_existing": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Review SDRFs that are already annotated instead of annotating: each samplesheet row gives `ref_dir`, the folder of an earlier annotate task (<pxd>.sdrf.tsv, <pxd>.evidence.json, ...). The review, revise and stamp steps are those of annotate mode.",
+                    "fa_icon": "fas fa-search"
                 }
             }
         },

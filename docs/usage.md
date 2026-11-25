@@ -69,6 +69,28 @@ The `--revise` option applies to the refined version: if its first review fails,
 fixes it and it is re-reviewed before the gate, as in annotate mode. Refine mode revises at most
 once, whatever `--max_revise` is (unless it is `0`).
 
+## Review-existing mode
+
+Review-existing mode (`--review_existing`) reviews SDRFs that are already annotated, for example
+the output of a run that was stopped before its reviews ran, without annotating them again. Each
+samplesheet row gives `ref_dir`, the folder of an earlier annotate task:
+
+```csv
+pxd,ref_dir
+PXD074155,/data/results/run1/PXD074155
+```
+
+The folder holds `<PXD>.sdrf.tsv` and `<PXD>.evidence.json` (a row without the manifest is skipped
+with a warning), and optionally `<PXD>.validation.txt`, `<PXD>.report.md`, `samples.tsv`,
+`technical.tsv` and `evidence/`. The review, revise and stamp steps are those of annotate mode,
+so a passing SDRF ends in `final/` as usual:
+
+```bash
+nextflow run bigbio/sdrf-agentic-annotator -profile docker \
+    --input existing.csv --outdir <OUTDIR> --review_existing \
+    --api_provider google --model google/gemini-3.5-flash-lite
+```
+
 ## API keys and providers
 
 The agents talk to a language model through Nextflow's `pi` runner, which runs inside the

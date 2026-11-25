@@ -92,6 +92,33 @@ def readReview(review) {
     return [verdict: verdict, confidence: toConfidence(json.confidence)]
 }
 
+// The files of an existing annotation for --review_existing: a folder laid out like an annotate
+// task's output (<pxd>.sdrf.tsv, <pxd>.evidence.json, <pxd>.validation.txt, <pxd>.report.md,
+// samples.tsv, technical.tsv, evidence/). The SDRF is required; any other file that is missing is
+// null (the review needs the manifest, so the workflow skips a folder without one).
+def existingSdrf(pxd, dir) {
+    def d = file(dir as String)
+    def sdrf = d.resolve("${pxd}.sdrf.tsv")
+    if (!sdrf.exists()) {
+        error("--review_existing: ${sdrf} does not exist")
+    }
+    return [
+        pxd: pxd,
+        sdrf: sdrf,
+        manifest: fileIfExists(d, "${pxd}.evidence.json"),
+        validation: fileIfExists(d, "${pxd}.validation.txt"),
+        report: fileIfExists(d, "${pxd}.report.md"),
+        samples: fileIfExists(d, 'samples.tsv'),
+        technical: fileIfExists(d, 'technical.tsv'),
+        evidence: fileIfExists(d, 'evidence'),
+    ]
+}
+
+def fileIfExists(dir, name) {
+    def f = dir.resolve(name as String)
+    return f.exists() ? f : null
+}
+
 // Reviewer confidence as a number in 0..1, or -1 when it is missing or not a number in 0..1
 def toConfidence(value) {
     try {
