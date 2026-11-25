@@ -1,0 +1,33 @@
+nextflow_process {
+
+    name "Test process SDRF_STAMP"
+    script "modules/local/sdrf_stamp/main.nf"
+    process "SDRF_STAMP"
+    tag "unit"
+
+    // The input is staged as a symlink named <pxd>.sdrf.tsv, the same name as the output. Writing the
+    // output through that link rewrote the source SDRF (e.g. an existing annotation in review-existing
+    // mode, while other runs were reading it).
+    test("stamping does not change the input SDRF") {
+
+        when {
+            process {
+                """
+                def src = file("${outputDir}/src/PXD060757.sdrf.tsv")
+                src.parent.mkdirs()
+                file("${projectDir}/tests/data/stamp/PXD060757.sdrf.tsv").copyTo(src)
+                input[0] = record(pxd: 'PXD060757', sdrf: src)
+                """
+            }
+        }
+
+        then {
+            def original = path("${projectDir}/tests/data/stamp/PXD060757.sdrf.tsv").text
+            assertAll(
+                { assert process.success },
+                { assert path("${outputDir}/src/PXD060757.sdrf.tsv").text == original },
+                { assert path(process.out[0][0].sdrf.toString()).text.contains('NT=sdrf-agentic-annotator') }
+            )
+        }
+    }
+}
