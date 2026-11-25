@@ -1,0 +1,11 @@
+data_file	field	value	evidence	method	support	total	detail
+run3.raw	instrument	null	unavailable				
+run3.raw	instrument_details	"{""name"": ""Q Exactive HF"", ""model"": ""Q Exactive HF"", ""software"": ""x""}"	observed				
+run3.raw	dissociation_ms2	"[{""accession"": ""MS:1000422"", ""name"": ""beam-type collision-induced dissociation"", ""count"": 900}]"	observed		900	900	
+run3.raw	collision_energy_ms2	"[""28 eV""]"	observed				
+run3.raw	acquisition_method	"""Data-dependent acquisition"""	inferred				
+run3.raw	acquisition_method_evidence	"{""cv_term"": {""accession"": ""PRIDE:0000627"", ""name"": ""Data-dependent acquisition""}}"	inferred				
+run3.raw	suggested_precursor_search_tolerance_ppm	"{""unit"": ""ppm"", ""suggested_tolerance"": 6.0, ""confidence"": ""high""}"	inferred				
+run3.raw	suggested_fragment_search_tolerance_ppm	"{""unit"": ""ppm"", ""suggested_tolerance"": 16.0, ""confidence"": ""high""}"	inferred				
+run3.raw	tmt_reporter_evidence	"{""scientific_status"": ""EXPLORATORY_NOT_FOR_AUTOMATIC_SDRF_WRITEBACK""}"	observed				
+run3.raw	putative_modification_mass_shifts	"[{""delta_mass_da"": 0.98}]"	inferred				
