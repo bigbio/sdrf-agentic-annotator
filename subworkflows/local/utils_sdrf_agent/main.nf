@@ -14,13 +14,13 @@ workflow PIPELINE_INITIALISATION {
     validateParameters()
     log.info(paramsSummaryLog(workflow))
 
-    // samplesheetToList returns one list per row in schema column order (pxd, ref_sdrf), with
-    // ref_sdrf as a Path. An empty or absent ref_sdrf comes back as an empty list.
+    // samplesheetToList returns one list per row in schema column order (pxd, ref_sdrf, ref_dir),
+    // with ref_sdrf and ref_dir as Paths. An empty or absent column comes back as an empty list.
     ch_samplesheet = channel.fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
-        .map { row -> record(pxd: row[0] as String, ref_sdrf: row[1] ?: null) }
+        .map { row -> record(pxd: row[0] as String, ref_sdrf: row[1] ?: null, ref_dir: row[2] ?: null) }
 
     emit:
-    samplesheet = ch_samplesheet // records: pxd, ref_sdrf (Path or null, used only in refine mode)
+    samplesheet = ch_samplesheet // records: pxd, ref_sdrf (refine mode), ref_dir (review-existing mode); Path or null
 }
 
 /*
