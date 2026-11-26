@@ -132,6 +132,18 @@ def qcFiles(pxd, indexDir) {
         .findAll { f -> f.exists() } as Set
 }
 
+// The deliverable check of SDRF_PREFILL (bin/sdrf_deliverable.py): [deliverable: boolean, reason: string].
+// A missing or unreadable check counts as deliverable, so it never drops a dataset.
+def readDeliverable(path) {
+    try {
+        def json = new groovy.json.JsonSlurper().parseText(file(path as String).text)
+        return [deliverable: json.deliverable != false, reason: (json.reason ?: '') as String]
+    }
+    catch (_e: Exception) {
+        return [deliverable: true, reason: 'the check could not be read']
+    }
+}
+
 def fileIfExists(dir, name) {
     def f = dir.resolve(name as String)
     return f.exists() ? f : null

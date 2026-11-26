@@ -53,6 +53,7 @@ process SDRF_PREFILL {
         prefill: file("${pxd}.prefill.json"),
         sheet: file("${pxd}.sheet.md"),
         prefetched: file("prefetched"),
+        deliverable: file("${pxd}.deliverable.json"),
     )
 
     topic:
@@ -65,6 +66,8 @@ process SDRF_PREFILL {
     mkdir -p prefetched
     if sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
         archive_runs.py evidence/files.json > archive.log 2>&1 || true
+        # can the coverage of an SDRF of this deposit be checked at all (--skip_undeliverable)
+        sdrf_deliverable.py evidence/files.json > ${pxd}.deliverable.json
         raw_dissociation.py ${pxd} ${pxd}.dissociation.json > raw.log 2>&1 || echo '{}' > ${pxd}.dissociation.json
         sdrf_prefill.py evidence ${pxd}.prefill.json ${pxd}.dissociation.json
         # What the annotate agent would otherwise fetch again: the record, the curated-SDRF lookup and the manifest schema
@@ -76,6 +79,7 @@ process SDRF_PREFILL {
     else
         cat fetch.log >&2
         [ ${task.attempt} -gt 3 ] || exit 2
+        echo '{"deliverable": true, "reason": "the PRIDE record could not be fetched"}' > ${pxd}.deliverable.json
         jq -n --arg pxd ${pxd} --rawfile log fetch.log '{accession: \$pxd, error: \$log}' > ${pxd}.prefill.json
         printf '# Evidence sheet for %s\\n\\n## Not available\\n- the PRIDE record could not be fetched\\n' ${pxd} > ${pxd}.sheet.md
     fi

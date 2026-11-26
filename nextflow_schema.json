@@ -96,6 +96,12 @@
                     "fa_icon": "fas fa-microscope",
                     "exists": true
                 },
+                "skip_undeliverable": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip, before annotation, a dataset whose runs cannot be listed from the PRIDE file list (runs only in .rar/.7z/.tar archives or in zips that cannot be read, or no run files), since the coverage of its SDRF could never be checked.",
+                    "fa_icon": "fas fa-filter"
+                },
                 "revise": {
                     "type": "boolean",
                     "default": true,

@@ -14,7 +14,7 @@ include { SCORE_SDRF as SCORE_BASELINE } from '../subworkflows/local/score_sdrf'
 include { REVIEW_REVISE } from '../subworkflows/local/review_revise'
 include { SUMMARISE_REVIEWS } from '../subworkflows/local/summarise_reviews'
 include { REFINE_DECISION } from '../subworkflows/local/refine_decision'
-include { existingSdrf ; isTrue ; qcFiles ; readReview ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
+include { existingSdrf ; isTrue ; qcFiles ; readDeliverable ; readReview ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -94,6 +94,14 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         corpus_index = file(params.corpus_index ?: "${projectDir}/assets/corpus_index.tsv.gz")
         ch_start = isTrue(params.prefill)
             ? SDRF_PREFILL(ch_pxd.map { pxd -> record(pxd: pxd, ontology_dir: ontology_dir, corpus_index: corpus_index, qc: qcFiles(pxd, params.qc_index)) })
+                // --skip_undeliverable: no SDRF of a deposit whose runs cannot be listed could pass the coverage audit
+                .filter { r ->
+                    def d = readDeliverable(r.deliverable)
+                    if (isTrue(params.skip_undeliverable) && !d.deliverable) {
+                        log.warn("--skip_undeliverable: ${r.pxd} skipped before annotation: ${d.reason}")
+                    }
+                    !isTrue(params.skip_undeliverable) || d.deliverable
+                }
                 .map { r -> record(pxd: r.pxd, prefill: r.prefill, sheet: isTrue(params.sheet) ? r.sheet : null, prefetched: r.prefetched) }
             : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null, sheet: null, prefetched: null) }
         ch_sdrf = SDRF_ANNOTATE(ch_start)
