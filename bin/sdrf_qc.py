@@ -22,10 +22,13 @@ csv.field_size_limit(sys.maxsize)  # mass-shift cells exceed the 128 KB default
 
 HCD = {"MS:1000422", "MS:1002481"}  # beam-type CID and higher-energy beam-type CID are both HCD
 # Dissociation names an SDRF writes without an accession, and the accessions they mean
-DISSOCIATION_NAMES = [  # checked in this order: HCD and EThcD names also contain "collision-induced"
-    ("ethcd", {"MS:1002631"}), ("hcd", HCD), ("higher energy", HCD), ("beam-type", HCD),
-    ("electron transfer", {"MS:1000598"}), ("etd", {"MS:1000598"}),
-    ("cid", {"MS:1000133"}), ("collision-induced", {"MS:1000133"}),
+# ETD and its supplemental-activation forms (EThcD, ETciD): a run that records ETD scans matches any of them
+ETD = {"MS:1000598", "MS:1002631", "MS:1003182"}
+DISSOCIATION_NAMES = [  # checked in this order, on the name with hyphens and slashes as spaces:
+    # electron-transfer and HCD names also contain "collision induced"
+    ("ethcd", ETD), ("etcid", ETD), ("electron transfer", ETD), ("etd", ETD),
+    ("hcd", HCD), ("higher energy", HCD), ("beam type", HCD),
+    ("cid", {"MS:1000133"}), ("collision induced", {"MS:1000133"}),
 ]
 VENDOR = {"thermo", "fisher", "scientific", "orbitrap", "instrument", "model", "bruker", "sciex", "waters"}
 RULES = (
@@ -178,9 +181,9 @@ def compare(sdrf_path, files):
             qacc = {a for a, _, _ in rec["dissociation"] if a}
             sacc = _ac(diss)
             if sacc:
-                ok = sacc in qacc or (sacc in HCD and bool(qacc & HCD))
+                ok = sacc in qacc or (sacc in HCD and bool(qacc & HCD)) or (sacc in ETD and bool(qacc & ETD))
             else:
-                name = _nt(diss).lower()
+                name = re.sub(r"[-/]", " ", _nt(diss).lower())
                 meant = next((acc for word, acc in DISSOCIATION_NAMES if word in name), None)
                 ok = bool(meant & qacc) or (bool(meant & HCD) and bool(qacc & HCD)) if meant else \
                     any(name in (n or "").lower() for _, n, _ in rec["dissociation"])

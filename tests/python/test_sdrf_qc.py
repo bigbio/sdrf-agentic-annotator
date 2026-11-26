@@ -103,3 +103,24 @@ def test_full_hcd_name_is_not_read_as_cid(tmp_path):
     csv.writer(open(p, "w", newline=""), delimiter="\t", lineterminator="\n").writerows(rows)
     found = sdrf_qc.compare(p, sdrf_qc.read_qc(QC))
     assert not [m for m in found["mismatches"] if m["column"] == "comment[dissociation method]"]
+
+
+def test_etcid_matches_a_run_with_etd_scans(tmp_path):
+    qc = tmp_path / "qc"
+    for n in ("1", "2", "3"):
+        d = qc / n
+        d.mkdir(parents=True)
+        text = (QC / n / "annotations.tsv").read_text()
+        etd = json.dumps([{"accession": "MS:1000422", "name": "beam-type collision-induced dissociation", "count": 10},
+                          {"accession": "MS:1000598", "name": "electron transfer dissociation", "count": 20}])
+        lines = [l if "\tdissociation_ms2\t" not in l else "\t".join(l.split("\t")[:2] + [etd] + l.split("\t")[3:])
+                 for l in text.splitlines()]
+        (d / "annotations.tsv").write_text("\n".join(lines) + "\n")
+    rows = list(csv.reader(open(SDRF), delimiter="\t"))
+    i = rows[0].index("comment[dissociation method]")
+    for r in rows[1:]:
+        r[i] = "NT=electron-transfer/collision-induced dissociation"
+    p = tmp_path / "x.sdrf.tsv"
+    csv.writer(open(p, "w", newline=""), delimiter="\t", lineterminator="\n").writerows(rows)
+    found = sdrf_qc.compare(p, sdrf_qc.read_qc(qc))
+    assert not [m for m in found["mismatches"] if m["column"] == "comment[dissociation method]"]
