@@ -52,6 +52,7 @@ process SDRF_PREFILL {
         pxd: pxd,
         prefill: file("${pxd}.prefill.json"),
         sheet: file("${pxd}.sheet.md"),
+        prefetched: file("prefetched"),
     )
 
     topic:
@@ -61,10 +62,15 @@ process SDRF_PREFILL {
     script:
     // No early `exit 0`: the topic eval()s above are appended to the end of this script.
     """
+    mkdir -p prefetched
     if sdrf-tools fetch ${pxd} --out evidence > fetch.log 2>&1; then
         archive_runs.py evidence/files.json > archive.log 2>&1 || true
         raw_dissociation.py ${pxd} ${pxd}.dissociation.json > raw.log 2>&1 || echo '{}' > ${pxd}.dissociation.json
         sdrf_prefill.py evidence ${pxd}.prefill.json ${pxd}.dissociation.json
+        # What the annotate agent would otherwise fetch again: the record, the curated-SDRF lookup and the manifest schema
+        cp -r evidence/. prefetched/
+        sdrf-tools curated ${pxd} > prefetched/curated.txt 2>&1 || true
+        sdrf-tools schema-check --print-schema evidence-manifest > prefetched/evidence-manifest.schema.json 2>/dev/null || rm -f prefetched/evidence-manifest.schema.json
         sdrf_sheet.py evidence ${pxd}.prefill.json ${pxd} ${ontology_dir ? "--ontology-dir ${ontology_dir}" : ''} ${corpus_index ? "--corpus-index ${corpus_index}" : ''} > sheet.log 2>&1 \\
             || printf '# Evidence sheet for %s\\n\\n## Not available\\n- the sheet could not be built: gather the evidence yourself\\n' ${pxd} > ${pxd}.sheet.md
     else

@@ -94,8 +94,8 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         corpus_index = file(params.corpus_index ?: "${projectDir}/assets/corpus_index.tsv.gz")
         ch_start = isTrue(params.prefill)
             ? SDRF_PREFILL(ch_pxd.map { pxd -> record(pxd: pxd, ontology_dir: ontology_dir, corpus_index: corpus_index, qc: qcFiles(pxd, params.qc_index)) })
-                .map { r -> record(pxd: r.pxd, prefill: r.prefill, sheet: isTrue(params.sheet) ? r.sheet : null) }
-            : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null, sheet: null) }
+                .map { r -> record(pxd: r.pxd, prefill: r.prefill, sheet: isTrue(params.sheet) ? r.sheet : null, prefetched: r.prefetched) }
+            : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null, sheet: null, prefetched: null) }
         ch_sdrf = SDRF_ANNOTATE(ch_start)
         REVIEW_REVISE(ch_sdrf, max_rounds)
         SUMMARISE_REVIEWS(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.review_1, REVIEW_REVISE.out.review_2, REVIEW_REVISE.out.revised)
