@@ -125,11 +125,7 @@ def qcFiles(pxd, indexDir) {
     if (!list.exists()) {
         return [] as Set
     }
-    return list.readLines()
-        .collect { line -> line.trim() }
-        .findAll { line -> line }
-        .collect { line -> line.startsWith('/') ? file(line) : list.parent.resolve(line).normalize() }
-        .findAll { f -> f.exists() } as Set
+    return list.readLines().collect { line -> line.trim() }.findAll { line -> line }.collect { line -> line.startsWith('/') ? file(line) : list.parent.resolve(line).normalize() }.findAll { f -> f.exists() } as Set
 }
 
 // The deliverable check of SDRF_PREFILL (bin/sdrf_deliverable.py): [deliverable: boolean, reason: string].

@@ -42,7 +42,7 @@ process SDRF_COVERAGE {
 
     stage:
     // prideQC annotations.tsv files of the dataset (--qc_index); empty when it has none
-    stageAs(qc, 'qc/*/annotations.tsv')
+    stageAs qc, 'qc/*/annotations.tsv'
 
     output:
     record(

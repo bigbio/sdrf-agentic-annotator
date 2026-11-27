@@ -92,17 +92,15 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         // The evidence sheet uses the ontology caches (--ontology_dir) and the corpus index (default: the bundled one)
         ontology_dir = params.ontology_dir ? file(params.ontology_dir) : null
         corpus_index = file(params.corpus_index ?: "${projectDir}/assets/corpus_index.tsv.gz")
+        // --skip_undeliverable: no SDRF of a deposit whose runs cannot be listed could pass the coverage audit
         ch_start = isTrue(params.prefill)
-            ? SDRF_PREFILL(ch_pxd.map { pxd -> record(pxd: pxd, ontology_dir: ontology_dir, corpus_index: corpus_index, qc: qcFiles(pxd, params.qc_index)) })
-                // --skip_undeliverable: no SDRF of a deposit whose runs cannot be listed could pass the coverage audit
-                .filter { r ->
-                    def d = readDeliverable(r.deliverable)
-                    if (isTrue(params.skip_undeliverable) && !d.deliverable) {
-                        log.warn("--skip_undeliverable: ${r.pxd} skipped before annotation: ${d.reason}")
-                    }
-                    !isTrue(params.skip_undeliverable) || d.deliverable
+            ? SDRF_PREFILL(ch_pxd.map { pxd -> record(pxd: pxd, ontology_dir: ontology_dir, corpus_index: corpus_index, qc: qcFiles(pxd, params.qc_index)) }).filter { r ->
+                def d = readDeliverable(r.deliverable)
+                if (isTrue(params.skip_undeliverable) && !d.deliverable) {
+                    log.warn("--skip_undeliverable: ${r.pxd} skipped before annotation: ${d.reason}")
                 }
-                .map { r -> record(pxd: r.pxd, prefill: r.prefill, sheet: isTrue(params.sheet) ? r.sheet : null, prefetched: r.prefetched) }
+                !isTrue(params.skip_undeliverable) || d.deliverable
+            }.map { r -> record(pxd: r.pxd, prefill: r.prefill, sheet: isTrue(params.sheet) ? r.sheet : null, prefetched: r.prefetched) }
             : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null, sheet: null, prefetched: null) }
         ch_sdrf = SDRF_ANNOTATE(ch_start)
         REVIEW_REVISE(ch_sdrf, max_rounds)
