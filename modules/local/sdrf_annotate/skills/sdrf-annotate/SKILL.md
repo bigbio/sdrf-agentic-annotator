@@ -230,9 +230,13 @@ the evidence:
 | `characteristics[...]` | as evidenced | bare values; `not available` only where the contract allows it |
 | `factor value[...]` | as designed | the variable(s) the study compares |
 
-**Replicates are separate rows, not a longer `files` list.** A source measured in three
-runs is three rows that differ in `characteristics[biological replicate]` or
-`technical replicate`; a comma list means fractions of a single injection. `build` refuses
+**Replicates are separate rows, not a longer `files` list.** One source name is one biological
+sample. A sample measured in three runs is three rows with the same source that differ in
+`technical replicate`; a comma list means fractions of a single injection. Independent
+biological replicates are different samples: each gets its own source name (and its own
+`characteristics[biological replicate]` value). Never reuse one source name for two biological
+replicate values: source-based quantification would merge independent replicates, and the
+pipeline's identity check blocks it. `build` refuses
 two rows that share (source, biological replicate, technical replicate, fraction) — that is
 the row coordinate the community review gate checks — rather than renumber them for you.
 

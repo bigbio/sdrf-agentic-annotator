@@ -74,3 +74,13 @@ def test_relative_paths_work_from_the_scratch_folder(tmp_path, monkeypatch):
     for _, cmd in sdrf_checks.commands("PXD1.sdrf.tsv", record="pride.json"):
         paths = [a for a in cmd if a.endswith((".tsv", ".json"))]
         assert paths and all(a.startswith("/") for a in paths), cmd
+
+
+def test_report_ends_with_the_sample_identity_section(tmp_path):
+    text = (
+        "source name\tcharacteristics[biological replicate]\tassay name\n"
+        "s1\t1\trun1\n"
+        "s1\t2\trun2\n"
+    )
+    out = sdrf_checks.report(write(tmp_path, text), run=lambda cmd: (0, "ok"))
+    assert "## Sample identity" in out and "BLOCKER" in out and "s1" in out
