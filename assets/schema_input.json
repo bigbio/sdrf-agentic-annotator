@@ -18,9 +18,20 @@
                 "exists": true,
                 "description": "Optional absolute path to an existing, already-published SDRF to refine (refine mode only). When empty, the pipeline fetches the existing SDRF from bigbio/sdrf-annotated-datasets by PXD.",
                 "errorMessage": "ref_sdrf, when provided, must be an existing absolute path to a .sdrf.tsv file"
+            },
+            "ref_dir": {
+                "type": "string",
+                "format": "directory-path",
+                "exists": true,
+                "description": "Review-existing mode only: absolute path to the folder of an earlier annotate task, holding <pxd>.sdrf.tsv and <pxd>.evidence.json (and optionally <pxd>.validation.txt, <pxd>.report.md, samples.tsv, technical.tsv, evidence/).",
+                "errorMessage": "ref_dir, when provided, must be an existing absolute path to a folder"
             }
         },
-        "required": ["pxd"]
+        "required": [
+            "pxd"
+        ]
     },
-    "uniqueEntries": ["pxd"]
+    "uniqueEntries": [
+        "pxd"
+    ]
 }

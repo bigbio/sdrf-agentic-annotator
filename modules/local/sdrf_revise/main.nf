@@ -43,9 +43,12 @@ agent SDRF_REVISE {
     """
     Revise the SDRF ${sdrf} for ${pxd}. Existing annotation: reannotate.
     The external review ${review} failed. Fix its findings. The evidence manifest is ${manifest}.
+    Fix only what the findings name, then validate once. Do not run `sdrf-tools review-gate`, `pending`, `status` or `manifest-coverage`: the pipeline's next review is the gate.
+    Every turn is a model request and every file you read is sent again with every later request: combine independent lookups into one shell command per turn, and read a file larger than 40 KB only in the parts you need (grep, sed -n).
     Do not ask questions.
     External reviewer: a separate pipeline task runs `sdrf-adversarial-review` in a fresh context.
     Hand the Step 9.5 review off to it and give the status REVIEW_PENDING_EXTERNAL.
+    Before you give the status, list revised/ and write any of these files that is missing; the task fails without every one of them: `revised/${pxd}.sdrf.tsv`; `revised/${pxd}.evidence.json`; `revised/${pxd}.validation.txt` (the full output of `parse_sdrf validate-sdrf` on the revised SDRF); `revised/${pxd}.revision.md` (what changed and why); `revised/samples.tsv`; `revised/technical.tsv`.
     Write the outputs to `revised/` with the default names. Name the report ${pxd}.revision.md: for
     each finding, say what you changed or why you did not.
     """

@@ -53,4 +53,30 @@ nextflow_workflow {
             )
         }
     }
+
+    test("ref_dir reaches the record for --review_existing") {
+
+        when {
+            params {
+                outdir = "$outputDir"
+            }
+            workflow {
+                """
+                def sheet = file("${outputDir}/existing.csv")
+                sheet.text = 'pxd,ref_dir\\nPXD000001,${projectDir}/tests/data/existing/PXD000001\\n'
+                input[0] = sheet.toString()
+                """
+            }
+        }
+
+        then {
+            assertAll(
+                { assert workflow.success },
+                { assert workflow.out.samplesheet.size() == 1 },
+                { assert workflow.out.samplesheet[0].pxd == 'PXD000001' },
+                { assert workflow.out.samplesheet[0].ref_sdrf == null },
+                { assert workflow.out.samplesheet[0].ref_dir.endsWith('tests/data/existing/PXD000001') }
+            )
+        }
+    }
 }

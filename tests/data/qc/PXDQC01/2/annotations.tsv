@@ -1,0 +1,11 @@
+data_file	field	value	evidence	method	support	total	detail
+run2.raw	instrument	null	unavailable				
+run2.raw	instrument_details	"{""name"": ""Orbitrap Exploris 480"", ""model"": ""Orbitrap Exploris 480"", ""software"": ""x""}"	observed				
+run2.raw	dissociation_ms2	"[{""accession"": ""MS:1000422"", ""name"": ""beam-type collision-induced dissociation"", ""count"": 900}]"	observed		900	900	
+run2.raw	collision_energy_ms2	"[""30 eV""]"	observed				
+run2.raw	acquisition_method	"""Data-dependent acquisition"""	inferred				
+run2.raw	acquisition_method_evidence	"{""cv_term"": {""accession"": ""PRIDE:0000627"", ""name"": ""Data-dependent acquisition""}}"	inferred				
+run2.raw	suggested_precursor_search_tolerance_ppm	"{""unit"": ""ppm"", ""suggested_tolerance"": 4.8, ""confidence"": ""high""}"	inferred				
+run2.raw	suggested_fragment_search_tolerance_ppm	"{""unit"": ""ppm"", ""suggested_tolerance"": 15.1, ""confidence"": ""high""}"	inferred				
+run2.raw	tmt_reporter_evidence	"{""scientific_status"": ""EXPLORATORY_NOT_FOR_AUTOMATIC_SDRF_WRITEBACK""}"	observed				
+run2.raw	putative_modification_mass_shifts	"[{""delta_mass_da"": 0.98}]"	inferred				

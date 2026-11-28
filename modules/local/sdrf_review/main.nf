@@ -23,7 +23,8 @@ agent SDRF_REVIEW {
         manifest: Path,
         coverage: Path,
         validation: Path?,
-        evidence: Path?
+        evidence: Path?,
+        checks: Path?
     )
 
     output:
@@ -42,6 +43,9 @@ agent SDRF_REVIEW {
     ${validation ? "The producer's validation output is ${validation}." : ''}
     ${evidence ? "The manifest's local evidence files are in ${evidence}/." : ''}
     The deterministic coverage precheck is ${coverage}.
+    ${checks ? "The pipeline already hashed the SDRF and ran the deterministic checks of the skill's steps 1 and 3 (validate-sdrf for the active templates, sdrf-tools structure, check, score and reconcile, convert-openms) on this exact file: the outputs are in ${checks}. Use them for the deterministic_validation and spec_compliance passes and do not run those commands again; re-hash the SDRF only once, at the end, to confirm it did not change. A BLOCKER in the sample identity section of ${checks} (one source name carrying several biological replicate values) is a failing finding: independent biological replicates need distinct source names." : ''}
+    `not available` for a mass tolerance that no source states is correct, not a finding, even though convert-openms then cannot read it; a tolerance value that no source states is an important finding.
+    Every turn is a call to a shared, saturated model, so keep turns few: combine independent lookups (greps, jq queries, file reads, ontology lookups) into one shell command per turn, and read only the parts of large files that a check needs.
     Write the report to ${pxd}.review.json. Add `confidence` (0 to 1). Copy the precheck into
     `coverage` unless it has an `error`.
     Do not ask questions.

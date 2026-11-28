@@ -1,0 +1,2 @@
+source name	characteristics[organism]	characteristics[organism part]	characteristics[cell line]	characteristics[disease]	assay name	comment[instrument]	comment[label]	comment[modification parameters]	comment[data file]
+S1	Homo sapiens	cervix	HeLa	cervical adenocarcinoma	run1	NT=Orbitrap Exploris 480;AC=MS:1003028	TMT126	NT=Oxidation;MT=Variable;TA=M;AC=UNIMOD:35	r1.raw

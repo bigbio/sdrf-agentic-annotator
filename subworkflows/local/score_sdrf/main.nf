@@ -6,13 +6,15 @@ SCORE_SDRF - coverage precheck and independent adversarial review of an SDRF
 
 include { SDRF_COVERAGE } from '../../../modules/local/sdrf_coverage'
 include { SDRF_REVIEW } from '../../../modules/local/sdrf_review'
+include { qcFiles } from '../utils_sdrf_agent'
 
 workflow SCORE_SDRF {
     take:
     ch_sdrf // records: pxd, sdrf, manifest, validation (optional), evidence (optional)
 
     main:
-    ch_coverage = SDRF_COVERAGE(ch_sdrf)
+    // With --qc_index, the checks also compare the SDRF with what the raw files show (prideQC)
+    ch_coverage = SDRF_COVERAGE(ch_sdrf.map { r -> record(pxd: r.pxd, sdrf: r.sdrf, qc: qcFiles(r.pxd, params.qc_index)) })
 
     // The reviewer gets the original request and the hand-off files, never the producer report
     ch_review = SDRF_REVIEW(
@@ -21,5 +23,5 @@ workflow SCORE_SDRF {
 
     emit:
     review = ch_review // records: pxd, sdrf, manifest, coverage, review
-    coverage = ch_coverage // records: pxd, coverage
+    coverage = ch_coverage.map { r -> record(pxd: r.pxd, coverage: r.coverage) } // records: pxd, coverage
 }

@@ -14,7 +14,7 @@ include { SCORE_SDRF as SCORE_BASELINE } from '../subworkflows/local/score_sdrf'
 include { REVIEW_REVISE } from '../subworkflows/local/review_revise'
 include { SUMMARISE_REVIEWS } from '../subworkflows/local/summarise_reviews'
 include { REFINE_DECISION } from '../subworkflows/local/refine_decision'
-include { isTrue ; readReview ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
+include { existingSdrf ; isTrue ; qcFiles ; readDeliverable ; readReview ; softwareVersionsToYAML } from '../subworkflows/local/utils_sdrf_agent'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,12 +23,14 @@ RUN MAIN WORKFLOW
 Annotate mode: annotate each PXD, then review and revise the SDRF.
 Refine mode (--refine): refine the existing SDRF of each PXD, review and revise it, and
 accept it only if it scores strictly better than the existing SDRF on the same review.
+Review-existing mode (--review_existing): review and revise the SDRF already in each row's
+`ref_dir` (an earlier annotate task's folder), without annotating again.
 ----------------------------------------------------------------------------------------
  */
 
 workflow SDRF_AGENTIC_ANNOTATOR {
     take:
-    ch_samplesheet // records: pxd, ref_sdrf (refine mode only, optional)
+    ch_samplesheet // records: pxd, ref_sdrf (refine mode, optional), ref_dir (review-existing mode)
 
     main:
     ch_annotated = channel.empty()
@@ -63,9 +65,43 @@ workflow SDRF_AGENTIC_ANNOTATOR {
         ch_refine_decision = REFINE_DECISION.out.decision
         ch_refine_verdict = REFINE_DECISION.out.verdict
     }
+    else if (isTrue(params.review_existing)) {
+        // Review an SDRF that is already annotated (the folder of an earlier annotate task, `ref_dir`):
+        // no annotate step; the review, revise and stamp steps are those of annotate mode.
+        ch_sdrf = ch_samplesheet
+            .filter { r -> r.ref_dir }
+            .map { r -> existingSdrf(r.pxd, r.ref_dir) }
+            .filter { m ->
+                if (!m.manifest) {
+                    log.warn("--review_existing: ${m.pxd} has no ${m.pxd}.evidence.json in its ref_dir; skipped")
+                }
+                m.manifest != null
+            }
+            .map { m -> record(pxd: m.pxd, sdrf: m.sdrf, manifest: m.manifest, validation: m.validation, report: m.report, samples: m.samples, technical: m.technical, evidence: m.evidence) }
+        REVIEW_REVISE(ch_sdrf, max_rounds)
+        SUMMARISE_REVIEWS(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.review_1, REVIEW_REVISE.out.review_2, REVIEW_REVISE.out.revised)
+        ch_summary = SUMMARISE_REVIEWS.out.summary
+        ch_reviewed = REVIEW_REVISE.out.reviewed
+        ch_revised = REVIEW_REVISE.out.revised
+        ch_revised_review = REVIEW_REVISE.out.revised_review
+        ch_coverage = REVIEW_REVISE.out.coverage
+        ch_final = SDRF_STAMP(REVIEW_REVISE.out.last_review.filter { r -> readReview(r.review).verdict == 'PASS' }.map { r -> record(pxd: r.pxd, sdrf: r.sdrf) })
+    }
     else {
         ch_pxd = ch_samplesheet.map { r -> r.pxd }
-        ch_start = isTrue(params.prefill) ? SDRF_PREFILL(ch_pxd) : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null) }
+        // The evidence sheet uses the ontology caches (--ontology_dir) and the corpus index (default: the bundled one)
+        ontology_dir = params.ontology_dir ? file(params.ontology_dir) : null
+        corpus_index = file(params.corpus_index ?: "${projectDir}/assets/corpus_index.tsv.gz")
+        // --skip_undeliverable: no SDRF of a deposit whose runs cannot be listed could pass the coverage audit
+        ch_start = isTrue(params.prefill)
+            ? SDRF_PREFILL(ch_pxd.map { pxd -> record(pxd: pxd, ontology_dir: ontology_dir, corpus_index: corpus_index, qc: qcFiles(pxd, params.qc_index)) }).filter { r ->
+                def d = readDeliverable(r.deliverable)
+                if (isTrue(params.skip_undeliverable) && !d.deliverable) {
+                    log.warn("--skip_undeliverable: ${r.pxd} skipped before annotation: ${d.reason}")
+                }
+                !isTrue(params.skip_undeliverable) || d.deliverable
+            }.map { r -> record(pxd: r.pxd, prefill: r.prefill, sheet: isTrue(params.sheet) ? r.sheet : null, prefetched: r.prefetched) }
+            : ch_pxd.map { pxd -> record(pxd: pxd, prefill: null, sheet: null, prefetched: null) }
         ch_sdrf = SDRF_ANNOTATE(ch_start)
         REVIEW_REVISE(ch_sdrf, max_rounds)
         SUMMARISE_REVIEWS(REVIEW_REVISE.out.reviewed, REVIEW_REVISE.out.review_1, REVIEW_REVISE.out.review_2, REVIEW_REVISE.out.revised)

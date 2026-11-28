@@ -1,0 +1,38 @@
+nextflow_function {
+
+    name "Read the deliverable check of SDRF_PREFILL"
+    script "subworkflows/local/utils_sdrf_agent/main.nf"
+    function "readDeliverable"
+    tag "unit"
+
+    test("an undeliverable deposit gives false and its reason") {
+        when { function { """
+            input[0] = file("${projectDir}/tests/data/deliverable/no.json")
+            """ } }
+        then {
+            assert function.success
+            assert function.result.deliverable == false
+            assert function.result.reason.contains('runs.rar')
+        }
+    }
+
+    test("a deliverable deposit gives true") {
+        when { function { """
+            input[0] = file("${projectDir}/tests/data/deliverable/yes.json")
+            """ } }
+        then {
+            assert function.success
+            assert function.result.deliverable == true
+        }
+    }
+
+    test("a missing or unreadable check never drops a dataset") {
+        when { function { """
+            input[0] = file("${projectDir}/tests/data/deliverable/bad.json")
+            """ } }
+        then {
+            assert function.success
+            assert function.result.deliverable == true
+        }
+    }
+}

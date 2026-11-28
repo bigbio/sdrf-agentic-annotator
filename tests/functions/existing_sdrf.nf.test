@@ -1,0 +1,63 @@
+nextflow_function {
+
+    name "Read an existing annotation folder for --review_existing"
+    script "subworkflows/local/utils_sdrf_agent/main.nf"
+    function "existingSdrf"
+    tag "unit"
+
+    test("a complete folder gives every file, the evidence folder included") {
+        when {
+            function {
+                """
+                input[0] = 'PXD000001'
+                input[1] = "${projectDir}/tests/data/existing/PXD000001"
+                """
+            }
+        }
+        then {
+            assert function.success
+            def r = function.result
+            assert r.pxd == 'PXD000001'
+            assert r.sdrf.toString().endsWith('existing/PXD000001/PXD000001.sdrf.tsv')
+            assert r.manifest.toString().endsWith('PXD000001.evidence.json')
+            assert r.validation.toString().endsWith('PXD000001.validation.txt')
+            assert r.samples.toString().endsWith('samples.tsv')
+            assert r.technical == null
+            assert r.report == null
+            assert r.evidence.toString().endsWith('existing/PXD000001/evidence')
+        }
+    }
+
+    test("a folder with only the SDRF gives nulls for the optional files and no manifest") {
+        when {
+            function {
+                """
+                input[0] = 'PXD000002'
+                input[1] = "${projectDir}/tests/data/existing/PXD000002"
+                """
+            }
+        }
+        then {
+            assert function.success
+            def r = function.result
+            assert r.sdrf.toString().endsWith('PXD000002.sdrf.tsv')
+            assert r.manifest == null
+            assert r.evidence == null
+        }
+    }
+
+    test("a folder without the SDRF fails with a message naming it") {
+        when {
+            function {
+                """
+                input[0] = 'PXD000003'
+                input[1] = "${projectDir}/tests/data/existing/PXD000003"
+                """
+            }
+        }
+        then {
+            assert function.failed
+            assert function.stdout.any { it.contains('PXD000003.sdrf.tsv') } || function.stderr.any { it.contains('PXD000003.sdrf.tsv') }
+        }
+    }
+}

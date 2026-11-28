@@ -1,0 +1,41 @@
+nextflow_process {
+
+    name "Test process SDRF_COVERAGE with prideQC files"
+    script "modules/local/sdrf_coverage/main.nf"
+    process "SDRF_COVERAGE"
+    tag "qc"  // fetches the PRIDE record of PXD052681 and runs sdrf-tools: needs the network and the runner container (-profile docker)
+
+    test("the QC section is appended when qc files are given") {
+        when {
+            process {
+                """
+                def qc = [file("${projectDir}/tests/data/qc/PXDQC01/1/annotations.tsv"), file("${projectDir}/tests/data/qc/PXDQC01/2/annotations.tsv"), file("${projectDir}/tests/data/qc/PXDQC01/3/annotations.tsv")] as Set
+                input[0] = record(pxd: 'PXD052681', sdrf: file("${projectDir}/tests/data/qc/PXD052681.sdrf.tsv"), qc: qc)
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert process.success },
+                { assert path(process.out[0][0].checks.toString()).text.contains('## Raw-file QC comparison') }
+            )
+        }
+    }
+
+    test("no QC section without qc files") {
+        when {
+            process {
+                """
+                def qc = [] as Set
+                input[0] = record(pxd: 'PXD052681', sdrf: file("${projectDir}/tests/data/qc/PXD052681.sdrf.tsv"), qc: qc)
+                """
+            }
+        }
+        then {
+            assertAll(
+                { assert process.success },
+                { assert !path(process.out[0][0].checks.toString()).text.contains('Raw-file QC') }
+            )
+        }
+    }
+}

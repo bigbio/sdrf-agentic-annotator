@@ -10,7 +10,10 @@
             "type": "object",
             "fa_icon": "fas fa-terminal",
             "description": "Define where the pipeline should find input data and save output data.",
-            "required": ["input", "outdir"],
+            "required": [
+                "input",
+                "outdir"
+            ],
             "properties": {
                 "input": {
                     "type": "string",
@@ -43,6 +46,16 @@
                     "description": "Model that the agents use, as `<provider>/<model>`.",
                     "fa_icon": "fas fa-brain"
                 },
+                "annotate_model": {
+                    "type": "string",
+                    "description": "Model of the annotate, revise and refine agents, as `<provider>/<model>` (default: `model`).",
+                    "fa_icon": "fas fa-brain"
+                },
+                "review_model": {
+                    "type": "string",
+                    "description": "Model of the review agent, as `<provider>/<model>` (default: `model`).",
+                    "fa_icon": "fas fa-brain"
+                },
                 "api_provider": {
                     "type": "string",
                     "default": "google",
@@ -55,6 +68,39 @@
                     "default": true,
                     "description": "Before the annotate agent, extract the facts the PRIDE record already states (organism, instrument, enzymes, labels, run files) with a non-agent step and give them to the agent.",
                     "fa_icon": "fas fa-list-check"
+                },
+                "sheet": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Give the annotate agent an evidence sheet built without a model.",
+                    "fa_icon": "fas fa-list"
+                },
+                "ontology_dir": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Folder of ontology label caches (`<name>.parquet` or `<name>.tsv` with accession, label, ontology) for the sheet's term matches.",
+                    "fa_icon": "fas fa-folder",
+                    "exists": true
+                },
+                "corpus_index": {
+                    "type": "string",
+                    "format": "file-path",
+                    "description": "Index of the annotated SDRF corpus (`bin/build_corpus_index.py`) for the sheet's similar SDRFs.",
+                    "fa_icon": "fas fa-file",
+                    "exists": true
+                },
+                "qc_index": {
+                    "type": "string",
+                    "format": "directory-path",
+                    "description": "Folder of `<PXD>.tsv` files, each listing the prideQC `annotations.tsv` files of that dataset (absolute or relative paths). The evidence sheet and the checks then show what the raw files contain and which SDRF values they contradict.",
+                    "fa_icon": "fas fa-microscope",
+                    "exists": true
+                },
+                "skip_undeliverable": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Skip, before annotation, a dataset whose runs cannot be listed from the PRIDE file list (runs only in .rar/.7z/.tar archives or in zips that cannot be read, or no run files), since the coverage of its SDRF could never be checked.",
+                    "fa_icon": "fas fa-filter"
                 },
                 "revise": {
                     "type": "boolean",
@@ -136,6 +182,12 @@
                     "default": false,
                     "description": "Run in refine mode: take the existing SDRF for each PXD (from the optional `ref_sdrf` path in the samplesheet, or fetched from bigbio/sdrf-annotated-datasets), refine it by seeded re-annotation, and only accept the refined version if it scores strictly better (verdict/confidence + coverage) on the same independent review. Otherwise keep the original.",
                     "fa_icon": "fas fa-edit"
+                },
+                "review_existing": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Review SDRFs that are already annotated instead of annotating: each samplesheet row gives `ref_dir`, the folder of an earlier annotate task (<pxd>.sdrf.tsv, <pxd>.evidence.json, ...). The review, revise and stamp steps are those of annotate mode.",
+                    "fa_icon": "fas fa-search"
                 }
             }
         },

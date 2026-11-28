@@ -14,13 +14,13 @@ workflow PIPELINE_INITIALISATION {
     validateParameters()
     log.info(paramsSummaryLog(workflow))
 
-    // samplesheetToList returns one list per row in schema column order (pxd, ref_sdrf), with
-    // ref_sdrf as a Path. An empty or absent ref_sdrf comes back as an empty list.
+    // samplesheetToList returns one list per row in schema column order (pxd, ref_sdrf, ref_dir),
+    // with ref_sdrf and ref_dir as Paths. An empty or absent column comes back as an empty list.
     ch_samplesheet = channel.fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
-        .map { row -> record(pxd: row[0] as String, ref_sdrf: row[1] ?: null) }
+        .map { row -> record(pxd: row[0] as String, ref_sdrf: row[1] ?: null, ref_dir: row[2] ?: null) }
 
     emit:
-    samplesheet = ch_samplesheet // records: pxd, ref_sdrf (Path or null, used only in refine mode)
+    samplesheet = ch_samplesheet // records: pxd, ref_sdrf (refine mode), ref_dir (review-existing mode); Path or null
 }
 
 /*
@@ -90,6 +90,59 @@ def readReview(review) {
     }
     def verdict = json.verdict ? (json.verdict as String).trim().toUpperCase() : 'FAIL'
     return [verdict: verdict, confidence: toConfidence(json.confidence)]
+}
+
+// The files of an existing annotation for --review_existing: a folder laid out like an annotate
+// task's output (<pxd>.sdrf.tsv, <pxd>.evidence.json, <pxd>.validation.txt, <pxd>.report.md,
+// samples.tsv, technical.tsv, evidence/). The SDRF is required; any other file that is missing is
+// null (the review needs the manifest, so the workflow skips a folder without one).
+def existingSdrf(pxd, dir) {
+    def d = file(dir as String)
+    def sdrf = d.resolve("${pxd}.sdrf.tsv")
+    if (!sdrf.exists()) {
+        error("--review_existing: ${sdrf} does not exist")
+    }
+    return [
+        pxd: pxd,
+        sdrf: sdrf,
+        manifest: fileIfExists(d, "${pxd}.evidence.json"),
+        validation: fileIfExists(d, "${pxd}.validation.txt"),
+        report: fileIfExists(d, "${pxd}.report.md"),
+        samples: fileIfExists(d, 'samples.tsv'),
+        technical: fileIfExists(d, 'technical.tsv'),
+        evidence: fileIfExists(d, 'evidence'),
+    ]
+}
+
+// The prideQC annotations.tsv files of a PXD, from `--qc_index`: a folder of <PXD>.tsv files, one file
+// path per line (absolute, or relative to the index folder). Paths that do not exist are dropped. An empty
+// set when there is no index or no list for the PXD, so the QC is optional per dataset.
+def qcFiles(pxd, indexDir) {
+    if (!indexDir) {
+        return [] as Set
+    }
+    def list = file(indexDir as String).resolve("${pxd}.tsv")
+    if (!list.exists()) {
+        return [] as Set
+    }
+    return list.readLines().collect { line -> line.trim() }.findAll { line -> line }.collect { line -> line.startsWith('/') ? file(line) : list.parent.resolve(line).normalize() }.findAll { f -> f.exists() } as Set
+}
+
+// The deliverable check of SDRF_PREFILL (bin/sdrf_deliverable.py): [deliverable: boolean, reason: string].
+// A missing or unreadable check counts as deliverable, so it never drops a dataset.
+def readDeliverable(path) {
+    try {
+        def json = new groovy.json.JsonSlurper().parseText(file(path as String).text)
+        return [deliverable: json.deliverable != false, reason: (json.reason ?: '') as String]
+    }
+    catch (_e: Exception) {
+        return [deliverable: true, reason: 'the check could not be read']
+    }
+}
+
+def fileIfExists(dir, name) {
+    def f = dir.resolve(name as String)
+    return f.exists() ? f : null
 }
 
 // Reviewer confidence as a number in 0..1, or -1 when it is missing or not a number in 0..1

@@ -1,0 +1,54 @@
+nextflow_function {
+
+    name "Find the prideQC files of a PXD in --qc_index"
+    script "subworkflows/local/utils_sdrf_agent/main.nf"
+    function "qcFiles"
+    tag "unit"
+
+    test("the files listed for the PXD, relative paths resolved against the index, missing ones dropped") {
+        when {
+            function {
+                """
+                input[0] = 'PXDQC01'
+                input[1] = "${projectDir}/tests/data/qc/index"
+                """
+            }
+        }
+        then {
+            assert function.success
+            def names = function.result.collect { f -> f.toString() }.sort()
+            assert names.size() == 3
+            assert names.every { n -> n.endsWith('annotations.tsv') && n.contains('tests/data/qc/PXDQC01/') }
+        }
+    }
+
+    test("a PXD with no list gives an empty set") {
+        when {
+            function {
+                """
+                input[0] = 'PXD999999'
+                input[1] = "${projectDir}/tests/data/qc/index"
+                """
+            }
+        }
+        then {
+            assert function.success
+            assert function.result.isEmpty()
+        }
+    }
+
+    test("no --qc_index gives an empty set") {
+        when {
+            function {
+                """
+                input[0] = 'PXDQC01'
+                input[1] = null
+                """
+            }
+        }
+        then {
+            assert function.success
+            assert function.result.isEmpty()
+        }
+    }
+}

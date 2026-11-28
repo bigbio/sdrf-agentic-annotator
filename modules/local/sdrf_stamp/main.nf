@@ -41,7 +41,11 @@ process SDRF_STAMP {
 
     script:
     """
-    sdrf_stamp.py ${sdrf} ${pxd}.sdrf.tsv ${workflow.manifest.version} ${pxd} ${pxd}.sample_names.tsv
+    # The input is staged as a link that can have the output's name: writing <pxd>.sdrf.tsv directly would
+    # rewrite the source SDRF through it. Write to a new file, remove the link (not its target), then rename.
+    sdrf_stamp.py ${sdrf} stamped.sdrf.tsv.tmp ${workflow.manifest.version} ${pxd} ${pxd}.sample_names.tsv
+    rm -f ${pxd}.sdrf.tsv
+    mv stamped.sdrf.tsv.tmp ${pxd}.sdrf.tsv
     parse_sdrf validate-sdrf --sdrf_file ${pxd}.sdrf.tsv --use_ols_cache_only > ${pxd}.stamp_validation.txt 2>&1 || { cat ${pxd}.stamp_validation.txt >&2; exit 1; }
     """
 }

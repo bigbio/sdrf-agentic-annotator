@@ -69,6 +69,28 @@ The `--revise` option applies to the refined version: if its first review fails,
 fixes it and it is re-reviewed before the gate, as in annotate mode. Refine mode revises at most
 once, whatever `--max_revise` is (unless it is `0`).
 
+## Review-existing mode
+
+Review-existing mode (`--review_existing`) reviews SDRFs that are already annotated, for example
+the output of a run that was stopped before its reviews ran, without annotating them again. Each
+samplesheet row gives `ref_dir`, the folder of an earlier annotate task:
+
+```csv
+pxd,ref_dir
+PXD074155,/data/results/run1/PXD074155
+```
+
+The folder holds `<PXD>.sdrf.tsv` and `<PXD>.evidence.json` (a row without the manifest is skipped
+with a warning), and optionally `<PXD>.validation.txt`, `<PXD>.report.md`, `samples.tsv`,
+`technical.tsv` and `evidence/`. The review, revise and stamp steps are those of annotate mode,
+so a passing SDRF ends in `final/` as usual:
+
+```bash
+nextflow run bigbio/sdrf-agentic-annotator -profile docker \
+    --input existing.csv --outdir <OUTDIR> --review_existing \
+    --api_provider google --model google/gemini-3.5-flash-lite
+```
+
 ## API keys and providers
 
 The agents talk to a language model through Nextflow's `pi` runner, which runs inside the
@@ -190,6 +212,22 @@ tasks (which auto-retry via `conf/base.config`):
 | ----------------------- | ------- | ---------------------------------------------------------------------------- |
 | `--exit_on_review_fail` | `false` | `true` makes the run exit non-zero when any dataset's final verdict is FAIL. |
 | `--fail_fast` | `false` | `true` stops the whole run when an agent task still fails after its retries. By default the task is skipped, logged as `Error is ignored`, and the other PXDs carry on; a PXD that was skipped before its first review has no row in `summary.tsv`. If a revise round wrote its files but its re-review was skipped, the row has the final verdict `NO_REVIEW` and `revised` `true`: the revised SDRF has no verdict, and `--exit_on_review_fail` counts it as not passed. If no PXD finishes its first review, the run fails with an error. |
+
+### Evidence sheet
+
+With `--prefill true` (default) and `--sheet true` (default), SDRF_PREFILL also writes `<pxd>.sheet.md`
+(`bin/sdrf_sheet.py`, no model): the Methods part of the manuscript, ontology labels found in it with their
+sentence, search settings found by pattern, the design read from the run file names, and similar SDRFs from the
+annotated corpus (`assets/corpus_index.tsv.gz`, rebuilt with `bin/build_corpus_index.py <corpus checkout> <out>`;
+`--corpus_index` uses another). `--ontology_dir` is a folder of ontology label caches (`<name>.parquet` or
+`<name>.tsv` with `accession`, `label`, `ontology`); without it the sheet uses the sdrf-pipelines caches of the
+runner image (`/opt/cache/sdrf-pipelines/ontologies`). The annotate agent starts from the sheet; the review agent does not see it.
+
+### A model per step
+
+`--annotate_model` sets the model of the annotate, revise and refine agents, and `--review_model` the model of the
+review agent; both default to `--model`. A model that is saturated then slows only its own step, and the reviewer can
+be a different model from the annotator. With a gateway, list every model you use in the `models.json` provider.
 
 ### Revise rounds and parallelism
 
