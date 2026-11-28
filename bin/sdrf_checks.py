@@ -16,6 +16,8 @@ import sys
 import tempfile
 from pathlib import Path
 
+import sdrf_identity
+
 TIMEOUT = 600
 
 
@@ -82,6 +84,7 @@ def report(sdrf, record=None, run=run_command, limit=6000):
         if len(text) > limit:
             text = text[:limit] + f"\n[cut: {len(text) - limit} more characters]"
         out += [f"## {name} (exit {code})", "", "```", text, "```", ""]
+    out.append(sdrf_identity.section(sdrf))
     return "\n".join(out)
 
 
